@@ -5,8 +5,10 @@ export default (sequelize) => {
     const ShowroomVehicle = sequelize.define("ShowroomVehicle", {
 
         id: {
-            type: DataTypes.STRING(50),
-            primaryKey: true
+            type: DataTypes.UUID,
+            primaryKey: true,
+            defaultValue: DataTypes.UUIDV4,
+            allowNull: false
         },
 
         name: DataTypes.STRING(100),

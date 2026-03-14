@@ -5,8 +5,10 @@ export default (sequelize) => {
     const SparePartsWarranty = sequelize.define("SparePartsWarranty", {
 
         id: {
-            type: DataTypes.STRING(50),
-            primaryKey: true
+            type: DataTypes.UUID,
+            primaryKey: true,
+            defaultValue: DataTypes.UUIDV4,
+            allowNull: false
         },
 
         start_date: DataTypes.INTEGER,

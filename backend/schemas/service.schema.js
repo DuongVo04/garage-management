@@ -5,8 +5,10 @@ export default (sequelize) => {
     const Service = sequelize.define("Service", {
 
         id: {
-            type: DataTypes.STRING(50),
-            primaryKey: true
+            type: DataTypes.UUID,
+            primaryKey: true,
+            defaultValue: DataTypes.UUIDV4,
+            allowNull: false
         },
 
         service_name: DataTypes.STRING(50),

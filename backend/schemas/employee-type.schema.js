@@ -5,8 +5,10 @@ export default (sequelize) => {
     const EmployeeType = sequelize.define("EmployeeType", {
 
         id: {
-            type: DataTypes.STRING(50),
-            primaryKey: true
+            type: DataTypes.UUID,
+            primaryKey: true,
+            defaultValue: DataTypes.UUIDV4,
+            allowNull: false
         },
 
         name: {
