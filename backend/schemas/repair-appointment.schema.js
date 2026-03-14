@@ -5,8 +5,10 @@ export default (sequelize) => {
     const RepairAppointment = sequelize.define("RepairAppointment", {
 
         id: {
-            type: DataTypes.STRING(50),
-            primaryKey: true
+            type: DataTypes.UUID,
+            primaryKey: true,
+            defaultValue: DataTypes.UUIDV4,
+            allowNull: false
         },
 
         created_date: DataTypes.DATE,

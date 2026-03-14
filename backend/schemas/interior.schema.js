@@ -1,21 +1,21 @@
 import { DataTypes } from "sequelize"
 
-export default (sequelize)=>{
+export default (sequelize) => {
 
-    const Interior = sequelize.define("Interior",{
+    const Interior = sequelize.define("Interior", {
 
-        seat_count:{
-            type:DataTypes.INTEGER,
-            primaryKey:true
+        seat_count: {
+            type: DataTypes.INTEGER,
+            primaryKey: true
         },
 
-        is_androidauto_applecarplay:DataTypes.BOOLEAN,
+        is_androidauto_applecarplay: DataTypes.BOOLEAN,
 
-        showroom_vehicle_id:DataTypes.STRING(50)
+        showroom_vehicle_id: DataTypes.STRING(50)
 
-    },{
-        tableName:"interior",
-        timestamps:false
+    }, {
+        tableName: "interior",
+        timestamps: false
     })
 
     return Interior

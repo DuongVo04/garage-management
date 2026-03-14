@@ -4,8 +4,10 @@ export default (sequelize) => {
     const Role = sequelize.define("Role", {
 
         id: {
-            type: DataTypes.STRING(50),
-            primaryKey: true
+            type: DataTypes.UUID,
+            primaryKey: true,
+            defaultValue: DataTypes.UUIDV4,
+            allowNull: false
         },
 
         name: {
@@ -13,7 +15,7 @@ export default (sequelize) => {
             unique: true
         },
 
-        description: DataTypes.TINYINT(1),
+        description: DataTypes.TEXT,
 
         is_deleted: DataTypes.TINYINT(1)
 

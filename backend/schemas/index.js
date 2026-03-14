@@ -76,7 +76,7 @@ const Voucher = VoucherModel(sequelize)
 ACCOUNT RELATION
 ========================
 */
-Role.hasMany(Account, {foreignKey: "role_id"})
+Role.hasMany(Account, { foreignKey: "role_id" })
 Account.hasOne(Employee, { foreignKey: "account_id" })
 Employee.belongsTo(Account, { foreignKey: "account_id" })
 

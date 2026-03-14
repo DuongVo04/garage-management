@@ -1,27 +1,29 @@
 import { DataTypes } from "sequelize"
 
-export default (sequelize)=>{
+export default (sequelize) => {
 
-    const RepairTicket = sequelize.define("RepairTicket",{
+    const RepairTicket = sequelize.define("RepairTicket", {
 
-        id:{
-            type:DataTypes.STRING(50),
-            primaryKey:true
+        id: {
+            type: DataTypes.UUID,
+            primaryKey: true,
+            defaultValue: DataTypes.UUIDV4,
+            allowNull: false
         },
 
-        created_date:DataTypes.DATE,
+        created_date: DataTypes.DATE,
 
-        completed_date:DataTypes.DATE,
+        completed_date: DataTypes.DATE,
 
-        service_id:DataTypes.STRING(50),
+        service_id: DataTypes.STRING(50),
 
-        appointment_id:DataTypes.STRING(50),
+        appointment_id: DataTypes.STRING(50),
 
-        customer_vehicle_id:DataTypes.STRING(50)
+        customer_vehicle_id: DataTypes.STRING(50)
 
-    },{
-        tableName:"repair_ticket",
-        timestamps:false
+    }, {
+        tableName: "repair_ticket",
+        timestamps: false
     })
 
     return RepairTicket
