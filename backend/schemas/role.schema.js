@@ -13,6 +13,8 @@ export default (sequelize) => {
             unique: true
         },
 
+        description: DataTypes.TINYINT(1),
+
         is_deleted: DataTypes.TINYINT(1)
 
 

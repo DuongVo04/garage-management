@@ -55,9 +55,10 @@ CREATE TABLE employee (
   employee_type_id varchar(50) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE employee_type (
-  id         varchar(50) NOT NULL, 
-  name       varchar(20), 
-  is_deleted tinyint(1) NOT NULL, 
+  id          varchar(50) NOT NULL, 
+  name        varchar(20), 
+  is_deleted  tinyint(1) NOT NULL, 
+  description text, 
   PRIMARY KEY (id));
 CREATE TABLE engine_technical_specification (
   engine_type         varchar(100) NOT NULL, 
@@ -112,9 +113,10 @@ CREATE TABLE repair_ticket (
   customer_vehicle_id varchar(50) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE role (
-  id         varchar(50) NOT NULL, 
-  name       varchar(20) NOT NULL UNIQUE, 
-  is_deleted tinyint(1) NOT NULL, 
+  id          varchar(50) NOT NULL, 
+  name        varchar(20) NOT NULL UNIQUE, 
+  is_deleted  tinyint(1) NOT NULL, 
+  description text NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE service (
   id           varchar(50) NOT NULL, 
