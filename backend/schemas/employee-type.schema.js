@@ -14,7 +14,7 @@ export default (sequelize) => {
             allowNull: false
         },
 
-        description: DataTypes.TINYINT(1),
+        description: DataTypes.TEXT,
 
         is_deleted: {
             type: DataTypes.TINYINT(1)

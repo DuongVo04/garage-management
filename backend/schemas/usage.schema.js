@@ -1,23 +1,23 @@
 import { DataTypes } from "sequelize"
 
-export default (sequelize)=>{
+export default (sequelize) => {
 
-    const Usage = sequelize.define("Usage",{
+    const Usage = sequelize.define("Usage", {
 
-        id:{
-            type:DataTypes.STRING(50),
-            primaryKey:true
+        id: {
+            type: DataTypes.STRING(50),
+            primaryKey: true
         },
 
-        quantity:DataTypes.INTEGER,
+        quantity: DataTypes.INTEGER,
 
-        usage_date:DataTypes.DATE,
+        usage_date: DataTypes.DATE,
 
-        spare_parts_id:DataTypes.STRING(50)
+        spare_parts_id: DataTypes.STRING(50)
 
-    },{
-        tableName:"usage",
-        timestamps:false
+    }, {
+        tableName: "usage",
+        timestamps: false
     })
 
     return Usage

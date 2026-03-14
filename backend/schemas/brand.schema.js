@@ -27,6 +27,6 @@ export default (sequelize) => {
         tableName: "brand",
         timestamps: false
     })
-    
+
     return Brand;
 }

@@ -1,27 +1,27 @@
 import { DataTypes } from "sequelize"
 
-export default (sequelize)=>{
+export default (sequelize) => {
 
-    const EngineTechnicalSpecification = sequelize.define("EngineTechnicalSpecification",{
+    const EngineTechnicalSpecification = sequelize.define("EngineTechnicalSpecification", {
 
-        id:{
-            type:DataTypes.STRING(50),
-            primaryKey:true
+        id: {
+            type: DataTypes.STRING(50),
+            primaryKey: true
         },
 
-        engine_type:DataTypes.STRING(100),
+        engine_type: DataTypes.STRING(100),
 
-        engine_capacity:DataTypes.STRING(50),
+        engine_capacity: DataTypes.STRING(50),
 
-        max_power:DataTypes.DOUBLE,
+        max_power: DataTypes.DOUBLE,
 
-        max_torque:DataTypes.STRING(50),
+        max_torque: DataTypes.STRING(50),
 
-        showroom_vehicle_id:DataTypes.STRING(50)
+        showroom_vehicle_id: DataTypes.STRING(50)
 
-    },{
-        tableName:"engine_technical_specification",
-        timestamps:false
+    }, {
+        tableName: "engine_technical_specification",
+        timestamps: false
     })
 
     return EngineTechnicalSpecification
