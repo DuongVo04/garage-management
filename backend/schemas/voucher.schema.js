@@ -1,0 +1,29 @@
+import { DataTypes } from "sequelize"
+
+export default (sequelize)=>{
+
+    const Voucher = sequelize.define("Voucher",{
+
+        id:{
+            type:DataTypes.STRING(50),
+            primaryKey:true
+        },
+
+        voucher_code:{
+            type:DataTypes.STRING(10),
+            unique:true
+        },
+
+        discount_date:DataTypes.DATE,
+
+        percent:DataTypes.INTEGER,
+
+        event:DataTypes.STRING(255)
+
+    },{
+        tableName:"voucher",
+        timestamps:false
+    })
+
+    return Voucher
+}

@@ -60,6 +60,7 @@ Garage Management System is a full‑stack web application designed to help gara
 garage-management/
 ├── backend/                # ExpressJS backend
 │   │── controllers/        # API controllers
+│   │── middlewares         # Intermediate function for request processing
 │   │── routes/             # API routes
 │   │── schemas/            # Database schemas
 │   │── utils/              # Helper funtion
