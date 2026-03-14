@@ -1,8 +1,8 @@
 import express from "express"
-import userRoutes from "./user.route.js"
+import roleRoutes from "./role.route.js"
 
-const router = express.Router()
+const router = express.Router();
 
-router.use("/users", userRoutes)
+router.use("/roles", roleRoutes);
 
-export default router
+export default router;

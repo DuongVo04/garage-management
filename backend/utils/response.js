@@ -1,9 +1,16 @@
-export const successResponse = (res, message, data = null, status = 200) => {
+export const response = (
+    res,
+    success,
+    message,
+    status,
+    data = null,
+    errors = null
+) => {
     return res.status(status).json({
-        success: true,
+        success,
         message,
         data,
-        errors: null,
+        errors,
         timestamp: new Date()
     });
 };
@@ -32,16 +39,6 @@ export const paginationResponse = (
             }
         },
         errors: null,
-        timestamp: new Date()
-    });
-};
-
-export const errorResponse = (res, message, errors = null, status = 500) => {
-    return res.status(status).json({
-        success: false,
-        message,
-        data: null,
-        errors,
         timestamp: new Date()
     });
 };

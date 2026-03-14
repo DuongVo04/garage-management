@@ -5,10 +5,11 @@ CREATE TABLE account (
   role_id   varchar(50) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE brand (
-  id       varchar(50) NOT NULL, 
-  name     varchar(100) NOT NULL, 
-  country  varchar(100) NOT NULL, 
-  logo_url varchar(255) NOT NULL, 
+  id         varchar(50) NOT NULL, 
+  name       varchar(100) NOT NULL, 
+  country    varchar(100) NOT NULL, 
+  logo_url   varchar(255) NOT NULL, 
+  is_deleted tinyint(1) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE car_return_appointment (
   id               varchar(50) NOT NULL, 
@@ -37,6 +38,7 @@ CREATE TABLE customer_vehicle (
   seats        int(2), 
   is_soild     tinyint(1), 
   brand_id     varchar(50) NOT NULL, 
+  is_deleted   tinyint(1) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE employee (
   id               varchar(50) NOT NULL, 
@@ -115,6 +117,7 @@ CREATE TABLE service (
   service_name varchar(50) NOT NULL, 
   description  text, 
   price        decimal(19, 0) NOT NULL, 
+  is_deleted   tinyint(1) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE showroom_vehicle (
   id          varchar(50) NOT NULL, 
@@ -127,6 +130,7 @@ CREATE TABLE showroom_vehicle (
   lastest_odo int(11), 
   thumbnail   varchar(255), 
   description text, 
+  is_deleted  tinyint(1) NOT NULL, 
   brand_id    varchar(50) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE showroom_vehicle_image (
