@@ -1,5 +1,6 @@
 import sequelize from "../database-connection.js"
 
+import RoleModel from "./role.schema.js"
 import AccountModel from "./account.schema.js"
 import EmployeeModel from "./employee.schema.js"
 import EmployeeTypeModel from "./employee-type.schema.js"
@@ -35,7 +36,7 @@ import VoucherModel from "./voucher.schema.js"
 
 
 // initialize models
-
+const Role = RoleModel(sequelize)
 const Account = AccountModel(sequelize)
 const Employee = EmployeeModel(sequelize)
 const EmployeeType = EmployeeTypeModel(sequelize)
@@ -75,10 +76,11 @@ const Voucher = VoucherModel(sequelize)
 ACCOUNT RELATION
 ========================
 */
-
+Role.hasMany(Account, {foreignKey: "role_id"})
 Account.hasOne(Employee, { foreignKey: "account_id" })
 Employee.belongsTo(Account, { foreignKey: "account_id" })
 
+Account.belongsTo(Role, { foreignKey: "role_id" })
 Account.hasOne(Customer, { foreignKey: "account_id" })
 Customer.belongsTo(Account, { foreignKey: "account_id" })
 
@@ -320,6 +322,7 @@ Invoice.belongsTo(Voucher, {
 export {
     sequelize,
 
+    Role,
     Account,
     Employee,
     EmployeeType,
