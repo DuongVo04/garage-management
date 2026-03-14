@@ -18,7 +18,9 @@ export default (sequelize)=>{
 
         percent:DataTypes.INTEGER,
 
-        event:DataTypes.STRING(255)
+        event:DataTypes.STRING(255),
+        
+        is_available: DataTypes.TINYINT(1),
 
     },{
         tableName:"voucher",

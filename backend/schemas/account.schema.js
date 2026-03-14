@@ -18,6 +18,10 @@ export default (sequelize) => {
             type: DataTypes.STRING(100)
         },
 
+        is_deleted: {
+            type: DataTypes.TINYINT(1)
+        },
+
         role_id: {
             type: DataTypes.STRING(50)
         }

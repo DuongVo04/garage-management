@@ -11,7 +11,10 @@ export default (sequelize) => {
         name: {
             type: DataTypes.STRING(20),
             unique: true
-        }
+        },
+
+        is_deleted: DataTypes.TINYINT(1)
+
 
     }, {
         tableName: "role",

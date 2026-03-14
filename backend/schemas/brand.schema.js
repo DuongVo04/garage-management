@@ -19,7 +19,9 @@ export default (sequelize) => {
 
         logo_url: {
             type: DataTypes.STRING(255)
-        }
+        },
+
+        is_deleted: DataTypes.TINYINT(1),
 
     }, {
         tableName: "brand",
