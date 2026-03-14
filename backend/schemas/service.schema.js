@@ -13,7 +13,9 @@ export default (sequelize)=>{
 
         describe:DataTypes.STRING(50),
 
-        price:DataTypes.DECIMAL(19,0)
+        price:DataTypes.DECIMAL(19,0),
+        
+        is_deleted: DataTypes.TINYINT(1)
 
     },{
         tableName:"service",

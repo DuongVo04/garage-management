@@ -1,14 +1,16 @@
 CREATE TABLE account (
-  id        varchar(50) NOT NULL, 
-  user_name varchar(100) NOT NULL UNIQUE, 
-  password  varchar(100) NOT NULL, 
-  role_id   varchar(50) NOT NULL, 
+  id         varchar(50) NOT NULL, 
+  user_name  varchar(100) NOT NULL UNIQUE, 
+  password   varchar(100) NOT NULL, 
+  role_id    varchar(50) NOT NULL, 
+  is_deleted tinyint(1) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE brand (
-  id       varchar(50) NOT NULL, 
-  name     varchar(100) NOT NULL, 
-  country  varchar(100) NOT NULL, 
-  logo_url varchar(255) NOT NULL, 
+  id         varchar(50) NOT NULL, 
+  name       varchar(100) NOT NULL, 
+  country    varchar(100) NOT NULL, 
+  logo_url   varchar(255) NOT NULL, 
+  is_deleted tinyint(1) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE car_return_appointment (
   id               varchar(50) NOT NULL, 
@@ -32,11 +34,12 @@ CREATE TABLE customer_vehicle (
   lastest_odo  int(11) NOT NULL, 
   year         int(5) NOT NULL, 
   image        varchar(255), 
+  is_deleted   tinyint(1) NOT NULL, 
   customer_id  varchar(50), 
+  brand_id     varchar(50) NOT NULL, 
   origin       varchar(20), 
   seats        int(2), 
   is_soild     tinyint(1), 
-  brand_id     varchar(50) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE employee (
   id               varchar(50) NOT NULL, 
@@ -52,8 +55,9 @@ CREATE TABLE employee (
   employee_type_id varchar(50) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE employee_type (
-  id   varchar(50) NOT NULL, 
-  name varchar(20), 
+  id         varchar(50) NOT NULL, 
+  name       varchar(20), 
+  is_deleted tinyint(1) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE engine_technical_specification (
   engine_type         varchar(100) NOT NULL, 
@@ -85,6 +89,7 @@ CREATE TABLE repair_appointment (
   id               varchar(50) NOT NULL, 
   created_date     datetime NULL, 
   appointment_date datetime NOT NULL, 
+  status           varchar(20) NOT NULL, 
   customer_id      varchar(50) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE repair_detail (
@@ -107,14 +112,16 @@ CREATE TABLE repair_ticket (
   customer_vehicle_id varchar(50) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE role (
-  id   varchar(50) NOT NULL, 
-  name varchar(20) NOT NULL UNIQUE, 
+  id         varchar(50) NOT NULL, 
+  name       varchar(20) NOT NULL UNIQUE, 
+  is_deleted tinyint(1) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE service (
   id           varchar(50) NOT NULL, 
   service_name varchar(50) NOT NULL, 
   description  text, 
   price        decimal(19, 0) NOT NULL, 
+  is_deleted   tinyint(1) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE showroom_vehicle (
   id          varchar(50) NOT NULL, 
@@ -127,6 +134,7 @@ CREATE TABLE showroom_vehicle (
   lastest_odo int(11), 
   thumbnail   varchar(255), 
   description text, 
+  is_deleted  tinyint(1) NOT NULL, 
   brand_id    varchar(50) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE showroom_vehicle_image (
@@ -173,6 +181,7 @@ CREATE TABLE voucher (
   discount_date date NOT NULL, 
   `percent`     int(11) NOT NULL, 
   event         varchar(255) NOT NULL, 
+  is_available  tinyint(1) NOT NULL, 
   PRIMARY KEY (id));
 ALTER TABLE customer_vehicle ADD CONSTRAINT FKcustomer_v65266 FOREIGN KEY (customer_id) REFERENCES customer (id);
 ALTER TABLE invoice ADD CONSTRAINT FKinvoice945694 FOREIGN KEY (discount_id) REFERENCES voucher (id);

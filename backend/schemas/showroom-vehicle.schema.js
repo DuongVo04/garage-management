@@ -1,37 +1,39 @@
 import { DataTypes } from "sequelize"
 
-export default (sequelize)=>{
+export default (sequelize) => {
 
-    const ShowroomVehicle = sequelize.define("ShowroomVehicle",{
+    const ShowroomVehicle = sequelize.define("ShowroomVehicle", {
 
-        id:{
-            type:DataTypes.STRING(50),
-            primaryKey:true
+        id: {
+            type: DataTypes.STRING(50),
+            primaryKey: true
         },
 
-        name:DataTypes.STRING(100),
+        name: DataTypes.STRING(100),
 
-        year:DataTypes.INTEGER,
+        year: DataTypes.INTEGER,
 
-        old_price:DataTypes.DECIMAL(19,0),
+        old_price: DataTypes.DECIMAL(19, 0),
 
-        new_price:DataTypes.DECIMAL(19,0),
+        new_price: DataTypes.DECIMAL(19, 0),
 
-        status:DataTypes.BOOLEAN,
+        status: DataTypes.BOOLEAN,
 
-        color:DataTypes.STRING(10),
+        color: DataTypes.STRING(10),
 
-        is_latest_od:DataTypes.INTEGER,
+        is_latest_od: DataTypes.INTEGER,
 
-        thumbnail:DataTypes.STRING(255),
+        thumbnail: DataTypes.STRING(255),
 
-        description:DataTypes.STRING(255),
+        description: DataTypes.STRING(255),
 
-        brand_id:DataTypes.STRING(50)
+        is_deleted: DataTypes.TINYINT(1),
 
-    },{
-        tableName:"showroom_vehicle",
-        timestamps:false
+        brand_id: DataTypes.STRING(50)
+
+    }, {
+        tableName: "showroom_vehicle",
+        timestamps: false
     })
 
     return ShowroomVehicle
