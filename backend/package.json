@@ -3,6 +3,7 @@
   "dependencies": {
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
+    "express-validator": "^7.3.1",
     "mysql2": "^3.19.1",
     "sequelize": "^6.37.8"
   },
@@ -12,4 +13,4 @@
   "scripts": {
     "dev": "nodemon app.js"
   }
-} 
+}
