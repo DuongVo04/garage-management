@@ -11,7 +11,7 @@ export default (sequelize) => {
             allowNull: false
         },
 
-        user_name: {
+        username: {
             type: DataTypes.STRING(100),
             unique: true
         },
@@ -20,7 +20,7 @@ export default (sequelize) => {
             type: DataTypes.STRING(100)
         },
 
-        is_deleted: {
+        is_activated: {
             type: DataTypes.TINYINT(1)
         },
 
