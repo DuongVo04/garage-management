@@ -1,9 +1,9 @@
 CREATE TABLE account (
   id         varchar(50) NOT NULL, 
-  user_name  varchar(100) NOT NULL UNIQUE, 
+  username  varchar(100) NOT NULL UNIQUE, 
   password   varchar(100) NOT NULL, 
   role_id    varchar(50) NOT NULL, 
-  is_deleted tinyint(1) NOT NULL, 
+  is_activated tinyint(1) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE brand (
   id         varchar(50) NOT NULL, 
@@ -50,7 +50,6 @@ CREATE TABLE employee (
   salary           decimal(19, 0), 
   work_start_date  date NOT NULL, 
   is_working       tinyint(1) NOT NULL, 
-  accountuser_name varchar(100) NOT NULL, 
   account_id       varchar(50) NOT NULL, 
   employee_type_id varchar(50) NOT NULL, 
   PRIMARY KEY (id));

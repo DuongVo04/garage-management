@@ -1,6 +1,8 @@
 import express from 'express'
+import cors from 'cors'
+import cookieParser from 'cookie-parser'
 import { sequelize } from "./schemas/index.js"
-import { errorHandler } from "./middlewares/error.middleware.js";
+import { errorHandler } from "./middlewares/error.middleware.js"
 
 import v1Routes from "./routes/v1/index.js"
 
@@ -13,6 +15,8 @@ const app = express();
 const port = 3000;
 
 app.use(express.json());
+app.use(cookieParser());
+app.use(cors());
 
 app.listen(3000, () => {
     console.log(`Server running, port${port}`);
