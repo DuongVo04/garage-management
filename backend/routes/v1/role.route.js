@@ -1,11 +1,5 @@
 import express from 'express'
-import {
-    createRole,
-    getAllRoles,
-    getById,
-    updateRole,
-    deleteRole
-} from '../../controllers/role.controller.js'
+import { roleController } from "../../controllers/role.controller.js";
 import { validate } from '../../middlewares/validation.middleware.js'
 import { verifyToken, authorize } from "../../middlewares/auth.middleware.js"
 import roleValidator from '../../validators/role.validator.js'
@@ -17,7 +11,7 @@ const router = express.Router()
 router.get("/",
     verifyToken,
     authorize(["ADMIN"]),
-    getAllRoles
+    roleController.getAll
 );
 
 router.get("/:id",
@@ -25,7 +19,7 @@ router.get("/:id",
     authorize(["ADMIN"]),
     paramsIdValidator(),
     validate,
-    getById
+    roleController.getById
 );
 
 router.post("/",
@@ -33,7 +27,7 @@ router.post("/",
     authorize(["ADMIN"]),
     roleValidator,
     validate,
-    createRole
+    roleController.create
 );
 
 router.put("/:id",
@@ -42,14 +36,14 @@ router.put("/:id",
     paramsIdValidator(),
     roleValidator,
     validate,
-    updateRole
+    roleController.update
 );
 
 router.delete("/:id",
     verifyToken,
     authorize(["ADMIN"]),
     paramsIdValidator(),
-    deleteRole
+    roleController.delete
 );
 
 export default router

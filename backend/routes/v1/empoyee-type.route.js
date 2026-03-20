@@ -1,12 +1,6 @@
 import express from "express";
 import { validate } from "../../middlewares/validation.middleware.js"
-import {
-    createEmployeeType,
-    deletEmployeeType,
-    getAllEmployeeType,
-    getById,
-    updateEmployeeType
-} from "../../controllers/empoyee-type.controller.js";
+import { employeeTypeController } from "../../controllers/empoyee-type.controller.js";
 import { authorize, verifyToken } from "../../middlewares/auth.middleware.js";
 import { paramsIdValidator } from "../../validators/id.validator.js";
 import empoyeeTypeValidator from "../../validators/empoyee-type.validator.js";
@@ -16,7 +10,7 @@ const router = express.Router();
 router.get("/",
     verifyToken,
     authorize(["ADMIN"]),
-    getAllEmployeeType
+    employeeTypeController.getAll
 );
 
 router.get("/:id",
@@ -24,14 +18,14 @@ router.get("/:id",
     authorize(["ADMIN"]),
     paramsIdValidator(),
     validate,
-    getById
+    employeeTypeController.getById
 );
 
 router.post("/",
     verifyToken,
     authorize(["ADMIN"]),
     validate,
-    createEmployeeType
+    employeeTypeController.create
 );
 
 router.put("/:id",
@@ -40,14 +34,14 @@ router.put("/:id",
     paramsIdValidator(),
     empoyeeTypeValidator,
     validate,
-    updateEmployeeType
+    employeeTypeController.update
 );
 
 router.delete("/:id",
     verifyToken,
     authorize(["ADMIN"]),
     paramsIdValidator(),
-    deletEmployeeType
+    employeeTypeController.delete
 );
 
 export default router;

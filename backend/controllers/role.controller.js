@@ -1,112 +1,35 @@
-import { response } from "../utils/response.js"
-import { Role } from "../schemas/index.js"
+import { Role } from "../schemas/index.js";
+import { baseCRUD } from "../utils/baseCRUD.js";
+import { response } from "../utils/response.js";
 
+const base = baseCRUD(Role, {
+    modelName: "Role",
+    uniqueFields: ["name"],
+    defaultValues: { is_deleted: false }
+});
 
-const getAllRoles = async (req, res, next) => {
-    try {
-        const roles = await Role.findAll({
-            where: {
-                is_deleted: false
-            }
-        });
-
-        return response(res, true, "Get roles successfully", 200, roles)
-    } catch (error) {
-        next(error);
-    }
-}
-
-const getById = async (req, res, next) => {
+const deleteRole = async (req, res, next) => {
     try {
         const { id } = req.params;
 
-        const role = await Role.findOne({
-            where: {
-                id: id,
-                is_deleted: false
-            }
-        });
+        const role = await Role.findByPk(id);
 
         if (!role) {
             return response(res, false, "Role not found", 404);
         }
 
-        return response(res, true, "Role has been found", 200, role);
-
-    } catch (error) {
-        next(error);
-    }
-}
-
-const createRole = async (req, res, next) => {
-    try {
-        const { name, description } = req.body;
-
-        const existingRole = await Role.findOne({
-            where: {
-                name,
-                is_deleted: false
-            }
-        });
-        if (existingRole) {
-            return response(res, false, "Exsted role", 409);
+        if (role.name === "ADMIN") {
+            return response(res, false, "Cannot delete admin role", 403);
         }
 
-        const newRole = await Role.create({ name, description, is_deleted: false });
-        return response(res, true, "Create role successfully", 201, newRole);
-
-    } catch (error) {
-        next(error);
-    }
-}
-
-const updateRole = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-
-        const [count] = await Role.update(
-            { ...req.body, is_deleted: false },
-            { where: { id } }
-        );
-
-        if (count === 0) {
-            return response(res, false, "Role not found or no change", 404);
-        }
-
-        const updatedRole = await Role.findByPk(id);
-
-        return response(res, true, "Updated successfully", 200, updatedRole);
+        return base.delete(req, res, next);
 
     } catch (error) {
         next(error);
     }
 };
 
-const deleteRole = async (req, res, next) => {
-    try {
-
-        const { id } = req.params;
-
-        const count = await Role.update(
-            { is_deleted: true },
-            { where: { id } }
-        );
-        if (!count) {
-            return response(res, false, "Role not found", 404);
-        }
-
-        return response(res, true, "Role deleted", 200);
-
-    } catch (error) {
-        next(error);
-    }
-}
-
-export {
-    getAllRoles,
-    getById,
-    createRole,
-    updateRole,
-    deleteRole,
-
+export const roleController = {
+    ...base,
+    delete: deleteRole
 };
