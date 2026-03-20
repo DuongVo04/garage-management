@@ -1,15 +1,8 @@
-import { body } from 'express-validator'
+import { descriptionValidator, nameValidator } from './common.validator.js';
 
 const roleValidator = [
-    body("name")
-        .notEmpty().withMessage("Name is required")
-        .bail()
-        .isLength({ min: 3, max: 50 }).withMessage("Name must be between 3 and 50 characters"),
-
-    body("description")
-        .optional()
-        .isLength({ max: 255 })
-        .withMessage("Description max 255 characters")
+    nameValidator,
+    descriptionValidator
 ]
 
 export default roleValidator;

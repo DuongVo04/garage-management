@@ -20,3 +20,12 @@ export const passwordValidator = (field) => body(field)
         minSymbols: 0
     }).withMessage("Password must be at least 6 characters and include uppercase, lowercase and number")
 
+export const nameValidator = body("name")
+        .notEmpty().withMessage("Name is required")
+        .bail()
+        .isLength({ min: 3, max: 50 }).withMessage("Name must be between 3 and 20 characters")
+
+export const descriptionValidator = body("description")
+        .optional()
+        .isLength({ max: 255 })
+        .withMessage("Description max 255 characters")

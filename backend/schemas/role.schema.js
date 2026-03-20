@@ -21,6 +21,9 @@ export default (sequelize) => {
 
 
     }, {
+        defaultScope: {
+            attributes: { exclude: ['is_deleted'] }
+        },
         tableName: "role",
         timestamps: false
     })

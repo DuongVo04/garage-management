@@ -64,16 +64,18 @@ const updateRole = async (req, res, next) => {
     try {
         const { id } = req.params;
 
-        const [count, [updatedRole]] = await Role.update(
+        const [count] = await Role.update(
             { ...req.body, is_deleted: false },
-            { where: { id }, returning: true }
+            { where: { id } }
         );
 
-        if (!count) {
-            return response(res, false, "Role not found", 404);
+        if (count === 0) {
+            return response(res, false, "Role not found or no change", 404);
         }
 
-        return response(res, true, "Role updated", 200, updatedRole);
+        const updatedRole = await Role.findByPk(id);
+
+        return response(res, true, "Updated successfully", 200, updatedRole);
 
     } catch (error) {
         next(error);
