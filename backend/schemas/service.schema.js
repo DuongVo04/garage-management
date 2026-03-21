@@ -11,7 +11,7 @@ export default (sequelize) => {
             allowNull: false
         },
 
-        service_name: DataTypes.STRING(50),
+        name: DataTypes.STRING(50),
 
         description: DataTypes.STRING(50),
 

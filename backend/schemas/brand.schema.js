@@ -12,7 +12,8 @@ export default (sequelize) => {
         },
 
         name: {
-            type: DataTypes.STRING(100)
+            type: DataTypes.STRING(100),
+            unique: true
         },
 
         country: {
