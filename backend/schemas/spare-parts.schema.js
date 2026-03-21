@@ -1,25 +1,28 @@
 import { DataTypes } from "sequelize"
-import sequelize from "../database-connection.js"
 
-export default (sequelize) => {
+export default (sequelize)=>{
 
-    const SpareParts = sequelize.define("SpareParts", {
+    const SpareParts = sequelize.define("SpareParts",{
 
-        id: {
-            type: DataTypes.UUID,
-            primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
-            allowNull: false
+        id:{
+            type:DataTypes.STRING(50),
+            primaryKey:true
         },
 
-        name: {
-            type: DataTypes.STRING(20),
-            unique: true
-        }
+        spare_parts_name:DataTypes.STRING(50),
 
-    }, {
-        tableName: "role",
-        timestamps: false
+        quantity_in_stock:DataTypes.INTEGER,
+
+        unit_price:DataTypes.DECIMAL,
+
+        unit_of_measure:DataTypes.STRING(100),
+
+        image:DataTypes.STRING(255)
+
+    },{
+        tableName:"spare_parts",
+        timestamps:false
     })
+
     return SpareParts
 }
