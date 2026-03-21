@@ -1,7 +1,7 @@
 import { body } from "express-validator";
 
 export const usernameValidator = body("username")
-    .isLength({ min: 3, max: 20 }).withMessage("Name must be between 3 and 20 characters")
+    .isLength({ min: 3, max: 100 }).withMessage("Name must be between 3 and 100 characters")
     .bail()
     .notEmpty().withMessage("User name is required")
     .bail()
@@ -23,7 +23,7 @@ export const passwordValidator = (field) => body(field)
 export const nameValidator = body("name")
         .notEmpty().withMessage("Name is required")
         .bail()
-        .isLength({ min: 3, max: 50 }).withMessage("Name must be between 3 and 20 characters")
+        .isLength({ min: 3, max: 50 }).withMessage("Name must be between 3 and 50 characters")
 
 export const descriptionValidator = body("description")
         .optional()
