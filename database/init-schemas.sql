@@ -146,7 +146,7 @@ CREATE TABLE showroom_vehicle_image (
   PRIMARY KEY (id));
 CREATE TABLE spare_parts (
   id                varchar(50) NOT NULL, 
-  name              varchar(50) NOT NULL UNIQUE, 
+  name              varchar(100) NOT NULL UNIQUE, 
   quantity_in_stock int(11) NOT NULL, 
   unit_price        decimal(19, 0), 
   unit_of_measure   varchar(100), 

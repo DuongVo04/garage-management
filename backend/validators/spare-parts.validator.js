@@ -1,8 +1,8 @@
 import { body } from "express-validator";
-import { nameValidator } from "./common.validator.js";
+import { nameValidator, priceValidator } from "./common.validator.js";
 
 const sparePartsValidator = [
-    nameValidator,
+    nameValidator(3, 100),
 
     body("quantity_in_stock")
         .notEmpty().withMessage("Quantity in stock can required")
@@ -11,10 +11,7 @@ const sparePartsValidator = [
         .bail()
         .isInt({ min: 1 }).withMessage("Price must be greater than 0"),
 
-    body("unit_price")
-        .isNumeric().withMessage("must be of numeric type")
-        .bail()
-        .isInt({ min: 1 }).withMessage("Price must be greater than 0"),
+    priceValidator("unit_price")
 ]
 
 export default sparePartsValidator;

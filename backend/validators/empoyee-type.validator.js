@@ -1,7 +1,7 @@
 import { descriptionValidator, nameValidator } from "./common.validator.js";
 
 const empoyeeTypeValidator = [
-    nameValidator,
+    nameValidator(3, 20),
     descriptionValidator,
 ]
 

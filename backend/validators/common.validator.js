@@ -23,10 +23,10 @@ export const passwordValidator = (field) => body(field)
         minSymbols: 0
     }).withMessage("Password must be at least 6 characters and include uppercase, lowercase and number")
 
-export const nameValidator = body("name")
+export const nameValidator = (minLen = 1, maxLen = 20) => body("name")
     .notEmpty().withMessage("Name is required")
     .bail()
-    .isLength({ min: 3, max: 50 }).withMessage("Name must be between 3 and 50 characters")
+    .isLength({ min: minLen, max: maxLen }).withMessage(`Name must be between ${minLen} and ${maxLen} characters`)
 
 export const descriptionValidator = body("description")
     .optional()
@@ -47,3 +47,8 @@ export const dateValidator = (field, label = "Date") => {
             return dayjs(value).toDate();
         });
 };
+
+export const priceValidator = (feild) => body(feild)
+        .isNumeric().withMessage("Must be of numeric type")
+        .bail()
+        .isInt({ min: 1 }).withMessage("Price must be greater than 0");

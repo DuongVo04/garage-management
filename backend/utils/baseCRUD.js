@@ -15,24 +15,20 @@ export const baseCRUD = (Model, options = {}) => {
         uniqueFields = [],
         defaultValues = {},
         exclude = [],
+        customFilter = null,
     } = options;
 
     const controller = {
         getAll: async (req, res, next) => {
             try {
+
                 const data = await Model.findAll({
-                    where: {
-                        ...getDefaultFilter(Model)
-                    }
+                    where: customFilter
+                        ? customFilter(req)
+                        : getDefaultFilter(Model)
                 });
 
-                return response(
-                    res,
-                    true,
-                    `Get ${modelName.toLowerCase()}s successfully`,
-                    200,
-                    data
-                );
+                return response(res, true, `Get ${modelName.toLowerCase()}s successfully`, 200, data);
             } catch (error) {
                 next(error);
             }

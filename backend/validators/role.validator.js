@@ -1,8 +1,8 @@
 import { descriptionValidator, nameValidator } from './common.validator.js';
 
 const roleValidator = [
-    nameValidator,
-    descriptionValidator
+    nameValidator(2, 20),
+    descriptionValidator,
 ]
 
 export default roleValidator;
