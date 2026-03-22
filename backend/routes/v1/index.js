@@ -7,6 +7,7 @@ import employeeRoutes from "./empoyee-type.route.js"
 import sparePartsRoutes from "./spare-parts.route.js"
 import voucherRoutes from "./voucher.route.js"
 import brandRoutes from "./brand.route.js"
+import serviceRoutes from "./service.route.js"
 
 
 const router = express.Router();
@@ -19,5 +20,6 @@ router.use("/employee-types", employeeRoutes);
 router.use("/spare-parts", sparePartsRoutes);
 router.use("/vouchers", voucherRoutes);
 router.use("/brands", brandRoutes);
+router.use("/services", serviceRoutes)
 
 export default router;
