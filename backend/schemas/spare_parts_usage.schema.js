@@ -2,7 +2,7 @@ import { DataTypes } from "sequelize"
 
 export default (sequelize) => {
 
-    const Usage = sequelize.define("Usage", {
+    const SparePartsUsage = sequelize.define("SparePartsUsage", {
 
         id: {
             type: DataTypes.UUID,
@@ -13,14 +13,14 @@ export default (sequelize) => {
 
         quantity: DataTypes.INTEGER,
 
-        usage_date: DataTypes.DATE,
+        usage_date: DataTypes.DATEONLY,
 
         spare_parts_id: DataTypes.STRING(50)
 
     }, {
-        tableName: "usage",
+        tableName: "spare_parts_usage",
         timestamps: false
     })
 
-    return Usage
+    return SparePartsUsage
 }

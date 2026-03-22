@@ -4,19 +4,25 @@ import { response } from "./response.js";
  * @param {Model} Model - Sequelize model
  * @param {Object} options - custom config
  */
+const getDefaultFilter = (Model) => {
+    if (Model.rawAttributes.is_deleted) return { is_deleted: false };
+    if (Model.rawAttributes.is_available) return { is_available: true };
+    return {};
+};
 export const baseCRUD = (Model, options = {}) => {
     const {
         modelName = "Item",
         uniqueFields = [],
         defaultValues = {},
+        exclude = [],
     } = options;
 
-    return {
+    const controller = {
         getAll: async (req, res, next) => {
             try {
                 const data = await Model.findAll({
                     where: {
-                        ...(Model.rawAttributes.is_deleted && { is_deleted: false })
+                        ...getDefaultFilter(Model)
                     }
                 });
 
@@ -31,7 +37,6 @@ export const baseCRUD = (Model, options = {}) => {
                 next(error);
             }
         },
-
         getById: async (req, res, next) => {
             try {
                 const { id } = req.params;
@@ -39,7 +44,7 @@ export const baseCRUD = (Model, options = {}) => {
                 const data = await Model.findOne({
                     where: {
                         id,
-                        ...(Model.rawAttributes.is_deleted && { is_deleted: false })
+                        ...getDefaultFilter(Model)
                     }
                 });
 
@@ -72,7 +77,7 @@ export const baseCRUD = (Model, options = {}) => {
                     const existing = await Model.findOne({
                         where: {
                             ...where,
-                            ...(Model.rawAttributes.is_deleted && { is_deleted: false })
+                            ...getDefaultFilter(Model)
                         }
                     });
 
@@ -110,7 +115,7 @@ export const baseCRUD = (Model, options = {}) => {
                 const [count] = await Model.update(
                     {
                         ...req.body,
-                        ...(Model.rawAttributes.is_deleted && { is_deleted: false })
+                        ...getDefaultFilter(Model)
                     },
                     { where: { id } }
                 );
@@ -142,11 +147,31 @@ export const baseCRUD = (Model, options = {}) => {
             try {
                 const { id } = req.params;
 
+                let updateData = null;
+
+                if (Model.rawAttributes.is_deleted) {
+                    updateData = { is_deleted: true };
+                } else if (Model.rawAttributes.is_available) {
+                    updateData = { is_available: false };
+                } else {
+                    return response(
+                        res,
+                        false,
+                        `${modelName} does not support delete`,
+                        400
+                    );
+                }
+
+                const defaultFilter = getDefaultFilter(Model);
+
                 const [count] = await Model.update(
-                    Model.rawAttributes.is_deleted
-                        ? { is_deleted: true }
-                        : {},
-                    { where: { id } }
+                    updateData,
+                    {
+                        where: {
+                            id,
+                            ...defaultFilter
+                        }
+                    }
                 );
 
                 if (!count) {
@@ -168,5 +193,11 @@ export const baseCRUD = (Model, options = {}) => {
                 next(error);
             }
         },
-    };
+    }
+
+    exclude.forEach((key) => {
+        delete controller[key];
+    });
+
+    return controller;
 };

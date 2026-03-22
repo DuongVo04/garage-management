@@ -27,7 +27,7 @@ import RepairAppointmentModel from "./repair-appointment.schema.js"
 import CarReturnAppointmentModel from "./car-return-appointment.schema.js"
 
 import SparePartsModel from "./spare-parts.schema.js"
-import UsageModel from "./usage.schema.js"
+import SparePartsUsageModel from "./spare_parts_usage.schema.js"
 import SparePartsWarrantyModel from "./spare-parts-warranty.schema.js"
 
 import InvoiceModel from "./invoice.schema.js"
@@ -63,7 +63,7 @@ const RepairAppointment = RepairAppointmentModel(sequelize)
 const CarReturnAppointment = CarReturnAppointmentModel(sequelize)
 
 const SpareParts = SparePartsModel(sequelize)
-const Usage = UsageModel(sequelize)
+const SparePartsUsage = SparePartsUsageModel(sequelize)
 const SparePartsWarranty = SparePartsWarrantyModel(sequelize)
 
 const Invoice = InvoiceModel(sequelize)
@@ -243,11 +243,11 @@ RepairDetail.belongsTo(Employee, {
 })
 
 
-RepairDetail.belongsTo(Usage, {
+RepairDetail.belongsTo(SparePartsUsage, {
     foreignKey: "usage_id"
 })
 
-Usage.hasMany(RepairDetail, {
+SparePartsUsage.hasMany(RepairDetail, {
     foreignKey: "usage_id"
 })
 
@@ -259,20 +259,20 @@ SPARE PARTS
 ========================
 */
 
-SpareParts.hasMany(Usage, {
+SpareParts.hasMany(SparePartsUsage, {
     foreignKey: "spare_parts_id"
 })
 
-Usage.belongsTo(SpareParts, {
+SparePartsUsage.belongsTo(SpareParts, {
     foreignKey: "spare_parts_id"
 })
 
 
-Usage.hasOne(SparePartsWarranty, {
+SparePartsUsage.hasOne(SparePartsWarranty, {
     foreignKey: "usage_id"
 })
 
-SparePartsWarranty.belongsTo(Usage, {
+SparePartsWarranty.belongsTo(SparePartsUsage, {
     foreignKey: "usage_id"
 })
 
@@ -349,7 +349,7 @@ export {
     CarReturnAppointment,
 
     SpareParts,
-    Usage,
+    SparePartsUsage,
     SparePartsWarranty,
 
     Invoice,

@@ -13,7 +13,7 @@ export default (sequelize) => {
 
         created_date: DataTypes.DATE,
 
-        completed_date: DataTypes.DATE,
+        completed_date: DataTypes.DATEONLY,
 
         service_id: DataTypes.STRING(50),
 

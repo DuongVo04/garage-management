@@ -11,18 +11,36 @@ export default (sequelize) => {
             allowNull: false
         },
 
-        voucher_code: {
-            type: DataTypes.STRING(10),
+        code: {
+            type: DataTypes.STRING(20),
             unique: true
         },
 
-        discount_date: DataTypes.DATE,
+        from: {
+            type: DataTypes.DATEONLY,
+            allowNull: false
+        },
 
-        percent: DataTypes.INTEGER,
+        to: {
+            type: DataTypes.DATEONLY,
+            allowNull: false
+        },
+
+        percent: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            validate: {
+                min: 0,
+                max: 100
+            }
+        },
 
         event: DataTypes.STRING(255),
 
-        is_available: DataTypes.TINYINT(1),
+        is_available: {
+            type: DataTypes.TINYINT(1),
+            defaultValue: 1
+        }
 
     }, {
         tableName: "voucher",

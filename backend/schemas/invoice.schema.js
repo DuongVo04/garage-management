@@ -11,7 +11,7 @@ export default (sequelize) => {
             allowNull: false
         },
 
-        created_date: DataTypes.DATE,
+        created_date: DataTypes.DATEONLY,
 
         total_cost: DataTypes.DECIMAL(20, 0),
 

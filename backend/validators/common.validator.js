@@ -1,4 +1,7 @@
 import { body } from "express-validator";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc.js";
+import timezone from "dayjs/plugin/timezone.js";
 
 export const usernameValidator = body("username")
     .isLength({ min: 3, max: 100 }).withMessage("Name must be between 3 and 100 characters")
@@ -21,11 +24,26 @@ export const passwordValidator = (field) => body(field)
     }).withMessage("Password must be at least 6 characters and include uppercase, lowercase and number")
 
 export const nameValidator = body("name")
-        .notEmpty().withMessage("Name is required")
-        .bail()
-        .isLength({ min: 3, max: 50 }).withMessage("Name must be between 3 and 50 characters")
+    .notEmpty().withMessage("Name is required")
+    .bail()
+    .isLength({ min: 3, max: 50 }).withMessage("Name must be between 3 and 50 characters")
 
 export const descriptionValidator = body("description")
-        .optional()
-        .isLength({ max: 255 })
-        .withMessage("Description max 255 characters")
+    .optional()
+    .isLength({ max: 255 })
+    .withMessage("Description max 255 characters")
+
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+export const dateValidator = (field, label = "Date") => {
+    return body(field)
+        .notEmpty().withMessage(`${label} is required`)
+        .bail()
+        .isISO8601().withMessage(`${label} must be a valid ISO date`)
+        .bail()
+        .customSanitizer((value) => {
+            return dayjs(value).toDate();
+        });
+};
