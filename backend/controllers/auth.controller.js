@@ -19,7 +19,7 @@ const login = async (req, res, next) => {
         if (!account.is_activated) {
             return response(res, false, "Your account has been disabled. Please contact this system admin", 401);
         }
-        if (!bcrypt.compare(password, account.password)) {
+        if (!(await bcrypt.compare(password, account.password))) {
             return response(res, false, "Wrong password", 401)
         }
         const payload = { id: account.id, role_id: account.role_id };
