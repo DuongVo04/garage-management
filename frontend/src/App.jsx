@@ -1,28 +1,19 @@
-import { BrowserRouter } from "react-router-dom";
-import { ThemeProvider, CssBaseline } from "@mui/material";
-import { useState } from "react";
-import AppRoutes from "./routes/AppRoutes";
-import { getTheme } from "./theme";
+import { BrowserRouter as Router, Routes, Route, Navigate, BrowserRouter } from "react-router-dom";
+import { AdminRoutes, UserRoutes } from "./routes";
+import Login from "./pages/Login";
+import HomePage from "./pages/showroom/HomePage"
 
 function App() {
-  const [mode, setMode] = useState(
-    localStorage.getItem("mode") || "light"
-  );
-
-  const toggleTheme = () => {
-    const newMode = mode === "light" ? "dark" : "light";
-    setMode(newMode);
-    localStorage.setItem("mode", newMode);
-  };
-
-  return (
-    <ThemeProvider theme={getTheme(mode)}>
-      <CssBaseline />
-      <BrowserRouter>
-        <AppRoutes toggleTheme={toggleTheme} mode={mode} />
-      </BrowserRouter>
-    </ThemeProvider>
-  );
+	return (
+		<BrowserRouter>
+			<Routes>
+				<Route path="/" element={<HomePage />}/>
+				<Route path="/login" element={<Login />} />
+				{ AdminRoutes }
+				{ UserRoutes }
+			</Routes>
+		</BrowserRouter>
+	);
 }
 
 export default App;

@@ -24,6 +24,9 @@ export default (sequelize) => {
 
 
     }, {
+        defaultScope: {
+            attributes: { exclude: ['is_deleted'] }
+        },
         tableName: "employee_type",
         timestamps: false
     })

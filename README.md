@@ -94,11 +94,7 @@ garage-management/
 │   └── package.json
 │    
 ├── database/
-<<<<<<< HEAD
 │   └── init-schemas.sql    # MySQL init schemas script (optional)
-=======
-│   └── init-schemas.sql            # MySQL init script (optional)
->>>>>>> feature/add-backend-schemas
 │
 ├── docker-compose.yml      # Docker Compose configuration
 ├── .env                    # Docker environment variables

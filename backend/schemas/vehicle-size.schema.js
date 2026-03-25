@@ -4,10 +4,19 @@ export default (sequelize) => {
 
     const VehicleSize = sequelize.define("VehicleSize", {
 
-        length_mm: {
-            type: DataTypes.INTEGER,
-            primaryKey: true
+        showroom_vehicle_id: {
+            type: DataTypes.UUID,
+            primaryKey: true,
+            allowNull: false,
+            references: {
+                model: "showroom_vehicle",
+                key: "id"
+            },
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE"
         },
+
+        length_mm:DataTypes.INTEGER,
 
         width_mm: DataTypes.INTEGER,
 
@@ -15,7 +24,6 @@ export default (sequelize) => {
 
         wheelbase_mm: DataTypes.INTEGER,
 
-        showroom_vehicle_id: DataTypes.STRING(50)
 
     }, {
         tableName: "vehicle_size",

@@ -12,7 +12,8 @@ export default (sequelize) => {
         },
 
         name: {
-            type: DataTypes.STRING(100)
+            type: DataTypes.STRING(100),
+            unique: true
         },
 
         country: {
@@ -26,6 +27,9 @@ export default (sequelize) => {
         is_deleted: DataTypes.TINYINT(1),
 
     }, {
+        defaultScope: {
+            attributes: { exclude: ['is_deleted'] }
+        },
         tableName: "brand",
         timestamps: false
     })

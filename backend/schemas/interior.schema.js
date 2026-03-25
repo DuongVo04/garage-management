@@ -4,14 +4,23 @@ export default (sequelize) => {
 
     const Interior = sequelize.define("Interior", {
 
+        showroom_vehicle_id: {
+            type: DataTypes.UUID,
+            primaryKey: true,
+            allowNull: false,
+            references: {
+                model: "showroom_vehicle",
+                key: "id"
+            },
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE"
+        },
+
         seat_count: {
             type: DataTypes.INTEGER,
-            primaryKey: true
         },
 
         is_androidauto_applecarplay: DataTypes.BOOLEAN,
-
-        showroom_vehicle_id: DataTypes.STRING(50)
 
     }, {
         tableName: "interior",

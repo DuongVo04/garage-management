@@ -7,6 +7,12 @@ import { authorize, verifyToken } from '../../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
-router.patch("/accounts/:id/change-status", verifyToken, authorize(["ADMIN"]), paramsIdValidator(), validate, updateUserAccountStatus);
+router.patch("/accounts/:id/change-status",
+    verifyToken,
+    authorize(["ADMIN"]),
+    paramsIdValidator(),
+    validate,
+    updateUserAccountStatus
+);
 
 export default router;

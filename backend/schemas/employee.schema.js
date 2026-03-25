@@ -24,7 +24,7 @@ export default (sequelize) => {
 
         salary: DataTypes.DECIMAL(19, 0),
 
-        work_start_date: DataTypes.DATE,
+        work_start_date: DataTypes.DATEONLY,
 
         is_working: DataTypes.BOOLEAN,
 

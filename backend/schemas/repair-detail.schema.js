@@ -17,7 +17,7 @@ export default (sequelize) => {
 
         usage_id: DataTypes.STRING(50),
 
-        repair_date: DataTypes.DATE,
+        repair_date: DataTypes.DATEONLY,
 
         note: DataTypes.STRING(100)
 

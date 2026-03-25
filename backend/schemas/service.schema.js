@@ -11,7 +11,7 @@ export default (sequelize) => {
             allowNull: false
         },
 
-        service_name: DataTypes.STRING(50),
+        name: DataTypes.STRING(50),
 
         description: DataTypes.STRING(50),
 
@@ -20,6 +20,9 @@ export default (sequelize) => {
         is_deleted: DataTypes.TINYINT(1)
 
     }, {
+        defaultScope: {
+            attributes: { exclude: ['is_deleted'] }
+        },
         tableName: "service",
         timestamps: false
     })

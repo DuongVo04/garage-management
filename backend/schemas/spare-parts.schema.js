@@ -1,5 +1,4 @@
 import { DataTypes } from "sequelize"
-import sequelize from "../database-connection.js"
 
 export default (sequelize) => {
 
@@ -7,19 +6,28 @@ export default (sequelize) => {
 
         id: {
             type: DataTypes.UUID,
-            primaryKey: true,
+            type: DataTypes.STRING(50),
             defaultValue: DataTypes.UUIDV4,
-            allowNull: false
+            primaryKey: true
         },
 
         name: {
-            type: DataTypes.STRING(20),
+            type: DataTypes.STRING(100),
             unique: true
-        }
+        },
+
+        quantity_in_stock: DataTypes.INTEGER,
+
+        unit_price: DataTypes.DECIMAL,
+
+        unit_of_measure: DataTypes.STRING(100),
+
+        image_path: DataTypes.STRING(255)
 
     }, {
-        tableName: "role",
+        tableName: "spare_parts",
         timestamps: false
     })
+
     return SpareParts
 }

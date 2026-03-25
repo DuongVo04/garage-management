@@ -45,7 +45,6 @@ export const authorize = (roles = []) => {
         if (!role) {
             return response(res, false, "Role not found", 404);
         }
-        console.log(role);
 
         if (!roles.includes(role.name)) {
             return response(res, false, "Forbidden", 403);

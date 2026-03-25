@@ -23,17 +23,20 @@ export default (sequelize) => {
 
         color: DataTypes.STRING(10),
 
-        is_latest_od: DataTypes.INTEGER,
+        latest_odo: DataTypes.INTEGER,
 
         thumbnail: DataTypes.STRING(255),
 
-        description: DataTypes.STRING(255),
+        description: DataTypes.TEXT,
 
         is_deleted: DataTypes.TINYINT(1),
 
         brand_id: DataTypes.STRING(50)
 
     }, {
+        defaultScope: {
+            attributes: { exclude: ['is_deleted'] }
+        },
         tableName: "showroom_vehicle",
         timestamps: false
     })
