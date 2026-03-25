@@ -1,21 +1,30 @@
 import { DataTypes } from "sequelize"
 
-export default (sequelize)=>{
+export default (sequelize) => {
 
-    const SteeringSystem = sequelize.define("SteeringSystem",{
+    const SteeringSystem = sequelize.define("SteeringSystem", {
 
-        steering_system:{
-            type:DataTypes.STRING(100),
-            primaryKey:true
+        showroom_vehicle_id: {
+            type: DataTypes.UUID,
+            primaryKey: true,
+            allowNull: false,
+            references: {
+                model: "showroom_vehicle",
+                key: "id"
+            },
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE"
         },
 
-        drivetrain:DataTypes.STRING(100),
+        transmission: {
+            type: DataTypes.STRING(100),
+        },
 
-        showroom_vehicle_id:DataTypes.STRING(50)
+        drivetrain: DataTypes.STRING(100),
 
-    },{
-        tableName:"steering_system",
-        timestamps:false
+    }, {
+        tableName: "steering_system",
+        timestamps: false
     })
 
     return SteeringSystem

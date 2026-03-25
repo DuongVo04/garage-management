@@ -11,7 +11,7 @@ export default (sequelize) => {
             allowNull: false
         },
 
-        description: DataTypes.STRING(50),
+        // description: DataTypes.STRING(50),
 
         image_path: DataTypes.STRING(255),
 

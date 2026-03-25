@@ -22,7 +22,7 @@ export default (sequelize) => {
 
         unit_of_measure: DataTypes.STRING(100),
 
-        image: DataTypes.STRING(255)
+        image_path: DataTypes.STRING(255)
 
     }, {
         tableName: "spare_parts",

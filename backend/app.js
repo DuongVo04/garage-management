@@ -17,6 +17,7 @@ const port = 3000;
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors());
+app.use("/uploads", express.static("uploads"));
 
 app.listen(3000, () => {
     console.log(`Server running, port${port}`);

@@ -76,13 +76,35 @@ const Voucher = VoucherModel(sequelize)
 ACCOUNT RELATION
 ========================
 */
-Role.hasMany(Account, { foreignKey: "role_id" })
-Account.hasOne(Employee, { foreignKey: "account_id" })
-Employee.belongsTo(Account, { foreignKey: "account_id" })
+Role.hasMany(Account, {
+    foreignKey: "role_id",
+    as: "accounts"
+});
+Account.belongsTo(Role, {
+    foreignKey: "role_id",
+    as: "role"
+});
 
-Account.belongsTo(Role, { foreignKey: "role_id" })
-Account.hasOne(Customer, { foreignKey: "account_id" })
-Customer.belongsTo(Account, { foreignKey: "account_id" })
+Account.hasOne(Employee, {
+    foreignKey: "account_id",
+    as: "employee"
+
+});
+Employee.belongsTo(Account, {
+    foreignKey: "account_id",
+    as: "account"
+
+});
+
+Account.hasOne(Customer, {
+    foreignKey: "account_id",
+    as: "customer"
+
+});
+Customer.belongsTo(Account, {
+    foreignKey: "account_id",
+    as: "account"
+});
 
 
 
@@ -92,8 +114,16 @@ EMPLOYEE
 ========================
 */
 
-EmployeeType.hasMany(Employee, { foreignKey: "employee_type_id" })
-Employee.belongsTo(EmployeeType, { foreignKey: "employee_type_id" })
+EmployeeType.hasMany(Employee, {
+    foreignKey: "employee_type_id",
+    as: "employees"
+
+});
+Employee.belongsTo(EmployeeType, {
+    foreignKey: "employee_type_id",
+    as: "employee_type"
+
+});
 
 
 
@@ -103,11 +133,27 @@ CUSTOMER VEHICLE
 ========================
 */
 
-Customer.hasMany(CustomerVehicle, { foreignKey: "customer_id" })
-CustomerVehicle.belongsTo(Customer, { foreignKey: "customer_id" })
+Customer.hasMany(CustomerVehicle, {
+    foreignKey: "customer_id",
+    as: "vehicles"
 
-Brand.hasMany(CustomerVehicle, { foreignKey: "brand_id" })
-CustomerVehicle.belongsTo(Brand, { foreignKey: "brand_id" })
+});
+CustomerVehicle.belongsTo(Customer, {
+    foreignKey: "customer_id",
+    as: "customer"
+
+});
+
+Brand.hasMany(CustomerVehicle, {
+    foreignKey: "brand_id",
+    as: "customer_vehicles"
+
+});
+CustomerVehicle.belongsTo(Brand, {
+    foreignKey: "brand_id",
+    as: "brand"
+
+});
 
 
 
@@ -117,164 +163,210 @@ SHOWROOM VEHICLE
 ========================
 */
 
-Brand.hasMany(ShowroomVehicle, { foreignKey: "brand_id" })
-ShowroomVehicle.belongsTo(Brand, { foreignKey: "brand_id" })
+Brand.hasMany(ShowroomVehicle, {
+    foreignKey: "brand_id",
+    as: "showroom_vehicles"
+})
+ShowroomVehicle.belongsTo(Brand, {
+    foreignKey: "brand_id",
+    as: "brand"
+})
 
 
 ShowroomVehicle.hasMany(ShowroomVehicleImage, {
-    foreignKey: "showroom_vehicle_id"
-})
+    foreignKey: "showroom_vehicle_id",
+    as: "images"
+});
 
 ShowroomVehicleImage.belongsTo(ShowroomVehicle, {
-    foreignKey: "showroom_vehicle_id"
-})
-
-
-EngineTechnicalSpecification.belongsTo(ShowroomVehicle, {
-    foreignKey: "showroom_vehicle_id"
-})
+    foreignKey: "showroom_vehicle_id",
+    as: "vehicle"
+});
 
 ShowroomVehicle.hasOne(EngineTechnicalSpecification, {
-    foreignKey: "showroom_vehicle_id"
-})
+    foreignKey: {
+        name: "showroom_vehicle_id",
+        allowNull: false
+    },
+    as: "engine_spec",
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE"
+});
 
-
-Fuel.belongsTo(ShowroomVehicle, {
-    foreignKey: "showroom_vehicle_id"
-})
+EngineTechnicalSpecification.belongsTo(ShowroomVehicle, {
+    foreignKey: {
+        name: "showroom_vehicle_id",
+        allowNull: false
+    },
+    as: "vehicle"
+});
 
 ShowroomVehicle.hasOne(Fuel, {
-    foreignKey: "showroom_vehicle_id"
-})
+    foreignKey: {
+        name: "showroom_vehicle_id",
+        allowNull: false
+    },
+    as: "fuel",
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE"
+});
+Fuel.belongsTo(ShowroomVehicle, {
+    foreignKey: {
+        name: "showroom_vehicle_id",
+        allowNull: false
+    },
+    as: "vehicle"
+});
 
-
-SteeringSystem.belongsTo(ShowroomVehicle, {
-    foreignKey: "showroom_vehicle_id"
-})
 
 ShowroomVehicle.hasOne(SteeringSystem, {
-    foreignKey: "showroom_vehicle_id"
-})
+    foreignKey: {
+        name: "showroom_vehicle_id",
+        allowNull: false
+    },
+    as: "steering_system",
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE"
+});
+SteeringSystem.belongsTo(ShowroomVehicle, {
+    foreignKey: {
+        name: "showroom_vehicle_id",
+        allowNull: false
+    },
+    as: "vehicle"
+});
 
-
-VehicleSize.belongsTo(ShowroomVehicle, {
-    foreignKey: "showroom_vehicle_id"
-})
 
 ShowroomVehicle.hasOne(VehicleSize, {
-    foreignKey: "showroom_vehicle_id"
-})
+    foreignKey: {
+        name: "showroom_vehicle_id",
+        allowNull: false
+    },
+    as: "size",
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE"
+});
+VehicleSize.belongsTo(ShowroomVehicle, {
+    foreignKey: {
+        name: "showroom_vehicle_id",
+        allowNull: false
+    },
+    as: "vehicle"
+});
 
-
-Interior.belongsTo(ShowroomVehicle, {
-    foreignKey: "showroom_vehicle_id"
-})
 
 ShowroomVehicle.hasOne(Interior, {
-    foreignKey: "showroom_vehicle_id"
-})
-
-
+    foreignKey: {
+        name: "showroom_vehicle_id",
+        allowNull: false
+    },
+    as: "interior",
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE"
+});
+Interior.belongsTo(ShowroomVehicle, {
+    foreignKey: {
+        name: "showroom_vehicle_id",
+        allowNull: false
+    },
+    as: "vehicle"
+});
 
 /*
 ========================
 REPAIR
 ========================
 */
-
-RepairAppointment.belongsTo(Customer, {
-    foreignKey: "customer_id"
-})
-
 Customer.hasMany(RepairAppointment, {
-    foreignKey: "customer_id"
-})
-
-
-RepairTicket.belongsTo(RepairAppointment, {
-    foreignKey: "appointment_id"
-})
+    foreignKey: "customer_id",
+    as: "appointments"
+});
+RepairAppointment.belongsTo(Customer, {
+    foreignKey: "customer_id",
+    as: "customer"
+});
 
 RepairAppointment.hasOne(RepairTicket, {
-    foreignKey: "appointment_id"
-})
-
-
-RepairTicket.belongsTo(CustomerVehicle, {
-    foreignKey: "customer_vehicle_id"
-})
+    foreignKey: "appointment_id",
+    as: "ticket"
+});
+RepairTicket.belongsTo(RepairAppointment, {
+    foreignKey: "appointment_id",
+    as: "appointment"
+});
 
 CustomerVehicle.hasMany(RepairTicket, {
-    foreignKey: "customer_vehicle_id"
-})
-
-
-RepairTicket.belongsTo(Service, {
-    foreignKey: "service_id"
-})
+    foreignKey: "customer_vehicle_id",
+    as: "tickets"
+});
+RepairTicket.belongsTo(CustomerVehicle, {
+    foreignKey: "customer_vehicle_id",
+    as: "vehicle"
+});
 
 Service.hasMany(RepairTicket, {
-    foreignKey: "service_id"
-})
-
-
+    foreignKey: "service_id",
+    as: "tickets"
+});
+RepairTicket.belongsTo(Service, {
+    foreignKey: "service_id",
+    as: "service"
+});
 
 /*
 ========================
 REPAIR DETAIL
 ========================
 */
-
 RepairTicket.hasMany(RepairDetail, {
-    foreignKey: "ticket_id"
-})
-
+    foreignKey: "ticket_id",
+    as: "details"
+});
 RepairDetail.belongsTo(RepairTicket, {
-    foreignKey: "ticket_id"
-})
-
+    foreignKey: "ticket_id",
+    as: "ticket"
+});
 
 Employee.hasMany(RepairDetail, {
-    foreignKey: "employee_id"
-})
-
+    foreignKey: "employee_id",
+    as: "details"
+});
 RepairDetail.belongsTo(Employee, {
-    foreignKey: "employee_id"
-})
-
-
-RepairDetail.belongsTo(SparePartsUsage, {
-    foreignKey: "usage_id"
-})
+    foreignKey: "employee_id",
+    as: "employee"
+});
 
 SparePartsUsage.hasMany(RepairDetail, {
-    foreignKey: "usage_id"
-})
-
-
+    foreignKey: "usage_id",
+    as: "details"
+});
+RepairDetail.belongsTo(SparePartsUsage, {
+    foreignKey: "usage_id",
+    as: "usage"
+});
 
 /*
 ========================
 SPARE PARTS
 ========================
 */
-
 SpareParts.hasMany(SparePartsUsage, {
-    foreignKey: "spare_parts_id"
-})
-
+    foreignKey: "spare_parts_id",
+    as: "usages"
+});
 SparePartsUsage.belongsTo(SpareParts, {
-    foreignKey: "spare_parts_id"
-})
-
+    foreignKey: "spare_parts_id",
+    as: "spare_part"
+});
 
 SparePartsUsage.hasOne(SparePartsWarranty, {
-    foreignKey: "usage_id"
-})
-
+    foreignKey: "usage_id",
+    as: "warranty"
+});
 SparePartsWarranty.belongsTo(SparePartsUsage, {
-    foreignKey: "usage_id"
-})
+    foreignKey: "usage_id",
+    as: "usage"
+});
 
 
 
@@ -283,15 +375,15 @@ SparePartsWarranty.belongsTo(SparePartsUsage, {
 CAR RETURN
 ========================
 */
-
 RepairTicket.hasOne(CarReturnAppointment, {
-    foreignKey: "repair_ticket_id"
-})
+    foreignKey: "repair_ticket_id",
+    as: "car_return"
+});
 
 CarReturnAppointment.belongsTo(RepairTicket, {
-    foreignKey: "repair_ticket_id"
-})
-
+    foreignKey: "repair_ticket_id",
+    as: "ticket"
+});
 
 
 /*
@@ -299,24 +391,23 @@ CarReturnAppointment.belongsTo(RepairTicket, {
 INVOICE
 ========================
 */
-
 RepairTicket.hasOne(Invoice, {
-    foreignKey: "ticket_id"
-})
-
+    foreignKey: "ticket_id",
+    as: "invoice"
+});
 Invoice.belongsTo(RepairTicket, {
-    foreignKey: "ticket_id"
-})
-
+    foreignKey: "ticket_id",
+    as: "ticket"
+});
 
 Voucher.hasMany(Invoice, {
-    foreignKey: "discount_id"
-})
-
+    foreignKey: "discount_id",
+    as: "invoices"
+});
 Invoice.belongsTo(Voucher, {
-    foreignKey: "discount_id"
-})
-
+    foreignKey: "discount_id",
+    as: "voucher"
+});
 
 
 export {

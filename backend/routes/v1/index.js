@@ -8,7 +8,9 @@ import sparePartsRoutes from "./spare-parts.route.js"
 import voucherRoutes from "./voucher.route.js"
 import brandRoutes from "./brand.route.js"
 import serviceRoutes from "./service.route.js"
-
+import showroomVehicleRoutes from "./showroom-vehicle.route.js"
+import vehicleSpecificationsRoutes from "./vehicle-specifications.route.js" 
+import showroomVehicleImageRoutes from "./showroom-vehicle-image.route.js"
 
 const router = express.Router();
 
@@ -20,6 +22,9 @@ router.use("/employee-types", employeeRoutes);
 router.use("/spare-parts", sparePartsRoutes);
 router.use("/vouchers", voucherRoutes);
 router.use("/brands", brandRoutes);
-router.use("/services", serviceRoutes)
+router.use("/services", serviceRoutes);
+router.use("/showroom-vehicles", showroomVehicleRoutes);
+router.use("/showroom-vehicles", vehicleSpecificationsRoutes);
+router.use("/showroom-vehicles", showroomVehicleImageRoutes);
 
 export default router;

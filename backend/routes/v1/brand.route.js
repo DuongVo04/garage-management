@@ -4,6 +4,7 @@ import { paramsIdValidator } from "../../validators/id.validator.js"
 import { validate } from "../../middlewares/validation.middleware.js"
 import { authorize, verifyToken } from "../../middlewares/auth.middleware.js"
 import brandValidator from "../../validators/brand.validator.js"
+import { uploadSingle } from "../../middlewares/upload.midleware.js"
 
 
 const router = express.Router();
@@ -21,6 +22,7 @@ router.get("/:id",
 router.post("/",
     verifyToken,
     authorize(["ADMIN"]),
+    uploadSingle("logo_url", "brand"),
     brandValidator,
     validate,
     brandController.create
@@ -29,6 +31,7 @@ router.post("/",
 router.put("/:id",
     verifyToken,
     authorize(["ADMIN"]),
+    uploadSingle("logo_url", "brand"),
     paramsIdValidator(),
     brandValidator,
     validate,

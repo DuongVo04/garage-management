@@ -23,7 +23,7 @@ export default (sequelize) => {
 
         year: DataTypes.INTEGER,
 
-        image: DataTypes.STRING(255),
+        image_path: DataTypes.STRING(255),
 
         customer_id: DataTypes.STRING(50),
 

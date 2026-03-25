@@ -31,9 +31,9 @@ CREATE TABLE customer_vehicle (
   color        varchar(10) NOT NULL, 
   type         varchar(10) NOT NULL, 
   plate_number varchar(20), 
-  lastest_odo  int(11) NOT NULL, 
+  latest_odo   int(11) NOT NULL, 
   year         int(5) NOT NULL, 
-  image        varchar(255), 
+  image_path   varchar(255), 
   is_deleted   tinyint(1) NOT NULL, 
   customer_id  varchar(50), 
   brand_id     varchar(50) NOT NULL, 
@@ -61,9 +61,9 @@ CREATE TABLE employee_type (
   PRIMARY KEY (id));
 CREATE TABLE engine_technical_specification (
   engine_type         varchar(100) NOT NULL, 
-  engine_capacity     varchar(50), 
-  max_power           double NOT NULL, 
-  max_torque          varchar(50), 
+  engine_capacity     double, 
+  max_power           int(5) NOT NULL, 
+  max_torque          int(5), 
   showroom_vehicle_id varchar(50) NOT NULL, 
   PRIMARY KEY (showroom_vehicle_id));
 CREATE TABLE fuel (
@@ -132,7 +132,7 @@ CREATE TABLE showroom_vehicle (
   new_price   decimal(19, 0) NOT NULL, 
   status      tinyint(1) NOT NULL, 
   color       varchar(10) NOT NULL, 
-  lastest_odo int(11), 
+  latest_odo  int(11), 
   thumbnail   varchar(255), 
   description text, 
   is_deleted  tinyint(1) NOT NULL, 
@@ -140,7 +140,6 @@ CREATE TABLE showroom_vehicle (
   PRIMARY KEY (id));
 CREATE TABLE showroom_vehicle_image (
   id                  varchar(50) NOT NULL, 
-  description         varchar(50) NOT NULL, 
   image_path          varchar(255) NOT NULL, 
   showroom_vehicle_id varchar(50) NOT NULL, 
   PRIMARY KEY (id));
@@ -150,7 +149,7 @@ CREATE TABLE spare_parts (
   quantity_in_stock int(11) NOT NULL, 
   unit_price        decimal(19, 0), 
   unit_of_measure   varchar(100), 
-  image             varchar(255), 
+  image_path        varchar(255), 
   PRIMARY KEY (id));
 CREATE TABLE square_parts_usage (
   id             varchar(50) NOT NULL, 
@@ -166,14 +165,14 @@ CREATE TABLE square_parts_warranty (
   PRIMARY KEY (id));
 CREATE TABLE steering_system (
   transmission        varchar(100) NOT NULL, 
-  drivertrain         varchar(100) NOT NULL, 
+  drivetrain          varchar(100) NOT NULL, 
   showroom_vehicle_id varchar(50) NOT NULL, 
   PRIMARY KEY (showroom_vehicle_id));
 CREATE TABLE vehicle_size (
-  length_nm           int(11) NOT NULL, 
-  width_nm            int(11) NOT NULL, 
-  height_nm           int(11) NOT NULL, 
-  whelbase_nm         int(11) NOT NULL, 
+  length_mm           int(11) NOT NULL, 
+  width_mm            int(11) NOT NULL, 
+  height_mm           int(11) NOT NULL, 
+  wheelbase_mm        int(11) NOT NULL, 
   showroom_vehicle_id varchar(50) NOT NULL, 
   PRIMARY KEY (showroom_vehicle_id));
 CREATE TABLE voucher (

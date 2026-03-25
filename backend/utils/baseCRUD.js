@@ -1,4 +1,7 @@
 import { response } from "./response.js";
+import fs from 'fs'
+import path from "path";
+
 
 /**
  * @param {Model} Model - Sequelize model
@@ -7,25 +10,51 @@ import { response } from "./response.js";
 const getDefaultFilter = (Model) => {
     if (Model.rawAttributes.is_deleted) return { is_deleted: false };
     if (Model.rawAttributes.is_available) return { is_available: true };
+
     return {};
 };
+
+const buildDefaultAttributes = (Model) => {
+    const byAssociation = Object.values(Model.associations)
+        .map(a => a.foreignKey);
+
+    const byNaming = Object.keys(Model.rawAttributes)
+        .filter(key => key.endsWith("_id"));
+
+    const excludeFields = [...new Set([...byAssociation, ...byNaming])];
+
+    return {
+        attributes: {
+            exclude: excludeFields
+        }
+    };
+};
+
 export const baseCRUD = (Model, options = {}) => {
     const {
         modelName = "Item",
         uniqueFields = [],
         defaultValues = {},
         exclude = [],
+        include = {
+            basicInclude: [],
+            detailInclude: []
+        },
         customFilter = null,
+        imageField = null
     } = options;
 
     const controller = {
         getAll: async (req, res, next) => {
             try {
+                const attributes = buildDefaultAttributes(Model);
 
                 const data = await Model.findAll({
                     where: customFilter
                         ? customFilter(req)
-                        : getDefaultFilter(Model)
+                        : getDefaultFilter(Model),
+                    include: include.basicInclude,
+                    ...attributes
                 });
 
                 return response(res, true, `Get ${modelName.toLowerCase()}s successfully`, 200, data);
@@ -36,12 +65,14 @@ export const baseCRUD = (Model, options = {}) => {
         getById: async (req, res, next) => {
             try {
                 const { id } = req.params;
-
+                const attributes = buildDefaultAttributes(Model);
                 const data = await Model.findOne({
                     where: {
                         id,
                         ...getDefaultFilter(Model)
-                    }
+                    },
+                    include: include.detailInclude,
+                    ...attributes
                 });
 
                 if (!data) {
@@ -62,6 +93,7 @@ export const baseCRUD = (Model, options = {}) => {
 
         create: async (req, res, next) => {
             try {
+
                 if (uniqueFields.length > 0) {
                     const where = {};
                     uniqueFields.forEach((field) => {
@@ -89,6 +121,9 @@ export const baseCRUD = (Model, options = {}) => {
 
                 const newData = await Model.create({
                     ...req.body,
+                    ...(imageField && {
+                        [imageField]: req.uploadedFile?.path ?? null
+                    }),
                     ...defaultValues
                 });
 
@@ -108,32 +143,52 @@ export const baseCRUD = (Model, options = {}) => {
             try {
                 const { id } = req.params;
 
-                const [count] = await Model.update(
-                    {
-                        ...req.body,
-                        ...getDefaultFilter(Model)
-                    },
-                    { where: { id } }
-                );
+                const existing = await Model.findByPk(id);
+
+                if (!existing) {
+                    return response(res, false, `${modelName} not found`, 404);
+                }
+
+                let updateData = {
+                    ...req.body,
+                    ...getDefaultFilter(Model)
+                };
+
+                let oldFilePath = null;
+
+                if (req.uploadedFile && imageField) {
+                    updateData[imageField] = req.uploadedFile.path;
+
+                    if (existing[imageField]) {
+                        oldFilePath = path.resolve(existing[imageField]);
+                    }
+                }
+
+                const [count] = await Model.update(updateData, {
+                    where: { id }
+                });
 
                 if (count === 0) {
                     return response(
                         res,
                         false,
-                        `${modelName} not found or no change`,
-                        404
+                        `${modelName} not updated`,
+                        400
                     );
+                }
+
+                if (oldFilePath) {
+                    try {
+                        await fs.promises.unlink(oldFilePath);
+                    } catch (err) {
+                        console.warn("File delete failed:", err.message);
+                    }
                 }
 
                 const updated = await Model.findByPk(id);
 
-                return response(
-                    res,
-                    true,
-                    "Updated successfully",
-                    200,
-                    updated
-                );
+                return response(res, true, "Updated successfully", 200, updated);
+
             } catch (error) {
                 next(error);
             }

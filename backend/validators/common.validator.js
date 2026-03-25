@@ -49,6 +49,6 @@ export const dateValidator = (field, label = "Date") => {
 };
 
 export const priceValidator = (feild) => body(feild)
-        .isNumeric().withMessage("Must be of numeric type")
-        .bail()
-        .isInt({ min: 1 }).withMessage("Price must be greater than 0");
+    .isDecimal({ decimal_digits: "0,2" }).withMessage("Old price must be a valid number")
+    .bail()
+    .custom(value => value >= 0).withMessage("Old price must be >= 0");
