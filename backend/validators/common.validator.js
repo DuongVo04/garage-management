@@ -23,10 +23,10 @@ export const passwordValidator = (field) => body(field)
         minSymbols: 0
     }).withMessage("Password must be at least 6 characters and include uppercase, lowercase and number")
 
-export const nameValidator = (minLen = 1, maxLen = 20) => body("name")
-    .notEmpty().withMessage("Name is required")
+export const nameValidator = (minLen = 1, maxLen = 20, feild = "name") => body(feild)
+    .notEmpty().withMessage(`${feild} is required`)
     .bail()
-    .isLength({ min: minLen, max: maxLen }).withMessage(`Name must be between ${minLen} and ${maxLen} characters`)
+    .isLength({ min: minLen, max: maxLen }).withMessage(`${feild} must be between ${minLen} and ${maxLen} characters`)
 
 export const descriptionValidator = body("description")
     .optional()
@@ -52,3 +52,7 @@ export const priceValidator = (feild) => body(feild)
     .isDecimal({ decimal_digits: "0,2" }).withMessage("Old price must be a valid number")
     .bail()
     .custom(value => value >= 0).withMessage("Old price must be >= 0");
+
+export const phoneNumberValidator = body("phone_number")
+    .notEmpty().withMessage("Phone number is required")
+    .isLength({ min: 9, max: 11 }).withMessage("Phone number must be 9-11 digits")

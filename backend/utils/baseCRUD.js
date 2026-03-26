@@ -10,6 +10,7 @@ import path from "path";
 const getDefaultFilter = (Model) => {
     if (Model.rawAttributes.is_deleted) return { is_deleted: false };
     if (Model.rawAttributes.is_available) return { is_available: true };
+    if (Model.rawAttributes.is_working) return { is_working: true };
 
     return {};
 };
@@ -204,6 +205,8 @@ export const baseCRUD = (Model, options = {}) => {
                     updateData = { is_deleted: true };
                 } else if (Model.rawAttributes.is_available) {
                     updateData = { is_available: false };
+                } else if (Model.rawAttributes.is_working) {
+                    updateData = { is_working: false };
                 } else {
                     return response(
                         res,
@@ -226,20 +229,10 @@ export const baseCRUD = (Model, options = {}) => {
                 );
 
                 if (!count) {
-                    return response(
-                        res,
-                        false,
-                        `${modelName} not found`,
-                        404
-                    );
+                    return response(res, false, `${modelName} not found`, 404);
                 }
 
-                return response(
-                    res,
-                    true,
-                    `${modelName} deleted`,
-                    200
-                );
+                return response(res, true, `${modelName} deleted`, 200);
             } catch (error) {
                 next(error);
             }

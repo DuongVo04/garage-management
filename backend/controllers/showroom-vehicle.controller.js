@@ -16,7 +16,7 @@ import { baseCRUD } from "../utils/baseCRUD.js"
 const basicInclude = [{
     model: Brand,
     as: "brand",
-    attributes: ["name", "country", "logo_url"]
+    attributes: ["id", "name", "country", "logo_url"]
 }];
 
 const detailInclude = [

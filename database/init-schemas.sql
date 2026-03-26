@@ -50,7 +50,7 @@ CREATE TABLE employee (
   salary           decimal(19, 0), 
   work_start_date  date NOT NULL, 
   is_working       tinyint(1) NOT NULL, 
-  account_id       varchar(50) NOT NULL, 
+  account_id       varchar(50), 
   employee_type_id varchar(50) NOT NULL, 
   PRIMARY KEY (id));
 CREATE TABLE employee_type (
