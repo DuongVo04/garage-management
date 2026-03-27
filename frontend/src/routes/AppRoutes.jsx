@@ -3,24 +3,33 @@ import Login from "../pages/Login";
 import Register from "../pages/Register";
 import Home from "../pages/Home";
 import AdminLayout from "../layouts/AdminLayout";
+import MainLayout from "../layouts/MainLayout";
+import ShowroomPage from "../pages/showroom/ShowroomPage";
 
 export default function AppRoutes({ toggleTheme, mode }) {
   return (
     <Routes>
-      {/* Default → login */}
-      <Route path="/" element={<Navigate to="/login" />} />
+      {/* Public Routes */}
+      <Route element={<MainLayout />}>
+        <Route path="/" element={<ShowroomPage />} />
+        {/* Có thể thêm các trang public khác ở đây như /about, /contact */}
+      </Route>
 
       {/* Auth */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
-      {/* Admin (KHÔNG PROTECT) */}
+      {/* Admin Routes */}
       <Route
         path="/home"
         element={<AdminLayout toggleTheme={toggleTheme} mode={mode} />}
       >
         <Route index element={<Home />} />
+        <Route path="showroom" element={<ShowroomPage />} />
       </Route>
+
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
 }
