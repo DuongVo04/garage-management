@@ -1,18 +1,22 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, BrowserRouter } from "react-router-dom";
-import { AdminRoutes, UserRoutes } from "./routes";
-import Login from "./pages/Login";
-import HomePage from "./pages/showroom/HomePage"
+import React, { useState } from "react";
+import { BrowserRouter } from "react-router-dom";
+import { ThemeProvider, CssBaseline } from "@mui/material";
+import AppRoutes from "./routes/AppRoutes";
+import { getTheme } from "./theme";
 
 function App() {
+	const [mode, setMode] = useState("light");
+	const toggleTheme = () => setMode((m) => (m === "light" ? "dark" : "light"));
+
+	const theme = getTheme(mode);
+
 	return (
-		<BrowserRouter>
-			<Routes>
-				<Route path="/" element={<HomePage />}/>
-				<Route path="/login" element={<Login />} />
-				{ AdminRoutes }
-				{ UserRoutes }
-			</Routes>
-		</BrowserRouter>
+		<ThemeProvider theme={theme}>
+			<CssBaseline />
+			<BrowserRouter>
+				<AppRoutes mode={mode} toggleTheme={toggleTheme} />
+			</BrowserRouter>
+		</ThemeProvider>
 	);
 }
 
