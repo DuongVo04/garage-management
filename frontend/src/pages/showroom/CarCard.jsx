@@ -35,7 +35,7 @@ const CarCard = ({ car }) => {
   const imageUrl = thumbnail 
     ? (thumbnail.startsWith('http') 
         ? thumbnail 
-        : `${serverBaseUrl}/uploads/showroom-vehicles/${thumbnail}`)
+        : `${serverBaseUrl}/${thumbnail}`)
     : 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1000'; 
 
   const formatPrice = (price) => {
