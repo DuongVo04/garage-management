@@ -4,14 +4,18 @@ import Register from "../pages/Register";
 import Home from "../pages/Home";
 import AdminLayout from "../layouts/AdminLayout";
 import MainLayout from "../layouts/MainLayout";
-import ShowroomPage from "../pages/showroom/ShowroomPage";
+import HomePage from "../pages/showroom/HomePage";
+import GaragePage from "../pages/garage/GaragePage";
+import VehicleDetailPage from "../pages/showroom/VehicleDetailPage";
 
 export default function AppRoutes({ toggleTheme, mode }) {
   return (
     <Routes>
       {/* Public Routes */}
       <Route element={<MainLayout />}>
-        <Route path="/" element={<ShowroomPage />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/garage" element={<GaragePage />} />
+        <Route path="/vehicle/:id" element={<VehicleDetailPage />} />
         {/* Có thể thêm các trang public khác ở đây như /about, /contact */}
       </Route>
 
@@ -25,7 +29,7 @@ export default function AppRoutes({ toggleTheme, mode }) {
         element={<AdminLayout toggleTheme={toggleTheme} mode={mode} />}
       >
         <Route index element={<Home />} />
-        <Route path="showroom" element={<ShowroomPage />} />
+        <Route path="showroom" element={<HomePage />} />
       </Route>
 
       {/* Fallback */}
