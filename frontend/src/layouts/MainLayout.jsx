@@ -39,16 +39,8 @@ const MainLayout = () => {
 
             <Stack direction="row" spacing={2}>
               <Button color="inherit" onClick={() => navigate('/')}>Trang chủ</Button>
-              <Button color="inherit">Dịch vụ</Button>
+              <Button color="inherit" onClick={() => navigate('/garage')}>Dịch vụ</Button>
               <Button color="inherit">Liên hệ</Button>
-              {/* <Button 
-                variant="contained" 
-                startIcon={<Login />} 
-                onClick={() => navigate('/login')}
-                sx={{ borderRadius: 2, px: 3 }}
-              >
-                Đăng nhập
-              </Button> */}
             </Stack>
           </Toolbar>
         </Container>

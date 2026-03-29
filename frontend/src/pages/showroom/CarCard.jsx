@@ -7,12 +7,16 @@ import {
   Box, 
   Chip, 
   Button,
-  Divider
+  Divider,
+  Stack
 } from '@mui/material';
 import { DirectionsCar, Event, Payment } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
 const CarCard = ({ car }) => {
+  const navigate = useNavigate();
   const { 
+    id,
     name, 
     year, 
     new_price, 
@@ -24,11 +28,15 @@ const CarCard = ({ car }) => {
   } = car;
 
   // Hỗ trợ cả ảnh từ local upload và ảnh từ URL tuyệt đối (cho Mock data)
+  // Lưu ý: VITE_API_BASE_URL thường là http://localhost:3000/api/v1
+  // Ta cần lấy base URL của server (không có /api/v1) để truy cập /uploads
+  const serverBaseUrl = import.meta.env.VITE_API_BASE_URL?.replace('/api/v1', '') || 'http://localhost:3000';
+  
   const imageUrl = thumbnail 
     ? (thumbnail.startsWith('http') 
         ? thumbnail 
-        : `${import.meta.env.VITE_API_URL}/uploads/showroom-vehicles/${thumbnail}`)
-    : 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1000'; // Ảnh xe mặc định đẹp hơn placeholder
+        : `${serverBaseUrl}/uploads/showroom-vehicles/${thumbnail}`)
+    : 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1000'; 
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('vi-VN', { 
@@ -48,7 +56,7 @@ const CarCard = ({ car }) => {
         transform: 'scale(1.02)',
         boxShadow: 6
       },
-      borderRadius: 2
+      borderRadius: 1
     }}>
       <CardMedia
         component="img"
@@ -62,7 +70,10 @@ const CarCard = ({ car }) => {
           <Typography gutterBottom variant="h6" component="div" fontWeight="bold">
             {name}
           </Typography>
-          <Chip label={brand?.name || 'Unknown'} size="small" color="primary" variant="outlined" />
+          <Stack direction="row" spacing={1}>
+            {car.is_mock && <Chip label="Demo" size="small" color="warning" variant="filled" sx={{ fontWeight: 'bold' }} />}
+            <Chip label={brand?.name || 'Unknown'} size="small" color="primary" variant="outlined" />
+          </Stack>
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, color: 'text.secondary' }}>
@@ -93,7 +104,13 @@ const CarCard = ({ car }) => {
         </Box>
       </CardContent>
       <Box sx={{ p: 2, pt: 0 }}>
-        <Button fullWidth variant="contained" color="primary" disableElevation>
+        <Button 
+          fullWidth 
+          variant="contained" 
+          color="primary" 
+          disableElevation
+          onClick={() => navigate(`/vehicle/${id}`)}
+        >
           Xem chi tiết
         </Button>
       </Box>
