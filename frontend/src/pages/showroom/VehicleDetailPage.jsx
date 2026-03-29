@@ -58,7 +58,7 @@ const VehicleDetailPage = () => {
           setCar(carData);
           
           const mainImg = carData.thumbnail 
-            ? (carData.thumbnail.startsWith('http') ? carData.thumbnail : `${serverBaseUrl}/uploads/showroom-vehicles/${carData.thumbnail}`)
+            ? (carData.thumbnail.startsWith('http') ? carData.thumbnail : `${serverBaseUrl}/${carData.thumbnail}`)
             : 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1000';
           setActiveImage(mainImg);
         }
@@ -87,11 +87,11 @@ const VehicleDetailPage = () => {
   );
 
   const galleryImages = car.images?.map(img => 
-    img.image_path.startsWith('http') ? img.image_path : `${serverBaseUrl}/uploads/showroom-vehicles/${img.image_path}`
+    img.image_path.startsWith('http') ? img.image_path : `${serverBaseUrl}/${img.image_path}`
   ) || [];
 
   const allImages = car.thumbnail 
-    ? [car.thumbnail.startsWith('http') ? car.thumbnail : `${serverBaseUrl}/uploads/showroom-vehicles/${car.thumbnail}`, ...galleryImages]
+    ? [car.thumbnail.startsWith('http') ? car.thumbnail : `${serverBaseUrl}/${car.thumbnail}`, ...galleryImages]
     : galleryImages;
 
   const handlePrevImage = () => {
