@@ -1,0 +1,20 @@
+import { Routes, Route, Navigate } from "react-router-dom";
+import Login from "../pages/Login";
+import Register from "../pages/Register";
+import MainLayout from "../layouts/MainLayout";
+import HomePage from "../pages/showroom/HomePage";
+import GaragePage from "../pages/garage/GaragePage";
+import VehicleDetailPage from "../pages/showroom/VehicleDetailPage";
+
+
+const PublicRoutes = (
+    <Route path="/" element={<MainLayout />}>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/garage" element={<GaragePage />} />
+        <Route path="/vehicle/:id" element={<VehicleDetailPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+    </Route>
+);
+
+export default PublicRoutes;

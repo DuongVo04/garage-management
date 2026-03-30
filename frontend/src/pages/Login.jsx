@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { loginApi } from "../services/auth.service";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -25,8 +25,20 @@ const Login = () => {
 	const [showPassword, setShowPassword] = useState(false);
 	const [error, setError] = useState("");
 
-	const { login } = useAuth();
+	const { login, user, loading } = useAuth();
 	const navigate = useNavigate();
+
+	useEffect(() => {
+		if (loading) return;
+
+		if (!user) return;
+
+		if (user.role_name === "ADMIN") {
+			navigate("/admin");
+		} else {
+			navigate("/");
+		}
+	}, [user, loading]);
 
 	const handleChange = (e) => {
 		setForm({
@@ -44,6 +56,7 @@ const Login = () => {
 
 			if (res.success) {
 				login(res.data);
+				// console.log("decoded: ");
 
 				const decoded = decodeToken(res.data);
 
@@ -51,14 +64,12 @@ const Login = () => {
 				if (decoded.role_name === "ADMIN") {
 					navigate("/admin");
 				} else {
-					console.log(decoded);
 					navigate("/user");
 				}
 			} else {
 				setError(res.message);
 			}
 		} catch (err) {
-			console.log(err.response?.data);
 
 			setError(
 				err.response?.data?.message ||

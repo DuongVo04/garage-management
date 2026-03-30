@@ -2,7 +2,9 @@ import {
 	createContext,
 	useContext,
 	useState,
+	useEffect
 } from 'react';
+import { decodeToken } from '../utils/jwt';
 
 const AuthContext = createContext();
 
@@ -11,14 +13,28 @@ export const AuthProvider = ({ children }) => {
 	const [accessToken, setAccessToken] = useState(
 		localStorage.getItem("token") || null
 	);
+	const [loading, setLoading] = useState(true);
+
+	useEffect(() => {
+		if (accessToken) {
+			const decoded = decodeToken(accessToken);
+			setUser(decoded);
+		} else {
+			setUser(null);
+		}
+		setLoading(false);
+	}, [accessToken]);
 
 	const login = (token) => {
 		setAccessToken(token);
+		const decoded = decodeToken(token);
+		setUser(decoded);
 		localStorage.setItem("token", token);
 	};
 
 	const logout = () => {
 		setAccessToken(null);
+		setUser(null);
 		localStorage.removeItem("token");
 	};
 
@@ -30,5 +46,5 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => {
-    return useContext(AuthContext);
+	return useContext(AuthContext);
 };
