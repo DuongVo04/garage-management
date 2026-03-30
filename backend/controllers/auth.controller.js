@@ -23,7 +23,7 @@ const login = async (req, res, next) => {
             return response(res, false, "Wrong password", 401)
         }
         const role = await Role.findByPk(account.role_id);
-        const payload = { id: account.id, role_id:role.id, role_name: role.name };
+        const payload = { id: account.id, username: account.username, role_id:role.id, role_name: role.name };
         const accessToken = generateAccessToken(payload);
         const refreshToken = generateRefreshToken(payload);
 

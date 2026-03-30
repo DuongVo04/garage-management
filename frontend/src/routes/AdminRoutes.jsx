@@ -1,10 +1,10 @@
-import React from 'react';
-import { Route } from 'react-router-dom';
+import { Route, Navigate } from 'react-router-dom';
 
 import ProtectedRoute from '../components/routes/ProtectedRoute';
 import RoleBasedRoute from '../components/routes/RoleBasedRoute';
 
-import AdminPage from '../pages/admin/AdminPage';
+import AdminLayout from '../layouts/AdminLayout';
+import DashboardPage from '../pages/admin/DashboardPage'
 
 
 const AdminRoutes = (
@@ -13,13 +13,14 @@ const AdminRoutes = (
         element={
             <ProtectedRoute>
                 <RoleBasedRoute role="ADMIN">
-                    <AdminPage />
+                    <AdminLayout />
                 </RoleBasedRoute>
             </ProtectedRoute>
         }
     >
-        {/* <Route path="dashboard" element={<DashboardPage />} /> */}
+        <Route index element={<Navigate to="dashboard" replace />} />
+
+        <Route path="dashboard" element={<DashboardPage />} />
     </Route>
 );
-
 export default AdminRoutes;

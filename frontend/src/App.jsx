@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ThemeProvider, CssBaseline } from "@mui/material";
-import AppRoutes from "./routes/AppRoutes";
+import { AdminRoutes, UserRoutes, PublicRoutes } from "./routes";
 import { getTheme } from "./theme";
+import { AuthProvider } from "./context/AuthContext";
+import NotFound from "./components/NoutFound";
 
 function App() {
 	const [mode, setMode] = useState("light");
@@ -11,12 +13,22 @@ function App() {
 	const theme = getTheme(mode);
 
 	return (
-		<ThemeProvider theme={theme}>
-			<CssBaseline />
-			<BrowserRouter>
-				<AppRoutes mode={mode} toggleTheme={toggleTheme} />
-			</BrowserRouter>
-		</ThemeProvider>
+		<AuthProvider>
+			<ThemeProvider theme={theme}>
+				<CssBaseline />
+				<BrowserRouter >
+					<Routes>
+						{PublicRoutes}
+						{UserRoutes}
+						{AdminRoutes}
+						<Route path="*" element={<NotFound />} />
+					</Routes>
+
+				</BrowserRouter>
+			</ThemeProvider>
+
+		</AuthProvider>
+
 	);
 }
 

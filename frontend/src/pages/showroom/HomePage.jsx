@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Container, 
-  Grid, 
-  Typography, 
-  Box, 
-  CircularProgress, 
+import {
+  Container,
+  Grid,
+  Typography,
+  Box,
+  CircularProgress,
   Alert,
   TextField,
   InputAdornment,
@@ -20,82 +20,7 @@ import { Search, FilterAlt } from '@mui/icons-material';
 import apiClient from '../../services/apiClient';
 import CarCard from './CarCard';
 
-const MOCK_DATA = [
-  {
-    id: 'mock-1',
-    name: 'Toyota Camry 2.5Q',
-    year: 2022,
-    new_price: 1350000000,
-    old_price: 1400000000,
-    thumbnail: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?auto=format&fit=crop&q=80&w=800',
-    color: 'Đen',
-    latest_odo: 15000,
-    brand: { name: 'Toyota' },
-    is_mock: true
-  },
-  {
-    id: 'mock-2',
-    name: 'Mazda CX-5 2.0 Premium',
-    year: 2021,
-    new_price: 850000000,
-    old_price: 900000000,
-    thumbnail: 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&q=80&w=800',
-    color: 'Đỏ',
-    latest_odo: 20000,
-    brand: { name: 'Mazda' },
-    is_mock: true
-  },
-  {
-    id: 'mock-3',
-    name: 'Hyundai SantaFe 2.2 Dầu Cao cấp',
-    year: 2023,
-    new_price: 1250000000,
-    old_price: 1300000000,
-    thumbnail: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=800',
-    color: 'Trắng',
-    latest_odo: 5000,
-    brand: { name: 'Hyundai' },
-    is_mock: true
-  },
-  {
-    id: 'mock-4',
-    name: 'Honda CR-V L',
-    year: 2020,
-    new_price: 950000000,
-    old_price: 1050000000,
-    thumbnail: 'https://images.unsplash.com/photo-1594502184342-2e12f877aa73?auto=format&fit=crop&q=80&w=800',
-    color: 'Xanh',
-    latest_odo: 35000,
-    brand: { name: 'Honda' },
-    is_mock: true
-  },
-  {
-    id: 'mock-5',
-    name: 'VinFast VF8 Plus',
-    year: 2023,
-    new_price: 1100000000,
-    old_price: 1200000000,
-    thumbnail: 'https://xevinfastluot.com/wp-content/uploads/2025/06/z6665285875121_25a4ad82720bf58ea7de3fcf0a9c3abf.jpg',
-    color: 'Bạc',
-    latest_odo: 1000,
-    brand: { name: 'VinFast' },
-    is_mock: true
-  },
-  {
-    id: 'mock-6',
-    name: 'Ford Ranger Wildtrak',
-    year: 2022,
-    new_price: 960000000,
-    old_price: 990000000,
-    thumbnail: 'https://bizweb.dktcdn.net/100/446/720/products/z4352085614436-383b3568144ede6c16445452f27fd9c5.jpg?v=1684918908720',
-    color: 'Cam',
-    latest_odo: 12000,
-    brand: { name: 'Ford' },
-    is_mock: true
-  }
-];
 
-// Loại bỏ mảng BRANDS cố định cũ
 const HomePage = () => {
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -104,7 +29,6 @@ const HomePage = () => {
   const [selectedBrand, setSelectedBrand] = useState('Tất cả');
   const [sortBy, setSortBy] = useState('newest');
 
-  // Tạo danh sách thương hiệu động dựa trên dữ liệu xe đang có
   const dynamicBrands = ['Tất cả', ...new Set(cars.map(car => car.brand?.name).filter(Boolean))];
 
   useEffect(() => {
@@ -113,11 +37,10 @@ const HomePage = () => {
         setLoading(true);
         const response = await apiClient.get('/showroom-vehicles');
         const dbData = response.data?.data || [];
-        setCars([...dbData, ...MOCK_DATA]);
+        setCars([...dbData,]);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching cars:', err);
-        setCars(MOCK_DATA);
         setLoading(false);
       }
     };
@@ -144,10 +67,10 @@ const HomePage = () => {
   return (
     <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh' }}>
       {/* Hero Section */}
-      <Box sx={{ 
-        bgcolor: 'primary.main', 
-        color: 'white', 
-        py: { xs: 6, md: 10 }, 
+      <Box sx={{
+        bgcolor: 'primary.main',
+        color: 'white',
+        py: { xs: 6, md: 10 },
         mb: 6,
         backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=1600)',
         backgroundSize: 'cover',
@@ -168,14 +91,14 @@ const HomePage = () => {
         <Grid container spacing={4}>
           {/* LEFT SIDEBAR: Filters */}
           <Grid size={{ xs: 12, md: 3 }}>
-            <Paper 
-              elevation={0} 
-              sx={{ 
-                p: 3, 
-                borderRadius: 1, 
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                borderRadius: 1,
                 border: '1px solid',
                 borderColor: 'divider',
-                position: 'sticky', 
+                position: 'sticky',
                 top: 100,
                 boxShadow: '0 4px 20px rgba(0,0,0,0.05)'
               }}
@@ -183,7 +106,7 @@ const HomePage = () => {
               <Typography variant="h6" fontWeight="bold" mb={3} display="flex" alignItems="center" gap={1}>
                 <FilterAlt color="primary" /> Bộ lọc tìm kiếm
               </Typography>
-              
+
               <Typography variant="subtitle2" fontWeight="800" mb={1.5} color="text.primary">
                 Tên xe
               </Typography>
@@ -209,7 +132,7 @@ const HomePage = () => {
               <Typography variant="subtitle2" fontWeight="800" mb={2} color="text.primary">
                 Danh mục
               </Typography>
-              
+
               <FormControl fullWidth size="small">
                 <InputLabel>Thương hiệu</InputLabel>
                 <Select
@@ -229,10 +152,10 @@ const HomePage = () => {
           {/* RIGHT CONTENT: Car List */}
           <Grid size={{ xs: 12, md: 9 }}>
             {/* Toolbar */}
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center', 
+            <Box sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
               mb: 4,
               flexWrap: 'wrap',
               gap: 2
