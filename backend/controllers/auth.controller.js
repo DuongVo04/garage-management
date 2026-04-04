@@ -64,7 +64,9 @@ const refreshToken = async (refreshToken) => {
                 } else {
                     const accessToken = generateAccessToken({
                         id: user.id,
-                        role_id: user.role_id
+                        username: user.username,
+                        role_id: user.role_id,
+                        role_name: user.role_name
                     });
                     resolve(accessToken);
                 }
