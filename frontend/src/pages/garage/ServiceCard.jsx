@@ -49,7 +49,7 @@ const ServiceCard = ({ service }) => {
       display: 'flex', 
       flexDirection: 'column',
       transition: 'all 0.3s ease-in-out',
-      borderRadius: 4,
+      borderRadius: 1,
       border: '1px solid',
       borderColor: 'divider',
       position: 'relative',
@@ -128,7 +128,7 @@ const ServiceCard = ({ service }) => {
             startIcon={<CalendarToday />}
             onClick={handleBooking}
             sx={{ 
-              borderRadius: 3,
+              borderRadius: 1,
               py: 1.5,
               textTransform: 'none',
               fontWeight: '900',
