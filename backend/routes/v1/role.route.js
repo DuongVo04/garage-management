@@ -4,6 +4,7 @@ import { validate } from '../../middlewares/validation.middleware.js'
 import { verifyToken, authorize } from "../../middlewares/auth.middleware.js"
 import roleValidator from '../../validators/role.validator.js'
 import { paramsIdValidator } from '../../validators/id.validator.js'
+import { response } from '../../utils/response.js'
 
 
 const router = express.Router()
@@ -11,7 +12,14 @@ const router = express.Router()
 router.get("/",
     verifyToken,
     authorize(["ADMIN"]),
-    roleController.getAll
+    async (req, res, next) => {
+        try {
+            const roles = await roleController.getAll();
+            return response(res, true, "Get roles successfully", 200, roles);
+        } catch (error) {
+            next(error);
+        }
+    }
 );
 
 router.get("/:id",
@@ -19,7 +27,15 @@ router.get("/:id",
     authorize(["ADMIN"]),
     paramsIdValidator(),
     validate,
-    roleController.getById
+    async (req, res, next) => {
+        try {
+            const { id } = req.params;
+            const role = await roleController.getById(id);
+            return response(res, true, "Role found", 200, role);
+        } catch (error) {
+            next(error);
+        }
+    }
 );
 
 router.post("/",
@@ -27,7 +43,14 @@ router.post("/",
     authorize(["ADMIN"]),
     roleValidator,
     validate,
-    roleController.create
+    async (req, res, next) => {
+        try {
+            const role = await roleController.create(req.body, req.uploadedFile);
+            return response(res, true, "Create role successfully", 201, role);
+        } catch (error) {
+            next(error);
+        }
+    }
 );
 
 router.put("/:id",
@@ -36,14 +59,30 @@ router.put("/:id",
     paramsIdValidator(),
     roleValidator,
     validate,
-    roleController.update
+    async (req, res, next) => {
+        try {
+            const { id } = req.params;
+            const role = await roleController.update(id, req.body, req.uploadedFile);
+            return response(res, true, "Update role successfully", 200, role);
+        } catch (error) {
+            next(error);
+        }
+    }
 );
 
 router.delete("/:id",
     verifyToken,
     authorize(["ADMIN"]),
     paramsIdValidator(),
-    roleController.delete
+    async (req, res, next) => {
+        try {
+            const { id } = req.params;
+            await roleController.delete(id);
+            return response(res, true, "Role deleted", 200);
+        } catch (error) {
+            next(error);
+        }
+    }
 );
 
 export default router

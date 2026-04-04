@@ -19,7 +19,7 @@ export default (sequelize) => {
 
         plate_number: DataTypes.STRING(20),
 
-        is_latest_od: DataTypes.INTEGER,
+        latest_odo: DataTypes.INTEGER,
 
         year: DataTypes.INTEGER,
 

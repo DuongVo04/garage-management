@@ -1,6 +1,7 @@
 import { Role } from "../schemas/index.js";
 import { baseCRUD } from "../utils/baseCRUD.js";
-import { response } from "../utils/response.js";
+import ApiError from "../utils/ApiError.js"
+
 
 const base = baseCRUD(Role, {
     modelName: "Role",
@@ -8,25 +9,18 @@ const base = baseCRUD(Role, {
     defaultValues: { is_deleted: false }
 });
 
-const deleteRole = async (req, res, next) => {
-    try {
-        const { id } = req.params;
+const deleteRole = async (id) => {
+    const role = await Role.findByPk(id);
 
-        const role = await Role.findByPk(id);
-
-        if (!role) {
-            return response(res, false, "Role not found", 404);
-        }
-
-        if (role.name === "ADMIN") {
-            return response(res, false, "Cannot delete admin role", 403);
-        }
-
-        return base.delete(req, res, next);
-
-    } catch (error) {
-        next(error);
+    if (!role) {
+        throw new ApiError(404, "Role not found");
     }
+
+    if (role.name === "ADMIN") {
+        throw new ApiError(403, "Cannot delete admin role");
+    }
+
+    return await base.delete(id);
 };
 
 export const roleController = {

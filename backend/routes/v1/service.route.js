@@ -4,18 +4,34 @@ import { validate } from '../../middlewares/validation.middleware.js'
 import { authorize, verifyToken } from '../../middlewares/auth.middleware.js'
 import serviceValidator from '../../validators/service.validator.js'
 import { paramsIdValidator } from '../../validators/id.validator.js'
+import { response } from '../../utils/response.js'
 
 
 const router = express.Router();
 
 router.get("/",
-    serviceController.getAll
+    async (req, res, next) => {
+        try {
+            const services = await serviceController.getAll(req.query);
+            return response(res, true, "Get services successfully", 200, services);
+        } catch (error) {
+            next(error);
+        }
+    }
 );
 
 router.get("/:id",
     paramsIdValidator(),
     validate,
-    serviceController.getById
+    async (req, res, next) => {
+        try {
+            const { id } = req.params;
+            const service = await serviceController.getById(id);
+            return response(res, true, "Service found", 200, service);
+        } catch (error) {
+            next(error);
+        }
+    }
 );
 
 router.post("/",
@@ -23,7 +39,14 @@ router.post("/",
     authorize(["ADMIN"]),
     serviceValidator,
     validate,
-    serviceController.create
+    async (req, res, next) => {
+        try {
+            const service = await serviceController.create(req.body);
+            return response(res, true, "Create service successfully", 201, service);
+        } catch (error) {
+            next(error);
+        }
+    }
 );
 
 router.put("/:id",
@@ -32,7 +55,15 @@ router.put("/:id",
     paramsIdValidator(),
     serviceValidator,
     validate,
-    serviceController.update
+    async (req, res, next) => {
+        try {
+            const { id } = req.params;
+            const service = await serviceController.update(id, req.body);
+            return response(res, true, "Update service successfully", 200, service);
+        } catch (error) {
+            next(error);
+        }
+    }
 );
 
 router.delete("/:id",
@@ -40,7 +71,15 @@ router.delete("/:id",
     authorize(["ADMIN"]),
     paramsIdValidator(),
     validate,
-    serviceController.delete
+    async (req, res, next) => {
+        try {
+            const { id } = req.params;
+            await serviceController.delete(id);
+            return response(res, true, "Service deleted", 200);
+        } catch (error) {
+            next(error);
+        }
+    }
 );
 
 export default router;

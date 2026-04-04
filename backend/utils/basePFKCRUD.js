@@ -1,6 +1,4 @@
-import { response } from "./response.js";
 import ApiError from "./ApiError.js";
-
 
 const getPrimaryKey = (params, primaryKey) => {
     const value = params[primaryKey];
@@ -25,80 +23,61 @@ export const basePFKCRUD = (Model, options = {}) => {
 
     return {
 
-        async getOne(req, res, next) {
-            try {
-                const where = getPrimaryKey(req.params, primaryKey);
+        async getOne(params) {
+            const where = getPrimaryKey(params, primaryKey);
 
-                const data = await Model.findOne({ where, include });
+            const data = await Model.findOne({ where, include });
 
-                if (!data) {
-                    return response(res, false, `${modelName} not found`, 404);
-                }
-
-                return response(res, true, "Success", 200, data);
-            } catch (err) {
-                next(err);
+            if (!data) {
+                throw new ApiError(404, `${modelName} not found`);
             }
+
+            return data;
         },
 
-        async create(req, res, next) {
-            try {
-                const key = getPrimaryKey(req.params, primaryKey);
-                console.log({                    ...req.body,
-                    ...key});
-                const data = await Model.create({
-                    ...req.body,
-                    ...key
-                });
+        async create(params, body) {
+            const key = getPrimaryKey(params, primaryKey);
+            const data = await Model.create({
+                ...body,
+                ...key
+            });
 
-                return response(res, true, "Created successfully", 201, data);
-            } catch (err) {
-                next(err);
-            }
+            return data;
         },
 
-        async update(req, res, next) {
-            try {
-                const where = getPrimaryKey(req.params, primaryKey);
+        async update(params, body) {
+            const where = getPrimaryKey(params, primaryKey);
 
-                const [affected] = await Model.update({
-                    ...req.body,
-                    ...where
-                }, { where });
+            const [affected] = await Model.update({
+                ...body,
+                ...where
+            }, { where });
 
-                if (affected === 0) {
-                    const exists = await Model.findOne({ where });
+            if (affected === 0) {
+                const exists = await Model.findOne({ where });
 
-                    if (!exists) {
-                        return response(res, false, `${modelName} not found`, 404);
-                    }
-
-                    return response(res, true, "No changes detected", 200, exists);
+                if (!exists) {
+                    throw new ApiError(404, `${modelName} not found`);
                 }
 
-                const updated = await Model.findOne({ where });
-
-                return response(res, true, "Updated successfully", 200, updated);
-
-            } catch (err) {
-                next(err);
+                return exists;
             }
+
+            const updated = await Model.findOne({ where });
+
+            return updated;
         },
 
-        async delete(req, res, next) {
-            try {
-                const where = getPrimaryKey(req.params, primaryKey);
+        async delete(params) {
+            const where = getPrimaryKey(params, primaryKey);
 
-                const deleted = await Model.destroy({ where });
+            const deleted = await Model.destroy({ where });
 
-                if (!deleted) {
-                    return response(res, false, `${modelName} not found`, 404);
-                }
-
-                return response(res, true, "Deleted permanently", 200);
-            } catch (err) {
-                next(err);
+            if (!deleted) {
+                throw new ApiError(404, `${modelName} not found`);
             }
+
+            return true;
         }
     };
 };
