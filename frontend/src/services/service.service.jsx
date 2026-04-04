@@ -3,10 +3,10 @@ import apiClient from "./apiClient";
 
 // ==================== SERVICE ====================
 
-export const getAllServices = async (type = "all") => {
+export const getAllServices = async (isDeleted = "all") => {
 	try {
 		const response = await apiClient.get("/services", {
-			params: { type }
+			params: { is_deleted: isDeleted }  // Đổi từ type thành is_deleted
 		});
 		return response.data;
 	} catch (error) {

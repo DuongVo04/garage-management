@@ -1,36 +1,24 @@
-import { response } from '../utils/response.js'
+import ApiError from "../utils/ApiError.js"
 import { Account, Role } from "../schemas/index.js"
 
-const updateUserAccountStatus = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        const { is_activated } = req.body;
-
-        const account = await Account.findByPk(id, {
-            include: {
-                model: Role,
-                attributes: ["name"]
-            }
-        });
-
-        if (!account) {
-            return response(res, false, "Account not found", 404);
+const updateUserAccountStatus = async (id, { is_activated }) => {
+    const account = await Account.findByPk(id, {
+        include: {
+            model: Role,
+            attributes: ["name"]
         }
-        if (account.Role?.name === "ADMIN") {
-            return response(res, false, "Cannot change ADMIN account", 403);
-        }
+    });
 
-        await account.update({ is_activated });
-
-        return response(
-            res,
-            true,
-            is_activated ? "Account activated" : "Account deactivated",
-            200
-        );
-    } catch (error) {
-        next(error);
+    if (!account) {
+        throw new ApiError(404, "Account not found");
     }
+    if (account.Role?.name === "ADMIN") {
+        throw new ApiError(403, "Cannot change ADMIN account");
+    }
+
+    await account.update({ is_activated });
+
+    return is_activated ? "Account activated" : "Account deactivated";
 };
 
 export {

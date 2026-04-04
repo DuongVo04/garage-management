@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect, useRef } from "react";
 import {
 	Box, Typography, Button, Table, TableBody, TableCell, TableContainer,
@@ -119,6 +117,51 @@ const VehicleImage = ({ src, alt, sxProps = {} }) => {
 	);
 };
 
+// Utility Components (defined outside component)
+const InfoRow = ({ label, value, bold, color, lineThrough }) => value ? (
+	<Stack direction="row" justifyContent="space-between" alignItems="center">
+		<Typography variant="caption" color="text.secondary">{label}</Typography>
+		<Typography variant="body2" fontWeight={bold ? 700 : 400} color={color || "text.primary"} sx={{ textDecoration: lineThrough ? "line-through" : "none" }}>{value}</Typography>
+	</Stack>
+) : null;
+
+const SpecGrid = ({ data }) => (
+	<Grid container spacing={1.5}>
+		{data.filter(d => d.value != null).map(d => (
+			<Grid item xs={6} key={d.label}>
+				<Box sx={{ p: 1.5, bgcolor: "#fff", borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
+					<Typography variant="caption" color="text.secondary" fontWeight={600}>{d.label.toUpperCase()}</Typography>
+					<Typography fontWeight={700} fontSize={14} mt={0.3}>{d.value || "—"}</Typography>
+				</Box>
+			</Grid>
+		))}
+	</Grid>
+);
+
+const EmptySpec = ({ label }) => (
+	<Box sx={{ textAlign: "center", py: 4 }}><Typography color="text.secondary" fontSize={14}>{label}</Typography></Box>
+);
+
+const fieldSx = {
+	"& .MuiInputBase-root": { fontFamily: "'DM Sans', sans-serif", borderRadius: 2 },
+	"& .MuiInputLabel-root": { fontFamily: "'DM Sans', sans-serif" },
+};
+
+const FField = ({ label, value, onChange, type = "text", multiline = false, rows = 1, placeholder = "" }) => (
+	<TextField
+		size="small"
+		fullWidth
+		label={label}
+		type={type}
+		value={value}
+		onChange={e => onChange(e.target.value)}
+		multiline={multiline}
+		rows={rows}
+		placeholder={placeholder}
+		sx={fieldSx}
+	/>
+);
+
 // ─── Main Component ────────────────────────────────────────────────────────────
 export default function ShowroomPage() {
 	// Tab chính
@@ -224,18 +267,15 @@ export default function ShowroomPage() {
 	const fetchServices = async () => {
 		setServicesLoading(true);
 		try {
-			const res = await getAllServices(serviceFilter);
+			let isDeletedParam = "all";
+			if (serviceFilter === "active") {
+				isDeletedParam = "false";
+			} else if (serviceFilter === "inactive") {
+				isDeletedParam = "true";
+			}
 
-			console.log("=== SERVICE DEBUG ===");
-			console.log("Current filter:", serviceFilter);
-			console.log("Raw API response:", res);
-
+			const res = await getAllServices(isDeletedParam);
 			const servicesData = res.data || [];
-
-			// Log chi tiết từng service
-			servicesData.forEach(service => {
-				console.log(`Service: ${service.name}, is_deleted: ${service.is_deleted}, Type: ${typeof service.is_deleted}, Value: ${JSON.stringify(service.is_deleted)}`);
-			});
 
 			const formattedServices = servicesData.map(service => ({
 				id: service.id,
@@ -368,7 +408,6 @@ export default function ShowroomPage() {
 	const handleSubmit = async () => {
 		setSubmitting(true);
 		try {
-			// Kiểm tra brand_id bắt buộc
 			if (!form.brand_id) {
 				showSnack("Vui lòng chọn thương hiệu", "error");
 				setSubmitting(false);
@@ -547,7 +586,6 @@ export default function ShowroomPage() {
 	};
 
 	const handleSaveVoucher = async () => {
-		// Validate
 		if (!voucherForm.code || !voucherForm.from || !voucherForm.to || !voucherForm.percent) {
 			showSnack("Vui lòng nhập đầy đủ thông tin bắt buộc", "error");
 			return;
@@ -575,10 +613,7 @@ export default function ShowroomPage() {
 				is_available: voucherForm.is_available ? 1 : 0
 			};
 
-
-
 			if (editingVoucher) {
-				console.log("Updating voucher with ID:", editingVoucher.id);
 				await updateVoucher(editingVoucher.id, payload);
 				showSnack("Cập nhật voucher thành công!");
 			} else {
@@ -599,7 +634,6 @@ export default function ShowroomPage() {
 			await fetchVouchers();
 		} catch (error) {
 			console.error("Lỗi lưu voucher:", error);
-			console.error("Error response data:", error.response?.data);
 			const errorMessage = error?.response?.data?.message ||
 				error?.response?.data?.errors?.[0]?.msg ||
 				"Có lỗi xảy ra";
@@ -641,8 +675,6 @@ export default function ShowroomPage() {
 		return { label: "Đang hoạt động", color: COLORS.success, icon: <CheckCircleIcon /> };
 	};
 
-
-	// ── Dịch vụ ────────────────────────────────────────────────────────────────
 	const handleSaveService = async () => {
 		setServiceSubmitting(true);
 		try {
@@ -651,22 +683,18 @@ export default function ShowroomPage() {
 				return;
 			}
 
-			// Kiểm tra price phải lớn hơn 0
 			const price = parseFloat(serviceForm.price);
 			if (isNaN(price) || price <= 0) {
 				showSnack("Giá dịch vụ phải lớn hơn 0", "error");
 				return;
 			}
 
-			// Chỉ gửi những field có trong schema (KHÔNG gửi duration)
 			const payload = {
 				name: serviceForm.name.trim(),
 				price: price,
 				description: serviceForm.description?.trim() || "",
-				is_deleted: !serviceForm.status ? 1 : 0  // status true = đang cung cấp (is_deleted=0), false = ngưng cung cấp (is_deleted=1)
+				is_deleted: !serviceForm.status ? 1 : 0
 			};
-
-			console.log("Sending payload:", payload);
 
 			if (editingService) {
 				await updateService(editingService.id, payload);
@@ -682,8 +710,6 @@ export default function ShowroomPage() {
 			await fetchServices();
 		} catch (error) {
 			console.error("Lỗi lưu dịch vụ:", error);
-			console.error("Error response data:", error.response?.data);
-
 			const errorMessage = error?.response?.data?.message ||
 				error?.response?.data?.errors?.[0]?.msg ||
 				"Có lỗi xảy ra";
@@ -711,7 +737,7 @@ export default function ShowroomPage() {
 				name: service.name || "",
 				price: service.price || "",
 				duration: service.duration || "60",
-				status: !service.is_deleted, // true = đang cung cấp, false = ngưng cung cấp
+				status: !service.is_deleted,
 				description: service.description || ""
 			});
 		} else {
@@ -763,8 +789,6 @@ export default function ShowroomPage() {
 		setVoucherDialogOpen(true);
 	};
 
-
-
 	const filtered = vehicles.filter(v =>
 		v.name?.toLowerCase().includes(search.toLowerCase()) ||
 		v.brand?.name?.toLowerCase().includes(search.toLowerCase())
@@ -807,27 +831,43 @@ export default function ShowroomPage() {
 
 			{/* Tab: Quản lý xe */}
 			{mainTab === 0 && (
-				<>
-					<Box sx={{ px: 4, py: 2, display: "flex", gap: 2, flexWrap: "wrap" }}>
+				<Box>
+					<Box sx={{ px: 4, py: 3, display: "flex", gap: 2.5, flexWrap: "wrap" }}>
 						{[
 							{ label: "Tổng xe", value: vehicles.length, color: COLORS.primary },
 							{ label: "Đang bán", value: vehicles.filter(v => v.status == 1).length, color: COLORS.success },
 							{ label: "Tạm ngừng", value: vehicles.filter(v => v.status == 0).length, color: COLORS.warning },
 						].map(stat => (
 							<Paper key={stat.label} sx={{
-								px: 3, py: 1.5, borderRadius: 3, display: "flex",
-								alignItems: "center", gap: 1.5, border: `1px solid ${COLORS.border}`,
-								boxShadow: "none"
+								px: 3, py: 2, borderRadius: 3, display: "flex",
+								alignItems: "center", gap: 2, border: `1px solid ${alpha(stat.color, 0.2)}`,
+								boxShadow: `0 4px 12px ${alpha(stat.color, 0.08)}`,
+								transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+								cursor: "pointer",
+								background: `linear-gradient(135deg, ${alpha(stat.color, 0.02)} 0%, ${alpha(stat.color, 0.01)} 100%)`,
+								"&:hover": {
+									boxShadow: `0 12px 24px ${alpha(stat.color, 0.15)}`,
+									transform: "translateY(-4px)",
+									borderColor: stat.color
+								}
 							}}>
-								<Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: stat.color }} />
-								<Typography variant="body2" color="text.secondary">{stat.label}:</Typography>
-								<Typography fontWeight={800} color={stat.color}>{stat.value}</Typography>
+								<Box sx={{ width: 12, height: 12, borderRadius: "50%", bgcolor: stat.color }} />
+								<Typography variant="body2" color="text.secondary" fontWeight={600}>{stat.label}</Typography>
+								<Box sx={{ flex: 1 }} />
+								<Typography fontWeight={800} fontSize={18} sx={{ color: stat.color }}>
+									{stat.value}
+								</Typography>
 							</Paper>
 						))}
 					</Box>
 
 					<Box sx={{ px: 4, pb: 4 }}>
-						<Paper sx={{ borderRadius: 4, border: `1px solid ${COLORS.border}`, overflow: "hidden" }}>
+						<Paper sx={{
+							borderRadius: 4,
+							border: `1px solid ${COLORS.border}`,
+							overflow: "hidden",
+							boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)"
+						}}>
 							<Box sx={{ px: 3, py: 2, display: "flex", alignItems: "center", gap: 2, borderBottom: `1px solid ${COLORS.border}` }}>
 								<TextField
 									size="small"
@@ -853,9 +893,11 @@ export default function ShowroomPage() {
 									</IconButton>
 								</Tooltip>
 							</Box>
+						</Paper>
 
-							<TableContainer>
-								<Table>
+						<Paper sx={{ borderRadius: 4, overflow: "hidden", boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)" }}>
+							<TableContainer sx={{ maxHeight: "calc(100vh - 320px)" }}>
+								<Table stickyHeader>
 									<TableHead>
 										<TableRow sx={{ bgcolor: alpha(COLORS.primary, 0.04) }}>
 											{["Xe", "Thương hiệu", "Năm", "Giá bán", "Màu", "ODO", "Trạng thái", ""].map(h => (
@@ -869,10 +911,28 @@ export default function ShowroomPage() {
 										{loading ? Array(5).fill(0).map((_, i) => (
 											<TableRow key={i}>{Array(8).fill(0).map((_, j) => (<TableCell key={j}><Skeleton height={40} /></TableCell>))}</TableRow>
 										)) : filtered.length === 0 ? (
-											<TableRow><TableCell colSpan={8} align="center" sx={{ py: 8 }}>
-												<DirectionsCar sx={{ fontSize: 48, color: COLORS.border, mb: 1, display: "block", mx: "auto" }} />
-												<Typography color="text.secondary">Không tìm thấy xe nào</Typography>
-											</TableCell></TableRow>
+											<TableRow>
+												<TableCell colSpan={8} align="center" sx={{ py: 6 }}>
+													<DirectionsCar sx={{ fontSize: 56, color: COLORS.border, mb: 2, display: "block", mx: "auto", opacity: 0.5 }} />
+													<Typography color="text.secondary" fontWeight={500} sx={{ mb: 3 }}>
+														Không tìm thấy xe nào
+													</Typography>
+													<Button
+														variant="contained"
+														startIcon={<Add />}
+														onClick={openCreate}
+														sx={{
+															borderRadius: 2,
+															textTransform: "none",
+															bgcolor: COLORS.primary,
+															fontWeight: 600,
+															px: 3
+														}}
+													>
+														Thêm xe ngay
+													</Button>
+												</TableCell>
+											</TableRow>
 										) : filtered.map((v, idx) => (
 											<Fade in key={v.id} timeout={200 + idx * 50}>
 												<TableRow sx={{ "&:hover": { bgcolor: alpha(COLORS.accent, 0.04) } }}>
@@ -923,7 +983,7 @@ export default function ShowroomPage() {
 							</TableContainer>
 						</Paper>
 					</Box>
-				</>
+				</Box>
 			)}
 
 			{/* Tab: Quản lý hãng xe */}
@@ -939,19 +999,11 @@ export default function ShowroomPage() {
 							borderBottom: `1px solid ${COLORS.border}`,
 							bgcolor: COLORS.surface
 						}}>
-							<Typography fontWeight={700} fontSize={18}>
-								Danh sách hãng xe
-							</Typography>
-							<Button
-								variant="contained"
-								startIcon={<Add />}
-								onClick={() => openBrandDialog()}
-								sx={{ borderRadius: 2, textTransform: "none", bgcolor: COLORS.primary }}
-							>
+							<Typography fontWeight={700} fontSize={18}>Danh sách hãng xe</Typography>
+							<Button variant="contained" startIcon={<Add />} onClick={() => openBrandDialog()} sx={{ borderRadius: 2, textTransform: "none", bgcolor: COLORS.primary }}>
 								Thêm hãng xe
 							</Button>
 						</Box>
-
 						<TableContainer>
 							<Table>
 								<TableHead>
@@ -964,82 +1016,30 @@ export default function ShowroomPage() {
 								</TableHead>
 								<TableBody>
 									{brandsLoading ? (
-										<TableRow>
-											<TableCell colSpan={4} align="center" sx={{ py: 4 }}>
-												<CircularProgress size={32} />
-											</TableCell>
-										</TableRow>
+										<TableRow><TableCell colSpan={4} align="center" sx={{ py: 4 }}><CircularProgress size={32} /></TableCell></TableRow>
 									) : brandsData.length === 0 ? (
-										<TableRow>
-											<TableCell colSpan={4} align="center" sx={{ py: 4 }}>
-												<BusinessIcon sx={{ fontSize: 48, color: COLORS.border, mb: 1 }} />
-												<Typography color="text.secondary">Chưa có hãng xe nào</Typography>
+										<TableRow><TableCell colSpan={4} align="center" sx={{ py: 6 }}>
+											<BusinessIcon sx={{ fontSize: 56, color: COLORS.border, mb: 2, opacity: 0.5 }} />
+											<Typography color="text.secondary" fontWeight={500} sx={{ mb: 3 }}>Chưa có hãng xe nào</Typography>
+											<Button variant="contained" startIcon={<Add />} onClick={() => openBrandDialog()} sx={{ borderRadius: 2, textTransform: "none", bgcolor: COLORS.primary, fontWeight: 600, px: 3 }}>Thêm hãng xe</Button>
+										</TableCell></TableRow>
+									) : brandsData.map(brand => (
+										<TableRow key={brand.id} sx={{ "&:hover": { bgcolor: alpha(COLORS.accent, 0.04) } }}>
+											<TableCell>
+												<Box sx={{ width: 50, height: 50, borderRadius: 2, overflow: "hidden", bgcolor: COLORS.border }}>
+													{brand.logo_url ? <img src={imgSrc(brand.logo_url)} alt={brand.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => e.target.style.display = 'none'} /> : <BusinessIcon sx={{ color: COLORS.muted, p: 1, width: "100%", height: "100%" }} />}
+												</Box>
+											</TableCell>
+											<TableCell><Typography fontWeight={600}>{brand.name}</Typography></TableCell>
+											<TableCell><Stack direction="row" spacing={1} alignItems="center"><PublicIcon sx={{ fontSize: 16, color: COLORS.muted }} /><Typography>{brand.country}</Typography></Stack></TableCell>
+											<TableCell align="right">
+												<Stack direction="row" spacing={0.5} justifyContent="flex-end">
+													<Tooltip title="Chỉnh sửa"><IconButton size="small" onClick={() => openBrandDialog(brand)} sx={{ color: COLORS.primary }}><Edit fontSize="small" /></IconButton></Tooltip>
+													<Tooltip title="Xóa"><IconButton size="small" onClick={() => { setBrandToDelete(brand); setBrandDeleteOpen(true); }} sx={{ color: COLORS.danger }}><Delete fontSize="small" /></IconButton></Tooltip>
+												</Stack>
 											</TableCell>
 										</TableRow>
-									) : (
-										brandsData.map(brand => (
-											<Fade in key={brand.id} timeout={200}>
-												<TableRow sx={{ "&:hover": { bgcolor: alpha(COLORS.accent, 0.04) } }}>
-													<TableCell>
-														<Box sx={{ width: 50, height: 50, borderRadius: 2, overflow: "hidden", bgcolor: COLORS.border }}>
-															{brand.logo_url ? (
-																<img
-																	src={imgSrc(brand.logo_url)}
-																	alt={brand.name}
-																	style={{ width: "100%", height: "100%", objectFit: "cover" }}
-																	onError={(e) => { e.target.style.display = 'none'; }}
-																/>
-															) : (
-																<Box sx={{
-																	width: "100%",
-																	height: "100%",
-																	display: "flex",
-																	alignItems: "center",
-																	justifyContent: "center"
-																}}>
-																	<BusinessIcon sx={{ color: COLORS.muted, fontSize: 24 }} />
-																</Box>
-															)}
-														</Box>
-													</TableCell>
-													<TableCell>
-														<Typography fontWeight={600}>{brand.name}</Typography>
-													</TableCell>
-													<TableCell>
-														<Stack direction="row" spacing={1} alignItems="center">
-															<PublicIcon sx={{ fontSize: 16, color: COLORS.muted }} />
-															<Typography>{brand.country}</Typography>
-														</Stack>
-													</TableCell>
-													<TableCell align="right">
-														<Stack direction="row" spacing={0.5} justifyContent="flex-end">
-															<Tooltip title="Chỉnh sửa">
-																<IconButton
-																	size="small"
-																	onClick={() => openBrandDialog(brand)}
-																	sx={{ color: COLORS.primary }}
-																>
-																	<Edit fontSize="small" />
-																</IconButton>
-															</Tooltip>
-															<Tooltip title="Xóa">
-																<IconButton
-																	size="small"
-																	onClick={() => {
-																		setBrandToDelete(brand);
-																		setBrandDeleteOpen(true);
-																	}}
-																	sx={{ color: COLORS.danger }}
-																>
-																	<Delete fontSize="small" />
-																</IconButton>
-															</Tooltip>
-														</Stack>
-													</TableCell>
-												</TableRow>
-											</Fade>
-										))
-									)}
+									))}
 								</TableBody>
 							</Table>
 						</TableContainer>
@@ -1053,24 +1053,13 @@ export default function ShowroomPage() {
 					<Paper sx={{ borderRadius: 4, border: `1px solid ${COLORS.border}`, overflow: "hidden" }}>
 						<Box sx={{ px: 3, py: 2, display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1px solid ${COLORS.border}`, bgcolor: COLORS.surface }}>
 							<Typography fontWeight={700} fontSize={18}>Danh sách dịch vụ</Typography>
-							<Button variant="contained" startIcon={<Add />} onClick={() => openServiceDialog()} sx={{ borderRadius: 2, textTransform: "none", bgcolor: COLORS.primary }}>
-								Thêm dịch vụ
-							</Button>
+							<Button variant="contained" startIcon={<Add />} onClick={() => openServiceDialog()} sx={{ borderRadius: 2, textTransform: "none", bgcolor: COLORS.primary }}>Thêm dịch vụ</Button>
 						</Box>
-
-						{/* Filter tabs */}
 						<Box sx={{ px: 3, pt: 2, borderBottom: `1px solid ${COLORS.border}` }}>
-							<Tabs
-								value={serviceFilter}
-								onChange={(_, v) => setServiceFilter(v)}
-								sx={{ "& .MuiTabs-indicator": { bgcolor: COLORS.primary } }}
-							>
-								<Tab value="all" label="Tất cả" />
-								<Tab value="active" label="Đang cung cấp" />
-								<Tab value="inactive" label="Ngưng cung cấp" />
+							<Tabs value={serviceFilter} onChange={(_, v) => setServiceFilter(v)} sx={{ "& .MuiTabs-indicator": { bgcolor: COLORS.primary } }}>
+								<Tab value="all" label="Tất cả" /><Tab value="active" label="Đang cung cấp" /><Tab value="inactive" label="Ngưng cung cấp" />
 							</Tabs>
 						</Box>
-
 						<TableContainer>
 							<Table>
 								<TableHead>
@@ -1085,47 +1074,26 @@ export default function ShowroomPage() {
 								</TableHead>
 								<TableBody>
 									{servicesLoading ? (
-										<TableRow>
-											<TableCell colSpan={6} align="center" sx={{ py: 4 }}>
-												<CircularProgress size={32} />
-											</TableCell>
-										</TableRow>
+										<TableRow><TableCell colSpan={6} align="center" sx={{ py: 4 }}><CircularProgress size={32} /></TableCell></TableRow>
 									) : services.length === 0 ? (
-										<TableRow>
-											<TableCell colSpan={6} align="center" sx={{ py: 4 }}>
-												<Build sx={{ fontSize: 48, color: COLORS.border, mb: 1 }} />
-												<Typography color="text.secondary">Không có dịch vụ nào</Typography>
+										<TableRow><TableCell colSpan={6} align="center" sx={{ py: 6 }}>
+											<Build sx={{ fontSize: 56, color: COLORS.border, mb: 2, opacity: 0.5 }} />
+											<Typography color="text.secondary" fontWeight={500} sx={{ mb: 3 }}>Không có dịch vụ nào</Typography>
+											<Button variant="contained" startIcon={<Add />} onClick={() => openServiceDialog()} sx={{ borderRadius: 2, textTransform: "none", bgcolor: COLORS.primary, fontWeight: 600, px: 3 }}>Thêm dịch vụ</Button>
+										</TableCell></TableRow>
+									) : services.map(service => (
+										<TableRow key={service.id}>
+											<TableCell><Typography fontWeight={500}>{service.name}</Typography></TableCell>
+											<TableCell><Typography variant="body2" color="text.secondary">{service.description || "—"}</Typography></TableCell>
+											<TableCell>{formatPrice(service.price)}</TableCell>
+											<TableCell>{service.duration}</TableCell>
+											<TableCell><Chip label={service.is_deleted ? "Ngưng cung cấp" : "Đang cung cấp"} size="small" sx={{ bgcolor: !service.is_deleted ? alpha(COLORS.success, 0.12) : alpha(COLORS.warning, 0.12), color: !service.is_deleted ? COLORS.success : COLORS.warning }} /></TableCell>
+											<TableCell align="right">
+												<IconButton size="small" onClick={() => openServiceDialog(service)} sx={{ color: COLORS.primary }}><Edit fontSize="small" /></IconButton>
+												<IconButton size="small" onClick={() => handleDeleteService(service.id)} sx={{ color: COLORS.danger }}><Delete fontSize="small" /></IconButton>
 											</TableCell>
 										</TableRow>
-									) : (
-										services.map(service => (
-											<TableRow key={service.id}>
-												<TableCell><Typography fontWeight={500}>{service.name}</Typography></TableCell>
-												<TableCell><Typography variant="body2" color="text.secondary">{service.description || "—"}</Typography></TableCell>
-												<TableCell>{formatPrice(service.price)}</TableCell>
-												<TableCell>{service.duration}</TableCell>
-												<TableCell>
-
-													<Chip
-														label={service.is_deleted ? "Ngưng cung cấp" : "Đang cung cấp"}
-														size="small"
-														sx={{
-															bgcolor: !service.is_deleted ? alpha(COLORS.success, 0.12) : alpha(COLORS.warning, 0.12),
-															color: !service.is_deleted ? COLORS.success : COLORS.warning
-														}}
-													/>
-												</TableCell>
-												<TableCell align="right">
-													<IconButton size="small" onClick={() => openServiceDialog(service)} sx={{ color: COLORS.primary }}>
-														<Edit fontSize="small" />
-													</IconButton>
-													<IconButton size="small" onClick={() => handleDeleteService(service.id)} sx={{ color: COLORS.danger }}>
-														<Delete fontSize="small" />
-													</IconButton>
-												</TableCell>
-											</TableRow>
-										))
-									)}
+									))}
 								</TableBody>
 							</Table>
 						</TableContainer>
@@ -1137,41 +1105,15 @@ export default function ShowroomPage() {
 			{mainTab === 3 && (
 				<Box sx={{ p: 4 }}>
 					<Paper sx={{ borderRadius: 4, border: `1px solid ${COLORS.border}`, overflow: "hidden" }}>
-						<Box sx={{
-							px: 3,
-							py: 2,
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "space-between",
-							borderBottom: `1px solid ${COLORS.border}`,
-							bgcolor: COLORS.surface
-						}}>
-							<Typography fontWeight={700} fontSize={18}>
-								Danh sách mã giảm giá
-							</Typography>
-							<Button
-								variant="contained"
-								startIcon={<Add />}
-								onClick={() => openVoucherDialog()}
-								sx={{ borderRadius: 2, textTransform: "none", bgcolor: COLORS.primary }}
-							>
-								Thêm voucher
-							</Button>
+						<Box sx={{ px: 3, py: 2, display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1px solid ${COLORS.border}`, bgcolor: COLORS.surface }}>
+							<Typography fontWeight={700} fontSize={18}>Danh sách mã giảm giá</Typography>
+							<Button variant="contained" startIcon={<Add />} onClick={() => openVoucherDialog()} sx={{ borderRadius: 2, textTransform: "none", bgcolor: COLORS.primary }}>Thêm voucher</Button>
 						</Box>
-
-						{/* Filter tabs */}
 						<Box sx={{ px: 3, pt: 2, borderBottom: `1px solid ${COLORS.border}` }}>
-							<Tabs
-								value={voucherFilter}
-								onChange={(_, v) => setVoucherFilter(v)}
-								sx={{ "& .MuiTabs-indicator": { bgcolor: COLORS.primary } }}
-							>
-								<Tab value="all" label="Tất cả" />
-								<Tab value="active" label="Đang hoạt động" />
-								<Tab value="disable" label="Không hoạt động" />
+							<Tabs value={voucherFilter} onChange={(_, v) => setVoucherFilter(v)} sx={{ "& .MuiTabs-indicator": { bgcolor: COLORS.primary } }}>
+								<Tab value="all" label="Tất cả" /><Tab value="active" label="Đang hoạt động" /><Tab value="disable" label="Không hoạt động" />
 							</Tabs>
 						</Box>
-
 						<TableContainer>
 							<Table>
 								<TableHead>
@@ -1186,116 +1128,31 @@ export default function ShowroomPage() {
 								</TableHead>
 								<TableBody>
 									{vouchersLoading ? (
-										<TableRow>
-											<TableCell colSpan={6} align="center" sx={{ py: 4 }}>
-												<CircularProgress size={32} />
-											</TableCell>
-										</TableRow>
+										<TableRow><TableCell colSpan={6} align="center" sx={{ py: 4 }}><CircularProgress size={32} /></TableCell></TableRow>
 									) : vouchers.length === 0 ? (
-										<TableRow>
-											<TableCell colSpan={6} align="center" sx={{ py: 4 }}>
-												<LocalOfferIcon sx={{ fontSize: 48, color: COLORS.border, mb: 1 }} />
-												<Typography color="text.secondary">Chưa có voucher nào</Typography>
-											</TableCell>
-										</TableRow>
-									) : (
-										vouchers.map(voucher => {
-											const status = getVoucherStatus(voucher);
-											return (
-												<Fade in key={voucher.id} timeout={200}>
-													<TableRow sx={{ "&:hover": { bgcolor: alpha(COLORS.accent, 0.04) } }}>
-														<TableCell>
-															<Chip
-																label={voucher.code}
-																size="small"
-																sx={{
-																	fontFamily: "monospace",
-																	fontWeight: 700,
-																	bgcolor: alpha(COLORS.primary, 0.1),
-																	color: COLORS.primary,
-																	letterSpacing: 0.5
-																}}
-															/>
-														</TableCell>
-														<TableCell>
-															{voucher.event ? (
-																<Stack direction="row" spacing={1} alignItems="center">
-																	<EventIcon sx={{ fontSize: 16, color: COLORS.muted }} />
-																	<Typography variant="body2">{voucher.event}</Typography>
-																</Stack>
-															) : (
-																<Typography variant="body2" color="text.secondary">—</Typography>
-															)}
-														</TableCell>
-														<TableCell>
-															<Chip
-																icon={<PercentIcon sx={{ fontSize: 14 }} />}
-																label={`${voucher.percent}%`}
-																size="small"
-																sx={{
-																	fontWeight: 700,
-																	bgcolor: alpha(COLORS.success, 0.1),
-																	color: COLORS.success
-																}}
-															/>
-														</TableCell>
-														<TableCell>
-															<Stack spacing={0.5}>
-																<Stack direction="row" spacing={1} alignItems="center">
-																	<DateRangeIcon sx={{ fontSize: 14, color: COLORS.muted }} />
-																	<Typography variant="caption">
-																		{new Date(voucher.from).toLocaleDateString("vi-VN")}
-																	</Typography>
-																	<Typography variant="caption">→</Typography>
-																	<Typography variant="caption">
-																		{new Date(voucher.to).toLocaleDateString("vi-VN")}
-																	</Typography>
-																</Stack>
-															</Stack>
-														</TableCell>
-														<TableCell>
-															<Chip
-																icon={status.icon}
-																label={status.label}
-																size="small"
-																sx={{
-																	bgcolor: alpha(status.color, 0.12),
-																	color: status.color,
-																	fontWeight: 700,
-																	fontSize: 11
-																}}
-															/>
-														</TableCell>
-														<TableCell align="right">
-															<Stack direction="row" spacing={0.5} justifyContent="flex-end">
-																<Tooltip title="Chỉnh sửa">
-																	<IconButton
-																		size="small"
-																		onClick={() => openVoucherDialog(voucher)}
-																		sx={{ color: COLORS.primary }}
-																	>
-																		<Edit fontSize="small" />
-																	</IconButton>
-																</Tooltip>
-																<Tooltip title="Xóa">
-																	<IconButton
-																		size="small"
-																		onClick={() => {
-																			setVoucherToDelete(voucher);
-																			setVoucherDeleteOpen(true);
-																		}}
-																		sx={{ color: COLORS.danger }}
-																	>
-																		<Delete fontSize="small" />
-																	</IconButton>
-																</Tooltip>
-															</Stack>
-														</TableCell>
-													</TableRow>
-												</Fade>
-											);
-										})
-									)}
+										<TableRow><TableCell colSpan={6} align="center" sx={{ py: 6 }}>
+											<LocalOfferIcon sx={{ fontSize: 56, color: COLORS.border, mb: 2, opacity: 0.5 }} />
+											<Typography color="text.secondary" fontWeight={500} sx={{ mb: 3 }}>Chưa có voucher nào</Typography>
+											<Button variant="contained" startIcon={<Add />} onClick={() => openVoucherDialog()} sx={{ borderRadius: 2, textTransform: "none", bgcolor: COLORS.primary, fontWeight: 600, px: 3 }}>Thêm voucher</Button>
+										</TableCell></TableRow>
+									) : vouchers.map(voucher => {
+										const status = getVoucherStatus(voucher);
+										return (
+											<TableRow key={voucher.id} sx={{ "&:hover": { bgcolor: alpha(COLORS.accent, 0.04) } }}>
+												<TableCell><Chip label={voucher.code} size="small" sx={{ fontFamily: "monospace", fontWeight: 700, bgcolor: alpha(COLORS.primary, 0.1), color: COLORS.primary, letterSpacing: 0.5 }} /></TableCell>
+												<TableCell>{voucher.event ? <Stack direction="row" spacing={1} alignItems="center"><EventIcon sx={{ fontSize: 16, color: COLORS.muted }} /><Typography variant="body2">{voucher.event}</Typography></Stack> : "—"}</TableCell>
+												<TableCell><Chip icon={<PercentIcon sx={{ fontSize: 14 }} />} label={`${voucher.percent}%`} size="small" sx={{ fontWeight: 700, bgcolor: alpha(COLORS.success, 0.1), color: COLORS.success }} /></TableCell>
+												<TableCell><Stack spacing={0.5}><Stack direction="row" spacing={1} alignItems="center"><DateRangeIcon sx={{ fontSize: 14, color: COLORS.muted }} /><Typography variant="caption">{new Date(voucher.from).toLocaleDateString("vi-VN")}</Typography><Typography variant="caption">→</Typography><Typography variant="caption">{new Date(voucher.to).toLocaleDateString("vi-VN")}</Typography></Stack></Stack></TableCell>
+												<TableCell><Chip icon={status.icon} label={status.label} size="small" sx={{ bgcolor: alpha(status.color, 0.12), color: status.color, fontWeight: 700, fontSize: 11 }} /></TableCell>
+												<TableCell align="right">
+													<Stack direction="row" spacing={0.5} justifyContent="flex-end">
+														<Tooltip title="Chỉnh sửa"><IconButton size="small" onClick={() => openVoucherDialog(voucher)} sx={{ color: COLORS.primary }}><Edit fontSize="small" /></IconButton></Tooltip>
+														<Tooltip title="Xóa"><IconButton size="small" onClick={() => { setVoucherToDelete(voucher); setVoucherDeleteOpen(true); }} sx={{ color: COLORS.danger }}><Delete fontSize="small" /></IconButton></Tooltip>
+													</Stack>
+												</TableCell>
+											</TableRow>
+										);
+									})}
 								</TableBody>
 							</Table>
 						</TableContainer>
@@ -1303,7 +1160,7 @@ export default function ShowroomPage() {
 				</Box>
 			)}
 
-			{/* ════ DETAIL DIALOG ════ */}
+			{/* DETAIL DIALOG */}
 			<Dialog open={detailOpen} onClose={() => setDetailOpen(false)} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: 4 } }}>
 				{selected && (
 					<>
@@ -1396,7 +1253,7 @@ export default function ShowroomPage() {
 				)}
 			</Dialog>
 
-			{/* ════ FORM DIALOG ════ */}
+			{/* FORM DIALOG */}
 			<Dialog
 				open={formOpen}
 				onClose={() => setFormOpen(false)}
@@ -1572,7 +1429,7 @@ export default function ShowroomPage() {
 											>
 												<MenuItem value="" disabled>-- Chọn thương hiệu --</MenuItem>
 												{brandsData.map(brand => (
-													<MenuItem key={brand.id} value={String(brand.id)}>  {/* Chuyển thành string */}
+													<MenuItem key={brand.id} value={String(brand.id)}>
 														<Stack direction="row" spacing={1.5} alignItems="center">
 															<Avatar src={imgSrc(brand.logo_url)} sx={{ width: 28, height: 28 }} />
 															<Typography fontWeight={600}>{brand.name}</Typography>
@@ -1710,23 +1567,78 @@ export default function ShowroomPage() {
 				</DialogActions>
 			</Dialog>
 
-			{/* ════ SERVICE DIALOG ════ */}
-			<Dialog open={serviceDialogOpen} onClose={() => setServiceDialogOpen(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 4 } }}>
-				<DialogTitle sx={{ bgcolor: COLORS.primary, color: "#fff", fontWeight: 800 }}>
+			{/* SERVICE DIALOG */}
+			<Dialog
+				open={serviceDialogOpen}
+				onClose={() => setServiceDialogOpen(false)}
+				maxWidth="sm"
+				fullWidth
+				PaperProps={{
+					sx: {
+						borderRadius: 4,
+						boxShadow: "0 20px 60px rgba(26, 35, 126, 0.15)",
+						border: `1px solid ${alpha(COLORS.primary, 0.1)}`
+					}
+				}}
+			>
+				<DialogTitle sx={{
+					background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.accent})`,
+					color: "#fff",
+					fontWeight: 800,
+					display: "flex",
+					alignItems: "center",
+					gap: 1.5
+				}}>
+					<Build sx={{ fontSize: 24 }} />
 					{editingService ? "Chỉnh sửa dịch vụ" : "Thêm dịch vụ mới"}
 				</DialogTitle>
-				<DialogContent sx={{ p: 3 }}>
-					<Stack spacing={2}>
+				<DialogContent sx={{ p: 3.5 }}>
+					<Stack spacing={2.5}>
 						<FField label="Tên dịch vụ *" value={serviceForm.name} onChange={v => setServiceForm(p => ({ ...p, name: v }))} />
 						<FField label="Mô tả" value={serviceForm.description} onChange={v => setServiceForm(p => ({ ...p, description: v }))} multiline rows={2} />
 						<FField label="Giá (VNĐ) *" type="number" value={serviceForm.price} onChange={v => setServiceForm(p => ({ ...p, price: v }))} />
 						<FField label="Thời gian (phút)" value={serviceForm.duration} onChange={v => setServiceForm(p => ({ ...p, duration: v }))} placeholder="VD: 60" />
-						<FormControlLabel control={<Switch checked={serviceForm.status} onChange={e => setServiceForm(p => ({ ...p, status: e.target.checked }))} />} label="Đang cung cấp" />
+						<FormControlLabel
+							control={<Switch
+								checked={serviceForm.status}
+								onChange={e => setServiceForm(p => ({ ...p, status: e.target.checked }))}
+								sx={{
+									'& .MuiSwitch-switchBase.Mui-checked': {
+										color: COLORS.success,
+									},
+									'& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+										backgroundColor: COLORS.success,
+									},
+								}}
+							/>}
+							label={<Typography fontWeight={500}>Đang cung cấp</Typography>}
+						/>
 					</Stack>
 				</DialogContent>
-				<DialogActions sx={{ p: 3 }}>
-					<Button onClick={() => setServiceDialogOpen(false)} variant="outlined">Hủy</Button>
-					<Button onClick={handleSaveService} variant="contained" disabled={serviceSubmitting} startIcon={serviceSubmitting ? <CircularProgress size={16} /> : <Save />} sx={{ bgcolor: COLORS.primary }}>
+				<DialogActions sx={{ p: 3.5, gap: 2 }}>
+					<Button
+						onClick={() => setServiceDialogOpen(false)}
+						variant="outlined"
+						sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600 }}
+					>
+						Hủy
+					</Button>
+					<Button
+						onClick={handleSaveService}
+						variant="contained"
+						disabled={serviceSubmitting}
+						startIcon={serviceSubmitting ? <CircularProgress size={16} /> : <Save />}
+						sx={{
+							borderRadius: 2,
+							textTransform: "none",
+							fontWeight: 600,
+							bgcolor: COLORS.primary,
+							boxShadow: `0 4px 12px ${alpha(COLORS.primary, 0.3)}`,
+							'&:hover': {
+								boxShadow: `0 8px 20px ${alpha(COLORS.primary, 0.4)}`
+							}
+						}}
+					>
 						{editingService ? "Cập nhật" : "Thêm mới"}
 					</Button>
 				</DialogActions>
@@ -1742,38 +1654,37 @@ export default function ShowroomPage() {
 				</DialogActions>
 			</Dialog>
 
-			{/* ════ BRAND DIALOG ════ */}
+			{/* BRAND DIALOG */}
 			<Dialog
 				open={brandDialogOpen}
 				onClose={() => setBrandDialogOpen(false)}
 				maxWidth="sm"
 				fullWidth
-				PaperProps={{ sx: { borderRadius: 4 } }}
+				PaperProps={{
+					sx: {
+						borderRadius: 4,
+						boxShadow: "0 20px 60px rgba(26, 35, 126, 0.15)",
+						border: `1px solid ${alpha(COLORS.primary, 0.1)}`
+					}
+				}}
 			>
 				<DialogTitle sx={{
 					background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.accent})`,
 					color: "#fff",
-					fontWeight: 800
+					fontWeight: 800,
+					display: "flex",
+					alignItems: "center",
+					gap: 1.5
 				}}>
-					<Stack direction="row" spacing={1.5} alignItems="center">
-						<BusinessIcon />
-						<span>{editingBrand ? "Chỉnh sửa hãng xe" : "Thêm hãng xe mới"}</span>
-					</Stack>
+					<BusinessIcon sx={{ fontSize: 24 }} />
+					<span>{editingBrand ? "Chỉnh sửa hãng xe" : "Thêm hãng xe mới"}</span>
 				</DialogTitle>
 
-				<DialogContent sx={{ p: 3 }}>
+				<DialogContent sx={{ p: 3.5 }}>
 					<Stack spacing={3}>
-						{/* Logo upload */}
 						<Box>
-							<Typography variant="subtitle2" fontWeight={600} sx={{ mb: 2 }}>
-								Logo hãng xe
-							</Typography>
-							<Box sx={{
-								display: "flex",
-								flexDirection: "column",
-								alignItems: "center",
-								gap: 2
-							}}>
+							<Typography variant="subtitle2" fontWeight={600} sx={{ mb: 2 }}>Logo hãng xe</Typography>
+							<Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
 								<Box sx={{
 									width: 120,
 									height: 120,
@@ -1794,361 +1705,84 @@ export default function ShowroomPage() {
 									) : (
 										<Box sx={{ textAlign: 'center' }}>
 											<BusinessIcon sx={{ color: COLORS.border, fontSize: 48, mb: 1 }} />
-											<Typography variant="caption" color="text.secondary">
-												Chưa có logo
-											</Typography>
+											<Typography variant="caption" color="text.secondary">Chưa có logo</Typography>
 										</Box>
 									)}
 								</Box>
-
-								<Button
-									variant="contained"
-									component="label"
-									startIcon={<CloudUpload />}
-									sx={{ borderRadius: 2, textTransform: "none" }}
-								>
+								<Button variant="contained" component="label" startIcon={<CloudUpload />} sx={{ borderRadius: 2, textTransform: "none" }}>
 									{brandLogoPreview ? "Đổi logo" : "Chọn logo"}
-									<input
-										type="file"
-										hidden
-										accept="image/*"
-										onChange={handleBrandLogoChange}
-									/>
+									<input type="file" hidden accept="image/*" onChange={handleBrandLogoChange} />
 								</Button>
-
-								{brandLogoPreview && !editingBrand && (
-									<Button
-										variant="text"
-										color="error"
-										size="small"
-										startIcon={<Delete />}
-										onClick={() => {
-											setBrandForm(prev => ({ ...prev, logo_url: null }));
-											setBrandLogoPreview(null);
-										}}
-									>
-										Xóa logo
-									</Button>
-								)}
 							</Box>
 						</Box>
-
-						{/* Tên hãng */}
-						<TextField
-							size="small"
-							fullWidth
-							label="Tên hãng xe *"
-							value={brandForm.name}
-							onChange={(e) => setBrandForm(prev => ({ ...prev, name: e.target.value }))}
-							placeholder="VD: Toyota, Honda, BMW..."
-							InputProps={{ sx: { borderRadius: 2, bgcolor: COLORS.surface } }}
-						/>
-
-						{/* Quốc gia */}
-						<TextField
-							size="small"
-							fullWidth
-							label="Quốc gia *"
-							value={brandForm.country}
-							onChange={(e) => setBrandForm(prev => ({ ...prev, country: e.target.value }))}
-							placeholder="VD: Nhật Bản, Đức, Mỹ..."
-							InputProps={{
-								startAdornment: (
-									<InputAdornment position="start">
-										<PublicIcon sx={{ color: COLORS.muted, fontSize: 20 }} />
-									</InputAdornment>
-								),
-								sx: { borderRadius: 2, bgcolor: COLORS.surface }
-							}}
-						/>
+						<TextField size="small" fullWidth label="Tên hãng xe *" value={brandForm.name} onChange={(e) => setBrandForm(prev => ({ ...prev, name: e.target.value }))} placeholder="VD: Toyota, Honda, BMW..." InputProps={{ sx: { borderRadius: 2, bgcolor: COLORS.surface } }} />
+						<TextField size="small" fullWidth label="Quốc gia *" value={brandForm.country} onChange={(e) => setBrandForm(prev => ({ ...prev, country: e.target.value }))} placeholder="VD: Nhật Bản, Đức, Mỹ..." InputProps={{ startAdornment: <InputAdornment position="start"><PublicIcon sx={{ color: COLORS.muted, fontSize: 20 }} /></InputAdornment>, sx: { borderRadius: 2, bgcolor: COLORS.surface } }} />
 					</Stack>
 				</DialogContent>
 
-				<DialogActions sx={{ p: 3, gap: 2 }}>
-					<Button onClick={() => setBrandDialogOpen(false)} variant="outlined" sx={{ borderRadius: 2 }}>
-						Hủy
-					</Button>
-					<Button
-						onClick={handleSaveBrand}
-						variant="contained"
-						disabled={brandSubmitting}
-						startIcon={brandSubmitting ? <CircularProgress size={18} /> : <Save />}
-						sx={{ borderRadius: 2, bgcolor: COLORS.primary }}
-					>
+				<DialogActions sx={{ p: 3.5, gap: 2 }}>
+					<Button onClick={() => setBrandDialogOpen(false)} variant="outlined" sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600 }}>Hủy</Button>
+					<Button onClick={handleSaveBrand} variant="contained" disabled={brandSubmitting} startIcon={brandSubmitting ? <CircularProgress size={18} /> : <Save />} sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600, bgcolor: COLORS.primary, boxShadow: `0 4px 12px ${alpha(COLORS.primary, 0.3)}`, '&:hover': { boxShadow: `0 8px 20px ${alpha(COLORS.primary, 0.4)}` } }}>
 						{brandSubmitting ? "Đang xử lý..." : (editingBrand ? "Cập nhật" : "Thêm mới")}
 					</Button>
 				</DialogActions>
 			</Dialog>
 
-			{/* ════ BRAND DELETE CONFIRM ════ */}
-			<Dialog
-				open={brandDeleteOpen}
-				onClose={() => setBrandDeleteOpen(false)}
-				PaperProps={{ sx: { borderRadius: 4, p: 1 } }}
-			>
+			{/* BRAND DELETE CONFIRM */}
+			<Dialog open={brandDeleteOpen} onClose={() => setBrandDeleteOpen(false)} PaperProps={{ sx: { borderRadius: 4, p: 1 } }}>
 				<DialogTitle sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}>
-					<Delete sx={{ color: COLORS.danger }} />
-					Xác nhận xóa hãng xe
+					<Delete sx={{ color: COLORS.danger }} /> Xác nhận xóa hãng xe
 				</DialogTitle>
-				<DialogContent>
-					<Typography>
-						Bạn có chắc muốn xóa hãng xe <b>{brandToDelete?.name}</b>?
-						Hành động này không thể hoàn tác và có thể ảnh hưởng đến các xe đang thuộc hãng này.
-					</Typography>
-				</DialogContent>
+				<DialogContent><Typography>Bạn có chắc muốn xóa hãng xe <b>{brandToDelete?.name}</b>? Hành động này không thể hoàn tác và có thể ảnh hưởng đến các xe đang thuộc hãng này.</Typography></DialogContent>
 				<DialogActions sx={{ p: 2, gap: 1 }}>
-					<Button onClick={() => setBrandDeleteOpen(false)} variant="outlined">
-						Hủy
-					</Button>
-					<Button onClick={handleDeleteBrand} variant="contained" color="error">
-						Xóa
-					</Button>
+					<Button onClick={() => setBrandDeleteOpen(false)} variant="outlined">Hủy</Button>
+					<Button onClick={handleDeleteBrand} variant="contained" color="error">Xóa</Button>
 				</DialogActions>
 			</Dialog>
 
-			{/* ════ VOUCHER DIALOG ════ */}
-			<Dialog
-				open={voucherDialogOpen}
-				onClose={() => setVoucherDialogOpen(false)}
-				maxWidth="sm"
-				fullWidth
-				PaperProps={{ sx: { borderRadius: 4 } }}
-			>
-				<DialogTitle sx={{
-					background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.accent})`,
-					color: "#fff",
-					fontWeight: 800
-				}}>
-					<Stack direction="row" spacing={1.5} alignItems="center">
-						<LocalOfferIcon />
-						<span>{editingVoucher ? "Chỉnh sửa voucher" : "Thêm voucher mới"}</span>
-					</Stack>
+			{/* VOUCHER DIALOG */}
+			<Dialog open={voucherDialogOpen} onClose={() => setVoucherDialogOpen(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 4, boxShadow: "0 20px 60px rgba(26, 35, 126, 0.15)", border: `1px solid ${alpha(COLORS.primary, 0.1)}` } }}>
+				<DialogTitle sx={{ background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.accent})`, color: "#fff", fontWeight: 800, display: "flex", alignItems: "center", gap: 1.5 }}>
+					<LocalOfferIcon sx={{ fontSize: 24 }} />
+					<span>{editingVoucher ? "Chỉnh sửa voucher" : "Thêm voucher mới"}</span>
 				</DialogTitle>
-
-				<DialogContent sx={{ p: 3 }}>
+				<DialogContent sx={{ p: 3.5 }}>
 					<Stack spacing={2.5}>
-						{/* Mã voucher */}
-						<TextField
-							size="small"
-							fullWidth
-							label="Mã voucher *"
-							value={voucherForm.code}
-							onChange={(e) => setVoucherForm(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
-							placeholder="VD: SUMMER2024"
-							helperText="Mã code sẽ tự động chuyển thành chữ in hoa"
-							InputProps={{
-								startAdornment: (
-									<InputAdornment position="start">
-										<LocalOfferIcon sx={{ color: COLORS.muted, fontSize: 20 }} />
-									</InputAdornment>
-								),
-								sx: { borderRadius: 2, bgcolor: COLORS.surface, fontFamily: "monospace", fontWeight: 600 }
-							}}
-						/>
-
-						{/* Sự kiện */}
-						<TextField
-							size="small"
-							fullWidth
-							label="Sự kiện (không bắt buộc)"
-							value={voucherForm.event}
-							onChange={(e) => setVoucherForm(prev => ({ ...prev, event: e.target.value }))}
-							placeholder="VD: Khuyến mãi mùa hè, Black Friday..."
-							InputProps={{
-								startAdornment: (
-									<InputAdornment position="start">
-										<EventIcon sx={{ color: COLORS.muted, fontSize: 20 }} />
-									</InputAdornment>
-								),
-								sx: { borderRadius: 2, bgcolor: COLORS.surface }
-							}}
-						/>
-
-						{/* Phần trăm giảm giá */}
-						<TextField
-							size="small"
-							fullWidth
-							type="number"
-							label="Phần trăm giảm giá *"
-							value={voucherForm.percent}
-							onChange={(e) => setVoucherForm(prev => ({ ...prev, percent: e.target.value }))}
-							placeholder="VD: 10, 20, 50"
-							helperText="Giá trị từ 0 đến 100"
-							InputProps={{
-								startAdornment: (
-									<InputAdornment position="start">
-										<PercentIcon sx={{ color: COLORS.muted, fontSize: 20 }} />
-									</InputAdornment>
-								),
-								endAdornment: <InputAdornment position="end">%</InputAdornment>,
-								sx: { borderRadius: 2, bgcolor: COLORS.surface }
-							}}
-						/>
-
-						{/* Thời gian áp dụng */}
+						<TextField size="small" fullWidth label="Mã voucher *" value={voucherForm.code} onChange={(e) => setVoucherForm(prev => ({ ...prev, code: e.target.value.toUpperCase() }))} placeholder="VD: SUMMER2024" helperText="Mã code sẽ tự động chuyển thành chữ in hoa" InputProps={{ startAdornment: <InputAdornment position="start"><LocalOfferIcon sx={{ color: COLORS.muted, fontSize: 20 }} /></InputAdornment>, sx: { borderRadius: 2, bgcolor: COLORS.surface, fontFamily: "monospace", fontWeight: 600 } }} />
+						<TextField size="small" fullWidth label="Sự kiện (không bắt buộc)" value={voucherForm.event} onChange={(e) => setVoucherForm(prev => ({ ...prev, event: e.target.value }))} placeholder="VD: Khuyến mãi mùa hè, Black Friday..." InputProps={{ startAdornment: <InputAdornment position="start"><EventIcon sx={{ color: COLORS.muted, fontSize: 20 }} /></InputAdornment>, sx: { borderRadius: 2, bgcolor: COLORS.surface } }} />
+						<TextField size="small" fullWidth type="number" label="Phần trăm giảm giá *" value={voucherForm.percent} onChange={(e) => setVoucherForm(prev => ({ ...prev, percent: e.target.value }))} placeholder="VD: 10, 20, 50" helperText="Giá trị từ 0 đến 100" InputProps={{ startAdornment: <InputAdornment position="start"><PercentIcon sx={{ color: COLORS.muted, fontSize: 20 }} /></InputAdornment>, endAdornment: <InputAdornment position="end">%</InputAdornment>, sx: { borderRadius: 2, bgcolor: COLORS.surface } }} />
 						<Grid container spacing={2}>
-							<Grid item xs={6}>
-								<TextField
-									size="small"
-									fullWidth
-									type="date"
-									label="Từ ngày *"
-									value={voucherForm.from}
-									onChange={(e) => setVoucherForm(prev => ({ ...prev, from: e.target.value }))}
-									InputLabelProps={{ shrink: true }}
-									InputProps={{
-										startAdornment: (
-											<InputAdornment position="start">
-												<DateRangeIcon sx={{ color: COLORS.muted, fontSize: 18 }} />
-											</InputAdornment>
-										),
-										sx: { borderRadius: 2, bgcolor: COLORS.surface }
-									}}
-								/>
-							</Grid>
-							<Grid item xs={6}>
-								<TextField
-									size="small"
-									fullWidth
-									type="date"
-									label="Đến ngày *"
-									value={voucherForm.to}
-									onChange={(e) => setVoucherForm(prev => ({ ...prev, to: e.target.value }))}
-									InputLabelProps={{ shrink: true }}
-									InputProps={{
-										startAdornment: (
-											<InputAdornment position="start">
-												<DateRangeIcon sx={{ color: COLORS.muted, fontSize: 18 }} />
-											</InputAdornment>
-										),
-										sx: { borderRadius: 2, bgcolor: COLORS.surface }
-									}}
-								/>
-							</Grid>
+							<Grid item xs={6}><TextField size="small" fullWidth type="date" label="Từ ngày *" value={voucherForm.from} onChange={(e) => setVoucherForm(prev => ({ ...prev, from: e.target.value }))} InputLabelProps={{ shrink: true }} InputProps={{ startAdornment: <InputAdornment position="start"><DateRangeIcon sx={{ color: COLORS.muted, fontSize: 18 }} /></InputAdornment>, sx: { borderRadius: 2, bgcolor: COLORS.surface } }} /></Grid>
+							<Grid item xs={6}><TextField size="small" fullWidth type="date" label="Đến ngày *" value={voucherForm.to} onChange={(e) => setVoucherForm(prev => ({ ...prev, to: e.target.value }))} InputLabelProps={{ shrink: true }} InputProps={{ startAdornment: <InputAdornment position="start"><DateRangeIcon sx={{ color: COLORS.muted, fontSize: 18 }} /></InputAdornment>, sx: { borderRadius: 2, bgcolor: COLORS.surface } }} /></Grid>
 						</Grid>
-
-						{/* Trạng thái */}
-						<FormControlLabel
-							control={
-								<Switch
-									checked={voucherForm.is_available}
-									onChange={(e) => setVoucherForm(prev => ({ ...prev, is_available: e.target.checked }))}
-									sx={{
-										'& .MuiSwitch-switchBase.Mui-checked': {
-											color: COLORS.success,
-										},
-										'& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-											backgroundColor: COLORS.success,
-										},
-									}}
-								/>
-							}
-							label={
-								<Stack direction="row" spacing={1} alignItems="center">
-									{voucherForm.is_available ? <CheckCircleIcon sx={{ color: COLORS.success, fontSize: 20 }} /> : <CancelIcon sx={{ color: COLORS.warning, fontSize: 20 }} />}
-									<Typography>{voucherForm.is_available ? "Kích hoạt voucher" : "Tạm dừng voucher"}</Typography>
-								</Stack>
-							}
-						/>
+						<FormControlLabel control={<Switch checked={voucherForm.is_available} onChange={(e) => setVoucherForm(prev => ({ ...prev, is_available: e.target.checked }))} sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: COLORS.success }, '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: COLORS.success } }} />} label={<Stack direction="row" spacing={1} alignItems="center">{voucherForm.is_available ? <CheckCircleIcon sx={{ color: COLORS.success, fontSize: 20 }} /> : <CancelIcon sx={{ color: COLORS.warning, fontSize: 20 }} />}<Typography>{voucherForm.is_available ? "Kích hoạt voucher" : "Tạm dừng voucher"}</Typography></Stack>} />
 					</Stack>
 				</DialogContent>
-
-				<DialogActions sx={{ p: 3, gap: 2 }}>
-					<Button onClick={() => setVoucherDialogOpen(false)} variant="outlined" sx={{ borderRadius: 2 }}>
-						Hủy
-					</Button>
-					<Button
-						onClick={handleSaveVoucher}
-						variant="contained"
-						disabled={voucherSubmitting}
-						startIcon={voucherSubmitting ? <CircularProgress size={18} /> : <Save />}
-						sx={{ borderRadius: 2, bgcolor: COLORS.primary }}
-					>
+				<DialogActions sx={{ p: 3.5, gap: 2 }}>
+					<Button onClick={() => setVoucherDialogOpen(false)} variant="outlined" sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600 }}>Hủy</Button>
+					<Button onClick={handleSaveVoucher} variant="contained" disabled={voucherSubmitting} startIcon={voucherSubmitting ? <CircularProgress size={18} /> : <Save />} sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600, bgcolor: COLORS.primary, boxShadow: `0 4px 12px ${alpha(COLORS.primary, 0.3)}`, '&:hover': { boxShadow: `0 8px 20px ${alpha(COLORS.primary, 0.4)}` } }}>
 						{voucherSubmitting ? "Đang xử lý..." : (editingVoucher ? "Cập nhật" : "Thêm mới")}
 					</Button>
 				</DialogActions>
 			</Dialog>
 
-			{/* ════ VOUCHER DELETE CONFIRM ════ */}
-			<Dialog
-				open={voucherDeleteOpen}
-				onClose={() => setVoucherDeleteOpen(false)}
-				PaperProps={{ sx: { borderRadius: 4, p: 1 } }}
-			>
-				<DialogTitle sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}>
-					<Delete sx={{ color: COLORS.danger }} />
-					Xác nhận xóa voucher
-				</DialogTitle>
+			{/* VOUCHER DELETE CONFIRM */}
+			<Dialog open={voucherDeleteOpen} onClose={() => setVoucherDeleteOpen(false)} PaperProps={{ sx: { borderRadius: 4, p: 1 } }}>
+				<DialogTitle sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}><Delete sx={{ color: COLORS.danger }} /> Xác nhận xóa voucher</DialogTitle>
 				<DialogContent>
-					<Typography>
-						Bạn có chắc muốn xóa voucher <b>{voucherToDelete?.code}</b>?
-						Hành động này không thể hoàn tác.
-					</Typography>
-					{voucherToDelete?.event && (
-						<Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-							Sự kiện: {voucherToDelete.event}
-						</Typography>
-					)}
+					<Typography>Bạn có chắc muốn xóa voucher <b>{voucherToDelete?.code}</b>? Hành động này không thể hoàn tác.</Typography>
+					{voucherToDelete?.event && <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>Sự kiện: {voucherToDelete.event}</Typography>}
 				</DialogContent>
 				<DialogActions sx={{ p: 2, gap: 1 }}>
-					<Button onClick={() => setVoucherDeleteOpen(false)} variant="outlined">
-						Hủy
-					</Button>
-					<Button onClick={handleDeleteVoucher} variant="contained" color="error">
-						Xóa
-					</Button>
+					<Button onClick={() => setVoucherDeleteOpen(false)} variant="outlined">Hủy</Button>
+					<Button onClick={handleDeleteVoucher} variant="contained" color="error">Xóa</Button>
 				</DialogActions>
 			</Dialog>
 
 			{/* Snackbar */}
 			<Snackbar open={snack.open} autoHideDuration={3500} onClose={() => setSnack(s => ({ ...s, open: false }))} anchorOrigin={{ vertical: "bottom", horizontal: "right" }}>
-				<Alert severity={snack.severity} onClose={() => setSnack(s => ({ ...s, open: false }))} sx={{ borderRadius: 3, boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}>{snack.msg}</Alert>
+				<Alert severity={snack.severity} sx={{ borderRadius: 0 }}>{snack.msg}</Alert>
 			</Snackbar>
 		</Box>
 	);
 }
-
-// Utility Components
-const InfoRow = ({ label, value, bold, color, lineThrough }) => value ? (
-	<Stack direction="row" justifyContent="space-between" alignItems="center">
-		<Typography variant="caption" color="text.secondary">{label}</Typography>
-		<Typography variant="body2" fontWeight={bold ? 700 : 400} color={color || "text.primary"} sx={{ textDecoration: lineThrough ? "line-through" : "none" }}>{value}</Typography>
-	</Stack>
-) : null;
-
-const SpecGrid = ({ data }) => (
-	<Grid container spacing={1.5}>
-		{data.filter(d => d.value != null).map(d => (
-			<Grid item xs={6} key={d.label}>
-				<Box sx={{ p: 1.5, bgcolor: "#fff", borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
-					<Typography variant="caption" color="text.secondary" fontWeight={600}>{d.label.toUpperCase()}</Typography>
-					<Typography fontWeight={700} fontSize={14} mt={0.3}>{d.value || "—"}</Typography>
-				</Box>
-			</Grid>
-		))}
-	</Grid>
-);
-
-const EmptySpec = ({ label }) => (
-	<Box sx={{ textAlign: "center", py: 4 }}><Typography color="text.secondary" fontSize={14}>{label}</Typography></Box>
-);
-
-const fieldSx = {
-	"& .MuiInputBase-root": { fontFamily: "'DM Sans', sans-serif", borderRadius: 2 },
-	"& .MuiInputLabel-root": { fontFamily: "'DM Sans', sans-serif" },
-};
-
-const FField = ({ label, value, onChange, type = "text", multiline = false, rows = 1, placeholder = "" }) => (
-	<TextField
-		size="small"
-		fullWidth
-		label={label}
-		type={type}
-		value={value}
-		onChange={e => onChange(e.target.value)}
-		multiline={multiline}
-		rows={rows}
-		placeholder={placeholder}
-		sx={fieldSx}
-	/>
-);

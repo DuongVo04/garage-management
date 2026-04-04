@@ -18,8 +18,8 @@ const employeeController = baseCRUD(Employee, {
             attributes: ["id", "name", "description"]
         }]
     },
-    customFilter: (req) => {
-        const { is_working } = req.query;
+    customFilter: (query) => {
+        const { is_working } = query;
 
         if (is_working === "all") {
             return {};

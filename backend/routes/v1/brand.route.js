@@ -5,18 +5,34 @@ import { validate } from "../../middlewares/validation.middleware.js"
 import { authorize, verifyToken } from "../../middlewares/auth.middleware.js"
 import brandValidator from "../../validators/brand.validator.js"
 import { uploadSingle } from "../../middlewares/upload.midleware.js"
+import { response } from "../../utils/response.js"
 
 
 const router = express.Router();
 
 router.get("/",
-    brandController.getAll
+    async (req, res, next) => {
+        try {
+            const brands = await brandController.getAll();
+            return response(res, true, "Get brands successfully", 200, brands);
+        } catch (error) {
+            next(error);
+        }
+    }
 );
 
 router.get("/:id",
     paramsIdValidator(),
     validate,
-    brandController.getById
+    async (req, res, next) => {
+        try {
+            const { id } = req.params;
+            const brand = await brandController.getById(id);
+            return response(res, true, "Brand found", 200, brand);
+        } catch (error) {
+            next(error);
+        }
+    }
 );
 
 router.post("/",
@@ -25,7 +41,14 @@ router.post("/",
     uploadSingle("logo_url", "brand"),
     brandValidator,
     validate,
-    brandController.create
+    async (req, res, next) => {
+        try {
+            const brand = await brandController.create(req.body, req.uploadedFile);
+            return response(res, true, "Create brand successfully", 201, brand);
+        } catch (error) {
+            next(error);
+        }
+    }
 );
 
 router.put("/:id",
@@ -35,7 +58,15 @@ router.put("/:id",
     paramsIdValidator(),
     brandValidator,
     validate,
-    brandController.update
+    async (req, res, next) => {
+        try {
+            const { id } = req.params;
+            const brand = await brandController.update(id, req.body, req.uploadedFile);
+            return response(res, true, "Update brand successfully", 200, brand);
+        } catch (error) {
+            next(error);
+        }
+    }
 )
 
 router.delete("/:id",
@@ -43,7 +74,15 @@ router.delete("/:id",
     authorize(["ADMIN"]),
     paramsIdValidator(),
     validate,
-    brandController.delete
+    async (req, res, next) => {
+        try {
+            const { id } = req.params;
+            await brandController.delete(id);
+            return response(res, true, "Brand deleted", 200);
+        } catch (error) {
+            next(error);
+        }
+    }
 )
 
 export default router;

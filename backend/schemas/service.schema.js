@@ -20,9 +20,9 @@ export default (sequelize) => {
         is_deleted: DataTypes.TINYINT(1)
 
     }, {
-        defaultScope: {
-            attributes: { exclude: ['is_deleted'] }
-        },
+        // defaultScope: {
+        //     attributes: { exclude: ['is_deleted'] }
+        // },
         tableName: "service",
         timestamps: false
     })

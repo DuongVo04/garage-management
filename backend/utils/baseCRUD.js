@@ -1,4 +1,4 @@
-import { response } from "./response.js";
+import ApiError from "./ApiError.js";
 import fs from 'fs'
 import path from "path";
 
@@ -46,195 +46,143 @@ export const baseCRUD = (Model, options = {}) => {
     } = options;
 
     const controller = {
-        getAll: async (req, res, next) => {
-            try {
-                const attributes = buildDefaultAttributes(Model);
+        getAll: async (query = {}) => {
+            const attributes = buildDefaultAttributes(Model);
 
-                const data = await Model.findAll({
-                    where: customFilter
-                        ? customFilter(req)
-                        : getDefaultFilter(Model),
-                    include: include.basicInclude,
-                    ...attributes
+            const data = await Model.findAll({
+                where: customFilter
+                    ? customFilter(query)
+                    : getDefaultFilter(Model),
+                include: include.basicInclude,
+                ...attributes
+            });
+
+            return data;
+        },
+        getById: async (id) => {
+            const attributes = buildDefaultAttributes(Model);
+            const data = await Model.findOne({
+                where: {
+                    id,
+                    ...getDefaultFilter(Model)
+                },
+                include: include.detailInclude,
+                ...attributes
+            });
+
+            if (!data) {
+                throw new ApiError(404, `${modelName} not found`);
+            }
+
+            return data;
+        },
+
+        create: async (body, uploadedFile = null) => {
+
+            if (uniqueFields.length > 0) {
+                const where = {};
+                uniqueFields.forEach((field) => {
+                    if (body[field]) {
+                        where[field] = body[field];
+                    }
                 });
 
-                return response(res, true, `Get ${modelName.toLowerCase()}s successfully`, 200, data);
-            } catch (error) {
-                next(error);
+                const existing = await Model.findOne({
+                    where: {
+                        ...where,
+                        ...getDefaultFilter(Model)
+                    }
+                });
+
+                if (existing) {
+                    throw new ApiError(409, `${modelName} already exists`);
+                }
             }
+
+            const newData = await Model.create({
+                ...body,
+                ...(imageField && {
+                    [imageField]: uploadedFile?.path ?? null
+                }),
+                ...defaultValues
+            });
+
+            return newData;
         },
-        getById: async (req, res, next) => {
-            try {
-                const { id } = req.params;
-                const attributes = buildDefaultAttributes(Model);
-                const data = await Model.findOne({
+
+        update: async (id, body, uploadedFile = null) => {
+            const existing = await Model.findByPk(id);
+
+            if (!existing) {
+                throw new ApiError(404, `${modelName} not found`);
+            }
+
+            let updateData = {
+                ...body,
+                // ...getDefaultFilter(Model)
+            };
+
+            let oldFilePath = null;
+
+            if (uploadedFile && imageField) {
+                updateData[imageField] = uploadedFile.path;
+
+                if (existing[imageField]) {
+                    oldFilePath = path.resolve(existing[imageField]);
+                }
+            }
+
+            const [count] = await Model.update(updateData, {
+                where: { id }
+            });
+
+            if (count === 0) {
+                throw new ApiError(400, `${modelName} not updated`);
+            }
+
+            if (oldFilePath) {
+                try {
+                    await fs.promises.unlink(oldFilePath);
+                } catch (err) {
+                    console.warn("File delete failed:", err.message);
+                }
+            }
+
+            const updated = await Model.findByPk(id);
+
+            return updated;
+        },
+
+        delete: async (id) => {
+            let updateData = null;
+
+            if (Model.rawAttributes.is_deleted) {
+                updateData = { is_deleted: true };
+            } else if (Model.rawAttributes.is_available) {
+                updateData = { is_available: false };
+            } else if (Model.rawAttributes.is_working) {
+                updateData = { is_working: false };
+            } else {
+                throw new ApiError(400, `${modelName} does not support delete`);
+            }
+
+            const defaultFilter = getDefaultFilter(Model);
+
+            const [count] = await Model.update(
+                updateData,
+                {
                     where: {
                         id,
-                        ...getDefaultFilter(Model)
-                    },
-                    include: include.detailInclude,
-                    ...attributes
-                });
-
-                if (!data) {
-                    return response(res, false, `${modelName} not found`, 404);
-                }
-
-                return response(
-                    res,
-                    true,
-                    `${modelName} has been found`,
-                    200,
-                    data
-                );
-            } catch (error) {
-                next(error);
-            }
-        },
-
-        create: async (req, res, next) => {
-            try {
-
-                if (uniqueFields.length > 0) {
-                    const where = {};
-                    uniqueFields.forEach((field) => {
-                        if (req.body[field]) {
-                            where[field] = req.body[field];
-                        }
-                    });
-
-                    const existing = await Model.findOne({
-                        where: {
-                            ...where,
-                            ...getDefaultFilter(Model)
-                        }
-                    });
-
-                    if (existing) {
-                        return response(
-                            res,
-                            false,
-                            `${modelName} already exists`,
-                            409
-                        );
+                        ...defaultFilter
                     }
                 }
+            );
 
-                const newData = await Model.create({
-                    ...req.body,
-                    ...(imageField && {
-                        [imageField]: req.uploadedFile?.path ?? null
-                    }),
-                    ...defaultValues
-                });
-
-                return response(
-                    res,
-                    true,
-                    `Create ${modelName.toLowerCase()} successfully`,
-                    201,
-                    newData
-                );
-            } catch (error) {
-                next(error);
+            if (!count) {
+                throw new ApiError(404, `${modelName} not found`);
             }
-        },
 
-        update: async (req, res, next) => {
-            try {
-                const { id } = req.params;
-
-                const existing = await Model.findByPk(id);
-
-                if (!existing) {
-                    return response(res, false, `${modelName} not found`, 404);
-                }
-
-                let updateData = {
-                    ...req.body
-                };
-
-                let oldFilePath = null;
-
-                if (req.uploadedFile && imageField) {
-                    updateData[imageField] = req.uploadedFile.path;
-
-                    if (existing[imageField]) {
-                        oldFilePath = path.resolve(existing[imageField]);
-                    }
-                }
-
-                const [count] = await Model.update(updateData, {
-                    where: { id }
-                });
-
-                if (count === 0) {
-                    return response(
-                        res,
-                        false,
-                        `${modelName} not updated`,
-                        400
-                    );
-                }
-
-                if (oldFilePath) {
-                    try {
-                        await fs.promises.unlink(oldFilePath);
-                    } catch (err) {
-                        console.warn("File delete failed:", err.message);
-                    }
-                }
-
-                const updated = await Model.findByPk(id);
-
-                return response(res, true, "Updated successfully", 200, updated);
-
-            } catch (error) {
-                next(error);
-            }
-        },
-
-        delete: async (req, res, next) => {
-            try {
-                const { id } = req.params;
-
-                let updateData = null;
-
-                if (Model.rawAttributes.is_deleted) {
-                    updateData = { is_deleted: true };
-                } else if (Model.rawAttributes.is_available) {
-                    updateData = { is_available: false };
-                } else if (Model.rawAttributes.is_working) {
-                    updateData = { is_working: false };
-                } else {
-                    return response(
-                        res,
-                        false,
-                        `${modelName} does not support delete`,
-                        400
-                    );
-                }
-
-                const defaultFilter = getDefaultFilter(Model);
-
-                const [count] = await Model.update(
-                    updateData,
-                    {
-                        where: {
-                            id,
-                            ...defaultFilter
-                        }
-                    }
-                );
-
-                if (!count) {
-                    return response(res, false, `${modelName} not found`, 404);
-                }
-
-                return response(res, true, `${modelName} deleted`, 200);
-            } catch (error) {
-                next(error);
-            }
+            return true;
         },
     }
 

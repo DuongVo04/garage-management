@@ -23,7 +23,7 @@ CREATE TABLE customer (
   phone_number varchar(10) NOT NULL UNIQUE, 
   email        varchar(100), 
   address      varchar(200), 
-  accountid    varchar(50) NOT NULL, 
+  account_id    varchar(50),
   PRIMARY KEY (id));
 CREATE TABLE customer_vehicle (
   id           varchar(50) NOT NULL, 
@@ -208,4 +208,4 @@ ALTER TABLE fuel ADD CONSTRAINT FKfuel503255 FOREIGN KEY (showroom_vehicle_id) R
 ALTER TABLE steering_system ADD CONSTRAINT FKsteering_s783560 FOREIGN KEY (showroom_vehicle_id) REFERENCES showroom_vehicle (id);
 ALTER TABLE vehicle_size ADD CONSTRAINT FKvehicle_si507708 FOREIGN KEY (showroom_vehicle_id) REFERENCES showroom_vehicle (id);
 ALTER TABLE interior ADD CONSTRAINT FKinterior749273 FOREIGN KEY (showroom_vehicle_id) REFERENCES showroom_vehicle (id);
-ALTER TABLE customer ADD CONSTRAINT FKcustomer799894 FOREIGN KEY (accountid) REFERENCES account (id);
+ALTER TABLE customer ADD CONSTRAINT FKcustomer799894 FOREIGN KEY (account_id) REFERENCES account (id);

@@ -16,6 +16,7 @@ import {
     steeringSystemValidator,
     engineTechnicalValidator,
 } from "../../validators/vehicle-specifications.validator.js";
+import { response } from "../../utils/response.js";
 
 
 const router = express.Router();
@@ -28,14 +29,49 @@ const adminMiddleware = [
 
 const createCrudRoutes = (path, controller, validator) => {
     if (validator) {
-        router.post(`/:showroom_vehicle_id/${path}`, ...adminMiddleware, validator, validate, controller.create);
-        router.put(`/:showroom_vehicle_id/${path}`, ...adminMiddleware, validator, validate, controller.update);
+        router.post(`/:showroom_vehicle_id/${path}`, ...adminMiddleware, validator, validate, async (req, res, next) => {
+            try {
+                const data = await controller.create(req.params, req.body);
+                return response(res, true, "Created successfully", 201, data);
+            } catch (error) {
+                next(error);
+            }
+        });
+        router.put(`/:showroom_vehicle_id/${path}`, ...adminMiddleware, validator, validate, async (req, res, next) => {
+            try {
+                const data = await controller.update(req.params, req.body);
+                return response(res, true, "Updated successfully", 200, data);
+            } catch (error) {
+                next(error);
+            }
+        });
     } else {
-        router.post(`/:showroom_vehicle_id/${path}`, ...adminMiddleware, validate, controller.create);
-        router.put(`/:showroom_vehicle_id/${path}`, ...adminMiddleware, validate, controller.update);
+        router.post(`/:showroom_vehicle_id/${path}`, ...adminMiddleware, validate, async (req, res, next) => {
+            try {
+                const data = await controller.create(req.params, req.body);
+                return response(res, true, "Created successfully", 201, data);
+            } catch (error) {
+                next(error);
+            }
+        });
+        router.put(`/:showroom_vehicle_id/${path}`, ...adminMiddleware, validate, async (req, res, next) => {
+            try {
+                const data = await controller.update(req.params, req.body);
+                return response(res, true, "Updated successfully", 200, data);
+            } catch (error) {
+                next(error);
+            }
+        });
     }
 
-    router.delete(`/:showroom_vehicle_id/${path}`, ...adminMiddleware, validate, controller.delete);
+    router.delete(`/:showroom_vehicle_id/${path}`, ...adminMiddleware, validate, async (req, res, next) => {
+        try {
+            await controller.delete(req.params);
+            return response(res, true, "Deleted permanently", 200);
+        } catch (error) {
+            next(error);
+        }
+    });
 }
 
 createCrudRoutes("size", size, vehicleSizeValidator);

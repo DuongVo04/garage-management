@@ -4,18 +4,34 @@ import { validate } from '../../middlewares/validation.middleware.js'
 import { paramsIdValidator } from '../../validators/id.validator.js'
 import { authorize, verifyToken } from '../../middlewares/auth.middleware.js';
 import voucherValidator from '../../validators/voucher.validator.js';
+import { response } from '../../utils/response.js';
 
 
 const router = express.Router();
 
 router.get("/",
-    voucherController.getAll
+    async (req, res, next) => {
+        try {
+            const vouchers = await voucherController.getAll(req.query);
+            return response(res, true, "Get vouchers successfully", 200, vouchers);
+        } catch (error) {
+            next(error);
+        }
+    }
 );
 
 router.get("/:id",
     paramsIdValidator(),
     validate,
-    voucherController.getById
+    async (req, res, next) => {
+        try {
+            const { id } = req.params;
+            const voucher = await voucherController.getById(id);
+            return response(res, true, "Voucher found", 200, voucher);
+        } catch (error) {
+            next(error);
+        }
+    }
 );
 
 router.post("/",
@@ -23,7 +39,14 @@ router.post("/",
     authorize(["ADMIN"]),
     voucherValidator,
     validate,
-    voucherController.create
+    async (req, res, next) => {
+        try {
+            const voucher = await voucherController.create(req.body);
+            return response(res, true, "Create voucher successfully", 201, voucher);
+        } catch (error) {
+            next(error);
+        }
+    }
 );
 
 router.put("/:id",
@@ -32,7 +55,15 @@ router.put("/:id",
     voucherValidator,
     paramsIdValidator(),
     validate,
-    voucherController.update
+    async (req, res, next) => {
+        try {
+            const { id } = req.params;
+            const voucher = await voucherController.update(id, req.body);
+            return response(res, true, "Update voucher successfully", 200, voucher);
+        } catch (error) {
+            next(error);
+        }
+    }
 )
 
 router.delete("/:id",
@@ -40,7 +71,15 @@ router.delete("/:id",
     authorize(["ADMIN"]),
     paramsIdValidator(),
     validate,
-    voucherController.delete
+    async (req, res, next) => {
+        try {
+            const { id } = req.params;
+            await voucherController.delete(id);
+            return response(res, true, "Voucher deleted", 200);
+        } catch (error) {
+            next(error);
+        }
+    }
 )
 
 export default router;
