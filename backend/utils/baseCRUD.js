@@ -151,8 +151,7 @@ export const baseCRUD = (Model, options = {}) => {
                 }
 
                 let updateData = {
-                    ...req.body,
-                    ...getDefaultFilter(Model)
+                    ...req.body
                 };
 
                 let oldFilePath = null;

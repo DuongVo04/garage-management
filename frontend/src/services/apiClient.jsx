@@ -50,7 +50,7 @@ apiClient.interceptors.response.use(
 				originalRequest.headers.Authorization = `Bearer ${newToken}`;
 
 				return apiClient(originalRequest);
-			} catch  {
+			} catch {
 				// refresh fail → logout
 				localStorage.removeItem("token");
 				window.location.href = "/login";
