@@ -12,8 +12,7 @@ import {
   MenuItem,
   Select,
   FormControl,
-  Divider,
-  Stack
+  Divider
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
@@ -88,13 +87,13 @@ const GaragePage = () => {
 
       <Container maxWidth="lg" sx={{ pb: 8 }}>
         <Grid container spacing={4}>
-          {/* LEFT SIDEBAR: Filters */}
+          {/* Sidebar */}
           <Grid size={{ xs: 12, md: 3 }}>
             <Paper
               elevation={0}
               sx={{
                 p: 3,
-                borderRadius: 1,
+                borderRadius: 2,
                 border: '1px solid',
                 borderColor: 'divider',
                 position: 'sticky',
@@ -103,17 +102,16 @@ const GaragePage = () => {
               }}
             >
               <Typography variant="h6" fontWeight="bold" mb={3} display="flex" alignItems="center" gap={1}>
-                <FilterAltIcon color="primary" /> Bộ lọc tìm kiếm
+                <FilterAltIcon color="primary" fontSize="small" /> Bộ lọc
               </Typography>
 
-              <Typography variant="subtitle2" fontWeight="800" mb={1.5} color="text.primary">
-                Tên dịch vụ
+              <Typography variant="subtitle2" fontWeight="800" mb={1} color="text.primary">
+                Tìm kiếm
               </Typography>
               <TextField
                 fullWidth
                 size="small"
-                placeholder="Tìm dịch vụ..."
-                variant="outlined"
+                placeholder="Tên dịch vụ..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 sx={{ mb: 4 }}
@@ -128,7 +126,7 @@ const GaragePage = () => {
 
               <Divider sx={{ mb: 3 }} />
 
-              <Typography variant="subtitle2" fontWeight="800" mb={2} color="text.primary">
+              <Typography variant="subtitle2" fontWeight="800" mb={1} color="text.primary">
                 Sắp xếp theo giá
               </Typography>
               <FormControl fullWidth size="small">
@@ -145,9 +143,8 @@ const GaragePage = () => {
             </Paper>
           </Grid>
 
-          {/* RIGHT CONTENT: Service List */}
+          {/* List Content */}
           <Grid size={{ xs: 12, md: 9 }}>
-            {/* Toolbar */}
             <Box sx={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -157,41 +154,20 @@ const GaragePage = () => {
               gap: 2
             }}>
               <Typography variant="body1" fontWeight="600" color="text.secondary">
-                Hiển thị <span style={{ color: '#111827' }}>{filteredServices.length}</span> kết quả
+                Hiển thị <span style={{ color: '#111827' }}>{filteredServices.length}</span> dịch vụ
               </Typography>
-
-              <Stack direction="row" alignItems="center" spacing={2}>
-                <Typography variant="body2" fontWeight="700">Sắp xếp:</Typography>
-                <FormControl size="small" sx={{ minWidth: 160 }}>
-                  <Select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    sx={{ borderRadius: 1, bgcolor: 'white' }}
-                  >
-                    <MenuItem value="default">Mặc định</MenuItem>
-                    <MenuItem value="price-asc">Giá: Thấp đến Cao</MenuItem>
-                    <MenuItem value="price-desc">Giá: Cao đến Thấp</MenuItem>
-                  </Select>
-                </FormControl>
-              </Stack>
             </Box>
 
-            {/* List */}
             {loading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
-                <CircularProgress thickness={4} size={50} />
+                <CircularProgress thickness={4} size={40} />
               </Box>
             ) : error ? (
-              <Alert severity="error" sx={{ borderRadius: 1 }}>{error}</Alert>
+              <Alert severity="error" sx={{ borderRadius: 2 }}>{error}</Alert>
             ) : filteredServices.length === 0 ? (
-              <Paper sx={{ textAlign: 'center', py: 10, borderRadius: 1, bgcolor: 'transparent' }} elevation={0}>
-                <Typography variant="h6" color="text.secondary">
-                  Rất tiếc, chúng tôi không tìm thấy dịch vụ phù hợp.
-                </Typography>
-                <Typography variant="body2" color="text.disabled">
-                  Hãy thử thay đổi từ khóa hoặc bộ lọc của bạn.
-                </Typography>
-              </Paper>
+              <Box sx={{ textAlign: 'center', py: 10 }}>
+                <Typography color="text.secondary">Không tìm thấy dịch vụ nào phù hợp.</Typography>
+              </Box>
             ) : (
               <Grid container spacing={3}>
                 {filteredServices.map((service) => (
