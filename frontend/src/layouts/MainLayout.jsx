@@ -51,7 +51,7 @@ const MainLayout = () => {
                     navigate('/user')
                   }
                 }}>
-                  Xin chào, {user.username}
+                  Xin chào {user.username}
                 </Button>
               ) : (
                 <Button color="inherit" onClick={() => navigate('/login')}>
