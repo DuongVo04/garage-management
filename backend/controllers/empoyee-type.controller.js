@@ -4,5 +4,22 @@ import { baseCRUD } from "../utils/baseCRUD.js";
 export const employeeTypeController = baseCRUD(EmployeeType, {
     modelName: "EmployeeType",
     uniqueFields: ["name"],
-    defaultValues: { is_deleted: false }
+    defaultValues: { is_deleted: false },
+    customFilter: (query) => {
+        const { is_deleted } = query;
+
+        if (is_deleted === "all") {
+            return {};
+        }
+
+        if (is_deleted === 'true') {
+            return { is_deleted: true };
+        }
+
+        if (is_deleted === 'false') {
+            return { is_deleted: false };
+        }
+
+        return { is_deleted: false };
+    }
 });

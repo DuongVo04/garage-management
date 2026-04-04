@@ -6,6 +6,7 @@ import RoleBasedRoute from '../components/routes/RoleBasedRoute';
 import AdminLayout from '../layouts/AdminLayout';
 import DashboardPage from '../pages/admin/DashboardPage'
 import ShowroomPage from '../pages/admin/Showroompage';
+import EmployeePage from '../pages/admin/EmployeePage'
 
 
 const AdminRoutes = (
@@ -23,6 +24,7 @@ const AdminRoutes = (
 		<Route path="dashboard" element={<DashboardPage />} />
 		<Route index element={<Navigate to="Xe và showroom" replace />} />
 		<Route path="carandshowroom" element={<ShowroomPage />} />
+		<Route path="employees" element={<EmployeePage />} />
 	</Route>
 );
 export default AdminRoutes;
