@@ -13,7 +13,7 @@ router.get("/",
     authorize(["ADMIN"]),
     async (req, res, next) => {
         try {
-            const employeeTypes = await employeeTypeController.getAll();
+            const employeeTypes = await employeeTypeController.getAll(req.query);
             return response(res, true, "Get employee types successfully", 200, employeeTypes);
         } catch (error) {
             next(error);
