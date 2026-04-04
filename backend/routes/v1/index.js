@@ -13,6 +13,7 @@ import vehicleSpecificationsRoutes from "./vehicle-specifications.route.js"
 import showroomVehicleImageRoutes from "./showroom-vehicle-image.route.js"
 import employeeRoutes from "./employee.route.js"
 import customerRoutes from "./customer.route.js"
+import carReviewAppointments from "./car-review-appointment.route.js"
 
 
 const router = express.Router();
@@ -31,5 +32,6 @@ router.use("/showroom-vehicles", vehicleSpecificationsRoutes);
 router.use("/showroom-vehicles", showroomVehicleImageRoutes);
 router.use("/employees", employeeRoutes);
 router.use("/customers", customerRoutes);
+router.use("/car-review-appointments", carReviewAppointments)
 
 export default router;
