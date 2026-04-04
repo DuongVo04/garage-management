@@ -4,6 +4,7 @@ import { validate } from "../../middlewares/validation.middleware.js"
 import accountalidator from "../../validators/account.validator.js"
 import { response } from "../../utils/response.js";
 import jwt from "jsonwebtoken";
+import redis from "../../redis-connection.js";
 
 const router = express.Router();
 
@@ -25,6 +26,13 @@ router.post("/login", accountalidator, validate, async (req, res, next) => {
 router.post("/refresh-token", async (req, res, next) => {
     try {
         const refreshTokenValue = req.cookies.refreshToken;
+        
+        // Kiểm tra xem refreshToken có bị blacklist không
+        const isBlacklisted = await redis.get(`bl_${refreshTokenValue}`);
+        if (isBlacklisted) {
+            return response(res, false, "The refresh token has been blocked", 401);
+        }
+        
         const accessToken = await refreshToken(refreshTokenValue);
         return response(res, true, "Access Token generated", 200, accessToken);
     } catch (error) {

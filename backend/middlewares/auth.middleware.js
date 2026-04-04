@@ -17,25 +17,24 @@ export const verifyToken = async (req, res, next) => {
         return response(res, false, "The token has been blocked", 401);
     }
 
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-        if (err) {
-             if (err) {
-
-                if (err.name === "TokenExpiredError") {
-                return response(res, false, "Token expired", 401, null, "TOKEN_EXPIRED");
-            }
-
-            return response(res, false, "Invalid token", 401);
-        }
-        }
-        req.user = decoded;
-
-        next();
-    })
+	jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+		if (err) {
+			if (err.name === "TokenExpiredError") {
+				return response(res, false, "Token expired", 401, null, "TOKEN_EXPIRED");
+			}
+			return response(res, false, "Invalid token", 401);
+		}
+		req.user = decoded;
+		next();
+	})
 }
 
 export const authorize = (roles = []) => {
     return async (req, res, next) => {
+        if (!req.user || !req.user.role_id) {
+            return response(res, false, "Unauthorized", 401);
+        }
+        
         const role = await Role.findOne({
             where: {
                 id: req.user.role_id,

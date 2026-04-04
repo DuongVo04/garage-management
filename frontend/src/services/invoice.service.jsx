@@ -1,0 +1,29 @@
+// frontend/services/invoice.service.js
+import apiClient from "./apiClient";
+
+// ==================== INVOICE ====================
+
+export const getAllInvoices = async (params = {}) => {
+	const res = await apiClient.get("/invoices", { params });
+	return res.data;
+};
+
+export const getInvoiceById = async (id) => {
+	const res = await apiClient.get(`/invoices/${id}`);
+	return res.data;
+};
+
+export const createInvoice = async (data) => {
+	const res = await apiClient.post("/invoices", data);
+	return res.data;
+};
+
+export const updateInvoice = async (id, data) => {
+	const res = await apiClient.put(`/invoices/${id}`, data);
+	return res.data;
+};
+
+export const deleteInvoice = async (id) => {
+	const res = await apiClient.delete(`/invoices/${id}`);
+	return res.data;
+};
