@@ -21,7 +21,7 @@ const serviceController = baseCRUD(Service, {
             return { is_deleted: false };
         }
 
-        return { is_deleted: true };
+        return { is_deleted: false };
     }
 });
 

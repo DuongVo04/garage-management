@@ -11,6 +11,7 @@ import CustomerVehicleModel from "./customer-vehicle.schema.js"
 import BrandModel from "./brand.schema.js"
 
 import ShowroomVehicleModel from "./showroom-vehicle.schema.js"
+import CarReviewAppointmentModel from "./car-review-appointment.schema.js"
 import ShowroomVehicleImageModel from "./showroom-vehicle-image.schema.js"
 
 import EngineTechnicalSpecificationModel from "./engine-technical-specification.schema.js"
@@ -47,6 +48,7 @@ const CustomerVehicle = CustomerVehicleModel(sequelize)
 const Brand = BrandModel(sequelize)
 
 const ShowroomVehicle = ShowroomVehicleModel(sequelize)
+const CarReviewAppointment = CarReviewAppointmentModel(sequelize)
 const ShowroomVehicleImage = ShowroomVehicleImageModel(sequelize)
 
 const EngineTechnicalSpecification = EngineTechnicalSpecificationModel(sequelize)
@@ -162,6 +164,15 @@ CustomerVehicle.belongsTo(Brand, {
 SHOWROOM VEHICLE
 ========================
 */
+
+ShowroomVehicle.hasMany(CarReviewAppointment, {
+    foreignKey: "showroom_vehicle_id",
+    as: "car_review_appointments"
+})
+CarReviewAppointment.belongsTo(ShowroomVehicle, {
+    foreignKey: "showroom_vehicle_id",
+    as: "showroom_vehicle"
+})
 
 Brand.hasMany(ShowroomVehicle, {
     foreignKey: "brand_id",
@@ -424,6 +435,7 @@ export {
     Brand,
 
     ShowroomVehicle,
+    CarReviewAppointment,
     ShowroomVehicleImage,
 
     EngineTechnicalSpecification,

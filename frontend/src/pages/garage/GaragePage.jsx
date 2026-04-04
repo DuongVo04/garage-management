@@ -31,7 +31,7 @@ const GaragePage = () => {
     const fetchServices = async () => {
       try {
         setLoading(true);
-        const response = await apiClient.get('/services');
+        const response = await apiClient.get('/services?is_deleted=false');
         if (isMounted) {
           const data = response.data?.data || response.data || [];
           setServices(Array.isArray(data) ? data : []);
