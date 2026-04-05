@@ -41,7 +41,8 @@ const base = baseCRUD(CustomerVehicle, {
     include: {
         basicInclude,
         detailInclude
-    }
+    },
+    imageField: "image_path"
 });
 
 const getVehicleById = async (id, customer_id) => {

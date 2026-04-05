@@ -12,7 +12,7 @@ import {
 
 import { getAllShowroomVehicles } from "../../services/showroom.service";
 import { getAllCustomers } from "../../services/customer.service";
-import { getAllEmployees } from "../../services/employee.service";
+import { getEmployees } from "../../services/employee.service";
 import { getAllSpareParts } from "../../services/spare-parts.service";
 import { getAllVouchers } from "../../services/voucher.service";
 import { getAllInvoices } from "../../services/invoice.service";
@@ -607,7 +607,9 @@ export default function AdminDashboard() {
 		try {
 			const [vehiclesRes, customersRes, employeesRes, sparePartsRes, vouchersRes, invoicesRes, revenueRes] =
 				await Promise.allSettled([
-					getAllShowroomVehicles(), getAllCustomers(), getAllEmployees("all"),
+					getAllShowroomVehicles(), getAllCustomers(), getEmployees({
+						is_working: "all"
+					}),
 					getAllSpareParts(), getAllVouchers("all"),
 					getAllInvoices({ sort: "created_date:desc" }), getTotalRevenue(),
 				]);

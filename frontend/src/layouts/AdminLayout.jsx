@@ -37,12 +37,12 @@ const COLLAPSED_WIDTH = 72;
 
 const MENU = [
 	{ label: "Dashboard", path: "/admin/dashboard", icon: <DashboardIcon /> },
-	{ label: "Khách hàng", path: "/customers", icon: <PeopleIcon /> },
+	{ label: "Khách hàng", path: "/admin/customers", icon: <PeopleIcon /> },
 	{ label: "Xe & Showroom", path: "/admin/carandshowroom", icon: <DirectionsCarIcon /> },
 	{ label: "Lịch dịch vụ", path: "/services", icon: <EventIcon /> },
 	{ label: "Kho phụ tùng", path: "/inventory", icon: <InventoryIcon /> },
 	{ label: "Hóa đơn", path: "/invoices", icon: <ReceiptIcon /> },
-	{ label: "Nhân viên", path: "/employees", icon: <BadgeIcon /> },
+	{ label: "Nhân viên", path: "/admin/employees", icon: <BadgeIcon /> },
 ];
 
 export default function AdminLayout({ toggleTheme, mode }) {
