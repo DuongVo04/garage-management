@@ -1,5 +1,5 @@
 import express from "express";
-import { login, refreshToken, logout } from "../../controllers/auth.controller.js"
+import { login, refreshAccessToken, logout } from "../../controllers/auth.controller.js"
 import { validate } from "../../middlewares/validation.middleware.js"
 import accountalidator from "../../validators/account.validator.js"
 import { response } from "../../utils/response.js";
@@ -26,6 +26,9 @@ router.post("/login", accountalidator, validate, async (req, res, next) => {
 router.post("/refresh-token", async (req, res, next) => {
     try {
         const refreshTokenValue = req.cookies.refreshToken;
+        if (!refreshTokenValue) {
+            return response(res, false, "No refresh token", 401);
+        }
         
         // Kiểm tra xem refreshToken có bị blacklist không
         const isBlacklisted = await redis.get(`bl_${refreshTokenValue}`);
@@ -33,9 +36,11 @@ router.post("/refresh-token", async (req, res, next) => {
             return response(res, false, "The refresh token has been blocked", 401);
         }
         
-        const accessToken = await refreshToken(refreshTokenValue);
+        const accessToken = await refreshAccessToken(refreshTokenValue);
+        console.log("✅ New access token generated");
         return response(res, true, "Access Token generated", 200, accessToken);
     } catch (error) {
+        console.error("❌ Refresh token error:", error.message);
         next(error);
     }
 });

@@ -10,6 +10,7 @@ export const response = (
         success,
         message,
         data,
+        error: errors,
         errors,
         timestamp: new Date()
     });

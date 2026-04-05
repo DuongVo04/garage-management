@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { CircularProgress } from "@mui/material";
+import { useAuth } from "../../context/AuthContext";
 
 import {
 	TrendingUp, TrendingDown, AttachMoney, DirectionsCar,
@@ -580,6 +581,7 @@ const LiveClock = () => {
 // ─── MAIN ────────────────────────────────────────────────────────────────────
 export default function AdminDashboard() {
 	const navigate = useNavigate();
+	const { accessToken } = useAuth || { accessToken: null };
 	const [loading, setLoading] = useState(true);
 	const [yearFilter, setYearFilter] = useState(new Date().getFullYear());
 	const [availableYears, setAvailableYears] = useState([new Date().getFullYear()]);
@@ -660,6 +662,16 @@ export default function AdminDashboard() {
 			setLoading(false);
 		}
 	};
+
+	// Fetch data khi token ready hoặc yearFilter change
+	useEffect(() => {
+		const token = localStorage.getItem("token");
+		if (token) {
+			fetchDashboardData();
+		} else {
+			console.warn("⚠️ No token, skipping dashboard fetch");
+		}
+	}, [yearFilter]);
 
 	useEffect(() => { fetchDashboardData(); }, [yearFilter]);
 
@@ -788,7 +800,7 @@ export default function AdminDashboard() {
 						data={recentInvoices}
 					/>
 					<MiniTable
-						title="Xe trưng bày" icon="🚗" navigate={navigate} viewAllPath="/carandshowroom"
+						title="Xe trưng bày" icon="🚗" navigate={navigate} viewAllPath="/admin/carandshowroom"
 						columns={[
 							{ key: "name", label: "Tên xe", render: i => <span style={{ color: T.textPri, fontWeight: 600, fontSize: 12 }}>{i.name || "—"}</span> },
 							{ key: "new_price", label: "Giá", render: i => <span style={{ color: T.blue, fontWeight: 600, fontSize: 11 }}>{formatPrice(i.new_price)}</span> },
@@ -813,7 +825,7 @@ export default function AdminDashboard() {
 
 				<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
 					<MiniTable
-						title="Voucher đang chạy" icon="🎫" navigate={navigate} viewAllPath="/carandshowroom"
+						title="Voucher đang chạy" icon="🎫" navigate={navigate} viewAllPath="/admin/carandshowroom"
 						columns={[
 							{ key: "code", label: "Mã code", render: i => <span className="tag tag-gold">{i.code}</span> },
 							{ key: "percent", label: "Giảm", render: i => <span style={{ color: T.green, fontWeight: 700 }}>-{i.percent}%</span> },

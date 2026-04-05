@@ -22,8 +22,12 @@ const login = async ({ username, password }) => {
     }
     const role = await Role.findByPk(account.role_id);
     const payload = { id: account.id, username: account.username, role_id:role.id, role_name: role.name };
+    
+
+	
     const accessToken = generateAccessToken(payload);
     const refreshToken = generateRefreshToken(payload);
+ 
 
     return { accessToken, refreshToken, payload };
 }
@@ -49,34 +53,39 @@ const logout = async (accessToken, refreshToken) => {
     return true;
 }
 
-const refreshToken = async (refreshToken) => {
-    if (!refreshToken) {
+const refreshAccessToken = async (token) => {
+    if (!token) {
         throw new ApiError(401, "No refresh token");
     }
 
-    return new Promise((resolve, reject) => {
-        jwt.verify(
-            refreshToken,
-            process.env.REFRESH_TOKEN_SECRET,
-            (err, user) => {
+    try {
+        const user = await new Promise((resolve, reject) => {
+            jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
                 if (err) {
-                    reject(new ApiError(401, "Invalid token"));
+                    console.error("❌ Refresh token verification failed:", err.message);
+                    reject(new ApiError(401, "Invalid or expired refresh token"));
                 } else {
-                    const accessToken = generateAccessToken({
-                        id: user.id,
-                        username: user.username,
-                        role_id: user.role_id,
-                        role_name: user.role_name
-                    });
-                    resolve(accessToken);
+                    resolve(decoded);
                 }
-            }
-        );
-    });
+            });
+        });
+
+        const accessToken = generateAccessToken({
+            id: user.id,
+            username: user.username,
+            role_id: user.role_id,
+            role_name: user.role_name
+        });
+
+        return accessToken;
+    } catch (error) {
+        console.error("❌ Token refresh error:", error.message);
+        throw error;
+    }
 }
 
 export {
     login,
     logout,
-    refreshToken
+    refreshAccessToken
 }
