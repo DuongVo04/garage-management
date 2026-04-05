@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -7,15 +7,48 @@ import {
   Container,
   Box,
   IconButton,
-  Stack
+  Stack,
+  Menu,
+  MenuItem,
+  Avatar,
+  Divider,
+  ListItemIcon
 } from '@mui/material';
-import { DirectionsCar, Login } from '@mui/icons-material';
+import { 
+  DirectionsCar, 
+  Login, 
+  AccountCircle, 
+  History, 
+  Logout,
+  Dashboard
+} from '@mui/icons-material';
 import { useNavigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const MainLayout = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleMenuClick = (path) => {
+    navigate(path);
+    handleClose();
+  };
+
+  const handleLogout = () => {
+    logout();
+    handleClose();
+    navigate('/');
+  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: '#f8fafc' }}>
@@ -39,22 +72,79 @@ const MainLayout = () => {
               </Typography>
             </Stack>
 
-            <Stack direction="row" spacing={2}>
+            <Stack direction="row" spacing={2} alignItems="center">
               <Button color="inherit" onClick={() => navigate('/')}>Trang chủ</Button>
               <Button color="inherit" onClick={() => navigate('/garage')}>Dịch vụ</Button>
               <Button color="inherit">Liên hệ</Button>
               {user ? (
-                <Button color="inherit" onClick={() => {
-                  if (user.role_name === "ADMIN") {
-                    navigate('/admin')
-                  } else {
-                    navigate('/user')
-                  }
-                }}>
-                  Xin chào {user.username}
-                </Button>
+                <>
+                  <Button
+                    color="primary"
+                    variant="outlined"
+                    onClick={handleClick}
+                    startIcon={<AccountCircle />}
+                    sx={{ borderRadius: 2, fontWeight: 700, textTransform: 'none' }}
+                  >
+                    Xin chào, {user.username}
+                  </Button>
+                  <Menu
+                    anchorEl={anchorEl}
+                    open={open}
+                    onClose={handleClose}
+                    transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                    anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                    PaperProps={{
+                      elevation: 3,
+                      sx: {
+                        mt: 1.5,
+                        borderRadius: 2,
+                        minWidth: 180,
+                        overflow: 'visible',
+                        '&:before': {
+                          content: '""',
+                          display: 'block',
+                          position: 'absolute',
+                          top: 0,
+                          right: 14,
+                          width: 10,
+                          height: 10,
+                          bgcolor: 'background.paper',
+                          transform: 'translateY(-50%) rotate(45deg)',
+                          zIndex: 0,
+                        },
+                      },
+                    }}
+                  >
+                    {user.role_name === 'ADMIN' && (
+                      <MenuItem onClick={() => handleMenuClick('/admin')}>
+                        <ListItemIcon><Dashboard fontSize="small" /></ListItemIcon>
+                        Trang quản trị
+                      </MenuItem>
+                    )}
+                    {user.role_name === 'CUSTOMER' && (
+                      <MenuItem onClick={() => handleMenuClick('/user/my-info')}>
+                        <ListItemIcon><History fontSize="small" /></ListItemIcon>
+                        Thông tin tài khoản
+                      </MenuItem>
+                    )}
+                    {/* <MenuItem onClick={() => handleMenuClick('/user')}>
+                      <ListItemIcon><AccountCircle fontSize="small" /></ListItemIcon>
+                      Thông tin cá nhân
+                    </MenuItem> */}
+                    <Divider />
+                    <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
+                      <ListItemIcon><Logout fontSize="small" color="error" /></ListItemIcon>
+                      Đăng xuất
+                    </MenuItem>
+                  </Menu>
+                </>
               ) : (
-                <Button color="inherit" onClick={() => navigate('/login')}>
+                <Button 
+                  variant="contained" 
+                  startIcon={<Login />} 
+                  onClick={() => navigate('/login')}
+                  sx={{ borderRadius: 2, fontWeight: 700 }}
+                >
                   Đăng nhập
                 </Button>
               )}

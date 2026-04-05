@@ -2,7 +2,7 @@ import {
     CarReviewAppointment,
     ShowroomVehicle,
     Brand,
-
+    Customer
 } from "../schemas/index.js";
 import ApiError from "../utils/ApiError.js";
 import { baseCRUD } from "../utils/baseCRUD.js";
@@ -90,11 +90,40 @@ const getByPhoneNumber = async (phone_number) => {
     return appointment;
 }
 
+const getMyAppointments = async (userId) => {
+    // 1. Tìm trực tiếp bằng account_id (ưu tiên)
+    const appointmentsByAccount = await CarReviewAppointment.findAll({
+        where: { account_id: userId },
+        include,
+        order: [['view_at', 'DESC']]
+    });
+
+    if (appointmentsByAccount.length > 0) {
+        return appointmentsByAccount;
+    }
+
+    // 2. Fallback tìm qua hồ sơ Customer (nếu đặt lịch khi chưa đăng nhập nhưng dùng cùng SĐT)
+    const customer = await Customer.findOne({
+        where: { account_id: userId }
+    });
+
+    if (!customer) {
+        return [];
+    }
+
+    return await CarReviewAppointment.findAll({
+        where: { phone_number: customer.phone_number },
+        include,
+        order: [['view_at', 'DESC']]
+    });
+}
+
 const carReviewAppointmentController = {
     ...baseController,
     changeStatus,
     deleteAppoitment,
-    getByPhoneNumber
+    getByPhoneNumber,
+    getMyAppointments
 }
 
 

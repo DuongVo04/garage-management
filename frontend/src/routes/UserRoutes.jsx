@@ -4,7 +4,8 @@ import { Route } from 'react-router-dom';
 import ProtectedRoute from '../components/routes/ProtectedRoute';
 import RoleBasedRoute from '../components/routes/RoleBasedRoute';
 
-import UserPage from '../pages/user/UserPage';
+import MainLayout from "../layouts/MainLayout"
+import ProfilePage from '../pages/user/ProfileManagement/ProfilePage';
 
 
 const UserRoutes = (
@@ -12,13 +13,13 @@ const UserRoutes = (
         path="/user"
         element={
             <ProtectedRoute>
-                <RoleBasedRoute role="USER">
-                    <UserPage />
+                <RoleBasedRoute role="CUSTOMER">
+                    <MainLayout />
                 </RoleBasedRoute>
             </ProtectedRoute>
         }
     >
-        {/* <Route path="dashboard" element={<DashboardPage />} /> */}
+        <Route path="my-info" element={<ProfilePage />} />
     </Route>
 );
 
