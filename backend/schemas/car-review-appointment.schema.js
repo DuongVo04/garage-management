@@ -27,14 +27,16 @@ export default (sequelize) => {
             defaultValue: DataTypes.NOW,
         },
         status: {
-            // booked: đặt lịch thành công 
-            // done: đã đến xem
             type: DataTypes.STRING(10),
             allowNull: false,
         },
         showroom_vehicle_id: {
             type: DataTypes.STRING(50),
             allowNull: false,
+        },
+        account_id: {
+            type: DataTypes.UUID,
+            allowNull: true,
         }
     }, {
         tableName: "car_review_appointment",

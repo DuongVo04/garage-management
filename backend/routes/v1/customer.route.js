@@ -35,12 +35,43 @@ router.post("/",
     validate,
     async (req, res, next) => {
         try {
-
             const user = req.user;
             if (user.role_name !== ROLE_NAME.CUSTOMER) {
                 return response(res, false, "Not a customer", 404);
             }
 
+            // 1. Tìm xem account này đã có thông tin customer chưa
+            const existingCustomerByAccount = await customerController.Model.findOne({
+                where: { account_id: user.id }
+            });
+
+            if (existingCustomerByAccount) {
+                await customerController.update(existingCustomerByAccount.id, req.body);
+                // LẤY LẠI DATA MỚI NHẤT ĐỂ TRẢ VỀ FRONTEND 
+                const updatedCustomer = await customerController.getById(existingCustomerByAccount.id);
+                return response(res, true, "Update profile successfully", 200, updatedCustomer);
+            }
+
+            // 2. Nếu chưa có hồ sơ, kiểm tra theo phone_number
+            const existingCustomerByPhone = await customerController.Model.findOne({
+                where: { phone_number: req.body.phone_number }
+            });
+
+            if (existingCustomerByPhone) {
+                if (existingCustomerByPhone.account_id) {
+                    return response(res, false, "Phone number already linked to another account", 409);
+                }
+                
+                await customerController.update(existingCustomerByPhone.id, {
+                    ...req.body,
+                    account_id: user.id
+                });
+                // LẤY LẠI DATA MỚI NHẤT
+                const updatedCustomer = await customerController.getById(existingCustomerByPhone.id);
+                return response(res, true, "Linked and updated profile successfully", 200, updatedCustomer);
+            }
+
+            // 3. Nếu hoàn toàn mới thì tạo mới
             const data = await customerController.create({
                 ...req.body,
                 account_id: user.id
@@ -52,7 +83,7 @@ router.post("/",
     }
 )
 
-router.put("/",
+router.put("/me",
     verifyToken,
     customerValidator,
     validate,
@@ -63,8 +94,9 @@ router.put("/",
                 return response(res, false, "Not a customer", 404);
             }
 
-            const customer = await customerController.update(user.id, req.body);
-            return response(res, true, "Update customer successfully", 200, customer);
+            // Gọi hàm updateMe mà bạn đã định nghĩa ở customer.controller.js
+            const updatedCustomer = await customerController.updateMe(user, req.body);
+            return response(res, true, "Update customer successfully", 200, updatedCustomer);
         } catch (error) {
             next(error);
         }

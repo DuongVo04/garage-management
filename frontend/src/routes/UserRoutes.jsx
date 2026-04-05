@@ -5,6 +5,7 @@ import ProtectedRoute from '../components/routes/ProtectedRoute';
 import RoleBasedRoute from '../components/routes/RoleBasedRoute';
 
 import UserPage from '../pages/user/UserPage';
+import UserAppointmentsPage from '../pages/user/UserAppointmentsPage';
 
 
 const UserRoutes = (
@@ -12,13 +13,13 @@ const UserRoutes = (
         path="/user"
         element={
             <ProtectedRoute>
-                <RoleBasedRoute role="USER">
+                <RoleBasedRoute role="CUSTOMER">
                     <UserPage />
                 </RoleBasedRoute>
             </ProtectedRoute>
         }
     >
-        {/* <Route path="dashboard" element={<DashboardPage />} /> */}
+        <Route path="appointments" element={<UserAppointmentsPage />} />
     </Route>
 );
 

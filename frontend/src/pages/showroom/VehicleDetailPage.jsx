@@ -34,6 +34,7 @@ import {
   ChevronRight
 } from '@mui/icons-material';
 import apiClient from '../../services/apiClient';
+import BookingModal from './BookingModal';
 
 const VehicleDetailPage = () => {
   const { id } = useParams();
@@ -44,6 +45,7 @@ const VehicleDetailPage = () => {
   const [activeImage, setActiveImage] = useState('');
   
   const [openSpecModal, setOpenSpecModal] = useState(false);
+  const [openBookingModal, setOpenBookingModal] = useState(false);
 
   const serverBaseUrl = import.meta.env.VITE_API_BASE_URL?.replace('/api/v1', '') || 'http://localhost:3000';
 
@@ -382,6 +384,7 @@ const VehicleDetailPage = () => {
                   size="large" 
                   fullWidth 
                   startIcon={<CalendarToday />}
+                  onClick={() => setOpenBookingModal(true)}
                   sx={{ 
                     py: 1.8, 
                     borderRadius: 2, 
@@ -425,6 +428,14 @@ const VehicleDetailPage = () => {
           </Grid>
         </Grid>
       </Container>
+
+      {/* Modal Đặt lịch */}
+      <BookingModal 
+        open={openBookingModal} 
+        handleClose={() => setOpenBookingModal(false)} 
+        vehicleId={car.id} 
+        vehicleName={car.name} 
+      />
 
       {/* Modal Thông số */}
       <Dialog 
