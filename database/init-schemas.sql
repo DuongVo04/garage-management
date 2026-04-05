@@ -17,7 +17,7 @@ CREATE TABLE car_return_appointment (
   created_date     datetime NULL, 
   return_date      datetime NULL, 
   repair_ticket_id varchar(50) NOT NULL);
-CREATE TABLE car_view_appointment (
+CREATE TABLE car_review_appointment (
   id                  varchar(50) NOT NULL, 
   viewer_name         varchar(50) NOT NULL, 
   phone_number        varchar(11) NOT NULL, 
@@ -217,4 +217,4 @@ ALTER TABLE steering_system ADD CONSTRAINT FKsteering_s783560 FOREIGN KEY (showr
 ALTER TABLE vehicle_size ADD CONSTRAINT FKvehicle_si507708 FOREIGN KEY (showroom_vehicle_id) REFERENCES showroom_vehicle (id);
 ALTER TABLE interior ADD CONSTRAINT FKinterior749273 FOREIGN KEY (showroom_vehicle_id) REFERENCES showroom_vehicle (id);
 ALTER TABLE customer ADD CONSTRAINT FKcustomer474699 FOREIGN KEY (account_id) REFERENCES account (id);
-ALTER TABLE car_view_appointment ADD CONSTRAINT FKcar_view_a883894 FOREIGN KEY (showroom_vehicle_id) REFERENCES showroom_vehicle (id);
+ALTER TABLE car_review_appointment ADD CONSTRAINT FKcar_review_a883894 FOREIGN KEY (showroom_vehicle_id) REFERENCES showroom_vehicle (id);
