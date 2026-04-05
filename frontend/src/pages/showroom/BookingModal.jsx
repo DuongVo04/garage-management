@@ -80,8 +80,7 @@ const BookingModal = ({ open, handleClose, vehicleId, vehicleName }) => {
       const dataToSubmit = {
         ...formData,
         showroom_vehicle_id: vehicleId,
-        status: 'pending',
-        account_id: user?.id || null
+        status: 'pending'
       };
       
       await apiClient.post('/car-review-appointments', dataToSubmit);

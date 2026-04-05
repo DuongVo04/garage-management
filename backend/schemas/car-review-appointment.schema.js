@@ -33,10 +33,6 @@ export default (sequelize) => {
         showroom_vehicle_id: {
             type: DataTypes.STRING(50),
             allowNull: false,
-        },
-        account_id: {
-            type: DataTypes.UUID,
-            allowNull: true,
         }
     }, {
         tableName: "car_review_appointment",
