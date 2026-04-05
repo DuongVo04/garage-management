@@ -8,6 +8,7 @@ import DashboardPage from '../pages/admin/DashboardPage'
 import ShowroomPage from '../pages/admin/Showroompage';
 import EmployeePage from '../pages/admin/EmployeePage'
 import CustomerPage from '../pages/admin/CustomerPage';
+import SparePartPage from '../pages/admin/SparePartPage';
 
 
 const AdminRoutes = (
@@ -27,6 +28,7 @@ const AdminRoutes = (
 		<Route path="carandshowroom" element={<ShowroomPage />} />
 		<Route path="employees" element={<EmployeePage />} />
 		<Route path="customers" element={<CustomerPage />} />
+		<Route path="spare-parts" element={<SparePartPage />} />
 	</Route>
 );
 export default AdminRoutes;
