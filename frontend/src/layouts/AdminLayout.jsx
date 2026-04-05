@@ -37,7 +37,7 @@ const COLLAPSED_WIDTH = 72;
 
 const MENU = [
 	{ label: "Dashboard", path: "/admin/dashboard", icon: <DashboardIcon /> },
-	{ label: "Khách hàng", path: "/customers", icon: <PeopleIcon /> },
+	{ label: "Khách hàng", path: "/admin/customers", icon: <PeopleIcon /> },
 	{ label: "Xe & Showroom", path: "/admin/carandshowroom", icon: <DirectionsCarIcon /> },
 	{ label: "Lịch dịch vụ", path: "/services", icon: <EventIcon /> },
 	{ label: "Kho phụ tùng", path: "/inventory", icon: <InventoryIcon /> },
