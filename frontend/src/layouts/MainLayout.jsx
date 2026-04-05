@@ -122,9 +122,9 @@ const MainLayout = () => {
                       </MenuItem>
                     )}
                     {user.role_name === 'CUSTOMER' && (
-                      <MenuItem onClick={() => handleMenuClick('/user/appointments')}>
+                      <MenuItem onClick={() => handleMenuClick('/user/my-info')}>
                         <ListItemIcon><History fontSize="small" /></ListItemIcon>
-                        Lịch hẹn của tôi
+                        Thông tin tài khoản
                       </MenuItem>
                     )}
                     {/* <MenuItem onClick={() => handleMenuClick('/user')}>

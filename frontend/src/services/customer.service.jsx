@@ -29,3 +29,13 @@ export const createCustomerInfo = async (data) => {
         return { success: false, message: error.response?.data?.message || "Error creating customer info" };
     }
 };
+
+export const linkCustomerAccount = async (phoneNumber) => {
+    try {
+        const response = await apiClient.patch("/customers/link-account", { phone_number: phoneNumber });
+        return response.data;
+    } catch (error) {
+        console.error("Error linking account:", error);
+        return { success: false, message: error.response?.data?.message || "Error linking account" };
+    }
+};
