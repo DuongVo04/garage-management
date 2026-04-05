@@ -16,6 +16,7 @@ import customerRoutes from "./customer.route.js"
 import customerVehicleRoutes from "./customer-vehicle.route.js"
 import carReviewAppointments from "./car-review-appointment.route.js"
 import invoice from "./invoice.route.js"
+import repairAppointmentRoutes from "./repair-appointment.route.js"
 
 
 const router = express.Router();
@@ -37,5 +38,7 @@ router.use("/customers", customerRoutes);
 router.use("/customer-vehicles", customerVehicleRoutes);
 router.use("/car-review-appointments", carReviewAppointments);
 router.use("/invoices", invoice);
+router.use("/car-review-appointments", carReviewAppointments)
+router.use("/repair-appointments", repairAppointmentRoutes)
 
 export default router;
