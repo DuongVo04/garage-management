@@ -1198,28 +1198,26 @@ export default function ShowroomPage() {
 									</Tabs>
 									<Box sx={{ p: 2, bgcolor: COLORS.surface, borderRadius: 2, minHeight: 180 }}>
 										{activeSpecTab === "engine" && (selected.engine_spec ? <SpecGrid data={[
-											{ label: "Dung tích", value: selected.engine_spec.displacement },
-											{ label: "Số xi-lanh", value: selected.engine_spec.cylinders },
-											{ label: "Công suất", value: selected.engine_spec.power },
-											{ label: "Mô-men xoắn", value: selected.engine_spec.torque },
-											{ label: "Hộp số", value: selected.engine_spec.transmission },
+											{ label: "Dung tích động cơ", value: selected.engine_spec.engine_capacity },
+											{ label: "Số xi-lanh", value: selected.engine_spec.engine_type },
+											{ label: "Công suất", value: selected.engine_spec.max_power },
+											{ label: "Mô-men xoắn", value: selected.engine_spec.max_torque },
+											{ label: "Hộp số", value: selected.steering_system.transmission },
 										]} /> : <EmptySpec label="Chưa có thông số động cơ" />)}
 										{activeSpecTab === "fuel" && (selected.fuel ? <SpecGrid data={[
-											{ label: "Loại nhiên liệu", value: selected.fuel.type },
-											{ label: "Dung tích bình", value: selected.fuel.tank_capacity },
-											{ label: "Mức tiêu thụ", value: selected.fuel.consumption },
+											{ label: "Loại nhiên liệu", value: selected.fuel.fuel_type },
+											{ label: "Dung tích bình", value: selected.fuel.fuel_tank_capacity },
+											{ label: "Mức tiêu thụ", value: selected.fuel.fuel_consumption },
 										]} /> : <EmptySpec label="Chưa có thông số nhiên liệu" />)}
 										{activeSpecTab === "size" && (selected.size ? <SpecGrid data={[
-											{ label: "Dài", value: selected.size.length },
-											{ label: "Rộng", value: selected.size.width },
-											{ label: "Cao", value: selected.size.height },
-											{ label: "Chiều dài cơ sở", value: selected.size.wheelbase },
-											{ label: "Trọng lượng", value: selected.size.weight },
+											{ label: "Chiều Dài", value: selected.size.length_mm + "m"},
+											{ label: "Chiều Rộng", value: selected.size.width_mm + "m"},
+											{ label: "Chiều Cao", value: selected.size.height_mm + "m"},
+											{ label: "Chiều dài cơ sở", value: selected.size.wheelbase_mm + "m"},
 										]} /> : <EmptySpec label="Chưa có thông số kích thước" />)}
 										{activeSpecTab === "interior" && (selected.interior ? <SpecGrid data={[
-											{ label: "Số chỗ ngồi", value: selected.interior.seats },
-											{ label: "Màn hình", value: selected.interior.screen_size },
-											{ label: "Điều hòa", value: selected.interior.air_conditioner },
+											{ label: "Số chỗ ngồi", value: selected.interior.seat_count },
+											{ label: "Màn hình", value: selected.interior.is_androidauto_applecarplay ? "Có" : "Không" },
 										]} /> : <EmptySpec label="Chưa có thông số nội thất" />)}
 										{activeSpecTab === "images" && (
 											<Box>
