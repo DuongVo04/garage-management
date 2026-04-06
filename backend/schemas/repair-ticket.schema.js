@@ -17,6 +17,12 @@ export default (sequelize) => {
 
         service_id: DataTypes.STRING(50),
 
+		description: {
+			type: DataTypes.STRING(500),
+			allowNull: true,
+			field: 'description'
+		},
+
         appointment_id: DataTypes.STRING(50),
 
         customer_vehicle_id: DataTypes.STRING(50)
@@ -27,4 +33,4 @@ export default (sequelize) => {
     })
 
     return RepairTicket
-}
+}	

@@ -1,22 +1,28 @@
 import apiClient from "./apiClient";
 
-// ==================== REPAIR DETAIL ====================
-
-// Lấy chi tiết sửa xe theo ticket_id
-export const getRepairDetailByTicketId = async (ticketId) => {
+// Lấy chi tiết sửa xe theo ticket_id (có thể trả về MẢNG)
+export const getRepairDetailsByTicketId = async (ticketId) => {
 	try {
-		const response = await apiClient.get(`/repair-details/${ticketId}`);
+		// Sửa endpoint để trả về mảng các repair details
+		const response = await apiClient.get(`/repair-details/ticket/${ticketId}`);
 		return response.data;
 	} catch (error) {
-		console.error("Error fetching repair detail:", error);
+		console.error("Error fetching repair details:", error);
 		throw error;
 	}
+};
+
+// Giữ lại hàm cũ cho tương thích (deprecated)
+export const getRepairDetailByTicketId = async (ticketId) => {
+	console.warn('getRepairDetailByTicketId is deprecated, use getRepairDetailsByTicketId');
+	const response = await apiClient.get(`/repair-details/ticket/${ticketId}`);
+	return response.data;
 };
 
 // Tạo chi tiết sửa xe
 export const createRepairDetail = async (ticketId, data) => {
 	try {
-		const response = await apiClient.post(`/repair-details/${ticketId}`, data);
+		const response = await apiClient.post(`/repair-details`, { ...data, ticket_id: ticketId });
 		return response.data;
 	} catch (error) {
 		console.error("Error creating repair detail:", error);
@@ -24,24 +30,13 @@ export const createRepairDetail = async (ticketId, data) => {
 	}
 };
 
-// Cập nhật chi tiết sửa xe
-export const updateRepairDetail = async (ticketId, data) => {
+// Cập nhật chi tiết sửa xe - cần detail_id
+export const updateRepairDetail = async (detailId, data) => {
 	try {
-		const response = await apiClient.put(`/repair-details/${ticketId}`, data);
+		const response = await apiClient.put(`/repair-details/${detailId}`, data);
 		return response.data;
 	} catch (error) {
 		console.error("Error updating repair detail:", error);
-		throw error;
-	}
-};
-
-// Xóa chi tiết sửa xe
-export const deleteRepairDetail = async (ticketId) => {
-	try {
-		const response = await apiClient.delete(`/repair-details/${ticketId}`);
-		return response.data;
-	} catch (error) {
-		console.error("Error deleting repair detail:", error);
 		throw error;
 	}
 };

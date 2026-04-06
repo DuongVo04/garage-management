@@ -87,19 +87,22 @@ router.get("/:id",
 )
 
 router.post("/",
-    verifyToken,
     repairAppointmentValidator,
     validate,
     async (req, res, next) => {
+        console.log("🔹 [POST /repair-appointments] Request body:", JSON.stringify(req.body, null, 2));
         try {
             const data = {
                 ...req.body,
                 status: req.body.status || REPAIR_APPOINTMENT_STATUS.BOOKED,
                 created_date: new Date()
             };
+            console.log("✅ [POST /repair-appointments] Creating appointment with data:", JSON.stringify(data, null, 2));
             const appointment = await repairAppointmentController.create(data);
+            console.log("✅ [POST /repair-appointments] Appointment created successfully:", appointment.id);
             return response(res, true, "Create repair appointment successfully", 200, appointment);
         } catch (error) {
+            console.error("❌ [POST /repair-appointments] Error:", error.message, error.stack);
             next(error);
         }
     }

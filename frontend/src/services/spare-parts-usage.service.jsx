@@ -1,11 +1,9 @@
 import apiClient from "./apiClient";
 
-// ==================== SPARE PARTS USAGE ====================
-
-// Lấy tất cả phiếu sử dụng phụ tùng
-export const getAllSparePartsUsages = async (params = {}) => {
+// Lấy tất cả spare parts usage theo repair_detail_id
+export const getSparePartsUsagesByRepairDetailId = async (repairDetailId) => {
 	try {
-		const response = await apiClient.get("/spare-parts-usages", { params });
+		const response = await apiClient.get(`/spare-parts-usage/by-detail/${repairDetailId}`);
 		return response.data;
 	} catch (error) {
 		console.error("Error fetching spare parts usages:", error);
@@ -13,32 +11,10 @@ export const getAllSparePartsUsages = async (params = {}) => {
 	}
 };
 
-// Lấy phiếu sử dụng phụ tùng theo ID
-export const getSparePartsUsageById = async (id) => {
-	try {
-		const response = await apiClient.get(`/spare-parts-usages/${id}`);
-		return response.data;
-	} catch (error) {
-		console.error("Error fetching spare parts usage:", error);
-		throw error;
-	}
-};
-
-// Lấy danh sách phiếu sử dụng theo repair_detail_id
-export const getSparePartsUsagesByRepairDetailId = async (repairDetailId) => {
-	try {
-		const response = await apiClient.get(`/spare-parts-usages/by-repair-detail/${repairDetailId}`);
-		return response.data;
-	} catch (error) {
-		console.error("Error fetching spare parts usages by repair detail:", error);
-		throw error;
-	}
-};
-
-// Tạo phiếu sử dụng phụ tùng mới
+// Tạo mới spare parts usage
 export const createSparePartsUsage = async (data) => {
 	try {
-		const response = await apiClient.post("/spare-parts-usages", data);
+		const response = await apiClient.post("/spare-parts-usage", data);
 		return response.data;
 	} catch (error) {
 		console.error("Error creating spare parts usage:", error);
@@ -46,24 +22,24 @@ export const createSparePartsUsage = async (data) => {
 	}
 };
 
-// Cập nhật phiếu sử dụng phụ tùng
-export const updateSparePartsUsage = async (id, data) => {
+// Xóa spare parts usage
+export const deleteSparePartsUsage = async (id) => {
 	try {
-		const response = await apiClient.put(`/spare-parts-usages/${id}`, data);
+		const response = await apiClient.delete(`/spare-parts-usage/${id}`);
 		return response.data;
 	} catch (error) {
-		console.error("Error updating spare parts usage:", error);
+		console.error("Error deleting spare parts usage:", error);
 		throw error;
 	}
 };
 
-// Xóa phiếu sử dụng phụ tùng
-export const deleteSparePartsUsage = async (id) => {
+// Cập nhật spare parts usage
+export const updateSparePartsUsage = async (id, data) => {
 	try {
-		const response = await apiClient.delete(`/spare-parts-usages/${id}`);
+		const response = await apiClient.put(`/spare-parts-usage/${id}`, data);
 		return response.data;
 	} catch (error) {
-		console.error("Error deleting spare parts usage:", error);
+		console.error("Error updating spare parts usage:", error);
 		throw error;
 	}
 };

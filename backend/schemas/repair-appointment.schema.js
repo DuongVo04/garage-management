@@ -17,9 +17,7 @@ export default (sequelize) => {
 
         status: DataTypes.STRING(20),
 
-
-		customer_id: DataTypes.UUID 
-
+        customer_id: DataTypes.UUID
 
     }, {
         tableName: "repair_appointment",
