@@ -12,7 +12,7 @@ const PublicRoutes = (
     <Route path="/" element={<MainLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/garage" element={<GaragePage />} />
-        <Route path="/booking/:serviceId" element={<BookingPage />} />
+        <Route path="/booking/" element={<BookingPage />} />
         <Route path="/vehicle/:id" element={<VehicleDetailPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

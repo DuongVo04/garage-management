@@ -7,6 +7,7 @@ import AdminLayout from '../layouts/AdminLayout';
 import DashboardPage from '../pages/admin/DashboardPage'
 import ShowroomPage from '../pages/admin/Showroompage';
 import EmployeePage from '../pages/admin/EmployeePage'
+import RepairAppointmentsPage from '../pages/admin/RepairAppointmentsPage'
 
 
 const AdminRoutes = (
@@ -22,9 +23,9 @@ const AdminRoutes = (
 	>
 		<Route index element={<Navigate to="dashboard" replace />} />
 		<Route path="dashboard" element={<DashboardPage />} />
-		<Route index element={<Navigate to="Xe và showroom" replace />} />
 		<Route path="carandshowroom" element={<ShowroomPage />} />
 		<Route path="employees" element={<EmployeePage />} />
+		<Route path="repair-appointments" element={<RepairAppointmentsPage />} />
 	</Route>
 );
 export default AdminRoutes;

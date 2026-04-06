@@ -18,7 +18,6 @@ const UserRoutes = (
             </ProtectedRoute>
         }
     >
-        {/* <Route path="dashboard" element={<DashboardPage />} /> */}
     </Route>
 );
 

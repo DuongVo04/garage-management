@@ -27,14 +27,12 @@ apiClient.interceptors.response.use(
 	async (error) => {
 		const originalRequest = error.config;
 
-		// Nếu token hết hạn (BE trả TOKEN_EXPIRED)
-		if (
-			error.response?.data?.error === "TOKEN_EXPIRED" &&
-			!originalRequest._retry
-		) {
+		// Nếu lỗi 401 (Unauthorized)
+		if (error.response?.status === 401 && !originalRequest._retry) {
 			originalRequest._retry = true;
 
 			try {
+				// Thử refresh token
 				const res = await axios.post(
 					`${API}/auth/refresh-token`,
 					{},
@@ -42,18 +40,16 @@ apiClient.interceptors.response.use(
 				);
 
 				const newToken = res.data.data;
-
-				// lưu token mới
 				localStorage.setItem("token", newToken);
-
-				// gắn lại token cho request cũ
 				originalRequest.headers.Authorization = `Bearer ${newToken}`;
 
 				return apiClient(originalRequest);
-			} catch {
-				// refresh fail → logout
+			} catch (refreshError) {
+				// Nếu refresh cũng fail -> buộc logout
 				localStorage.removeItem("token");
-				window.location.href = "/login";
+				if (!window.location.pathname.includes("/login")) {
+					window.location.href = "/login";
+				}
 			}
 		}
 
