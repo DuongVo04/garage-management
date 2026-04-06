@@ -15,18 +15,12 @@ const getDefaultFilter = (Model) => {
     return {};
 };
 
-const buildDefaultAttributes = (Model) => {
-    const byAssociation = Object.values(Model.associations)
-        .map(a => a.foreignKey);
-
-    const byNaming = Object.keys(Model.rawAttributes)
-        .filter(key => key.endsWith("_id"));
-
-    const excludeFields = [...new Set([...byAssociation, ...byNaming])];
-
+const buildDefaultAttributes = (Model, includeRelations = {}) => {
+    // Không exclude FK columns nếu chúng ta không include related models
+    // FK columns sẽ được dùng để hiển thị reference IDs
     return {
         attributes: {
-            exclude: excludeFields
+            exclude: []
         }
     };
 };
@@ -64,7 +58,7 @@ export const baseCRUD = (Model, options = {}) => {
             const data = await Model.findOne({
                 where: {
                     id,
-                    ...getDefaultFilter(Model)
+                    // ...getDefaultFilter(Model)
                 },
                 include: include.detailInclude,
                 ...attributes

@@ -26,8 +26,6 @@ router.get("/",
 router.get("/:id",
     verifyToken,
     authorize(["ADMIN", "EMPLOYEE"]),
-    paramsIdValidator(),
-    validate,
     async (req, res, next) => {
         try {
             const { id } = req.params;
@@ -59,7 +57,6 @@ router.post("/",
 router.put("/:id",
     verifyToken,
     authorize(["ADMIN"]),
-    paramsIdValidator(),
     invoiceValidator,
     validate,
     async (req, res, next) => {
@@ -77,8 +74,6 @@ router.put("/:id",
 router.delete("/:id",
     verifyToken,
     authorize(["ADMIN"]),
-    paramsIdValidator(),
-    validate,
     async (req, res, next) => {
         try {
             const { id } = req.params;
