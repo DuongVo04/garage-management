@@ -10,6 +10,7 @@ import EmployeePage from '../pages/admin/EmployeePage'
 import CustomerPage from '../pages/admin/CustomerPage';
 import SparePartPage from '../pages/admin/SparePartPage';
 import AppointmentsPage from '../pages/admin/AppointmentsPage'
+import InvoiceManagement from '../pages/admin/InvoiceManagement';
 
 
 const AdminRoutes = (
@@ -30,6 +31,7 @@ const AdminRoutes = (
 		<Route path="employees" element={<EmployeePage />} />
 		<Route path="customers" element={<CustomerPage />} />
 		<Route path="appointments" element={<AppointmentsPage />} />
+		<Route path="invoicemanagement" element={<InvoiceManagement />} />
 		<Route path="spare-parts" element={<SparePartPage />} />
 	</Route>
 );

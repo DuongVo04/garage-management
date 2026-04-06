@@ -793,7 +793,7 @@ export default function AdminDashboard() {
 
 				<div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 14 }}>
 					<MiniTable
-						title="Hóa đơn gần đây" icon="💰" navigate={navigate} viewAllPath="/admin/invoices"
+						title="Hóa đơn gần đây" icon="💰" navigate={navigate} viewAllPath="/admin/invoicemanagement"
 						columns={[
 							{ key: "created_date", label: "Ngày", render: i => <span className="gd-mono" style={{ fontSize: 11 }}>{formatDate(i.created_date)}</span> },
 							{ key: "total_cost", label: "Tổng tiền", render: i => <span style={{ color: T.green, fontWeight: 700, fontSize: 12 }}>{formatPrice(i.total_cost)}</span> },
