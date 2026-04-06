@@ -26,6 +26,20 @@ router.get("/",
     }
 )
 
+router.get("/me",
+    verifyToken,
+    validate,
+    async (req, res, next) => {
+        try {
+            const user = req.user;
+            const appointments = await carReviewAppointmentController.getMyAppointments(user.id);
+            return response(res, true, "Get my appointments successfully", 200, appointments);
+        } catch (error) {
+            next(error);
+        }
+    }
+)
+
 router.get("/phone-number/:phone_number",
     verifyToken,
     authorize(ROLE_NAME.ADMIN),

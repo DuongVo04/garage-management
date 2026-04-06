@@ -27,8 +27,6 @@ export default (sequelize) => {
             defaultValue: DataTypes.NOW,
         },
         status: {
-            // booked: đặt lịch thành công 
-            // done: đã đến xem
             type: DataTypes.STRING(10),
             allowNull: false,
         },

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Card, 
   CardContent, 
@@ -19,8 +20,12 @@ import {
   CalendarToday,
   CheckCircle
 } from '@mui/icons-material';
+import { useAuth } from '../../context/AuthContext';
 
 const ServiceCard = ({ service }) => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  
   if (!service) return null;
 
   const price = Number(service.price) || 0;
@@ -40,7 +45,11 @@ const ServiceCard = ({ service }) => {
   };
 
   const handleBooking = () => {
-    alert(`Bạn đang chọn dịch vụ: ${service.name}\nGiá: ${formattedPrice}\n\nChức năng đặt lịch trực tuyến đang được đồng bộ với hệ thống. Vui lòng đợi trong giây lát!`);
+    if (!user) {
+      navigate('/login');
+    } else {
+      navigate(`/booking/${service.id}`);
+    }
   };
 
   return (
