@@ -20,6 +20,7 @@ import repairAppointmentRoutes from "./repair-appointment.route.js"
 import repairTicketRoutes from "./repair-ticket.route.js"
 import repairDetailRoutes from "./repair-detail.route.js"
 import sparePartsWarrantyRoutes from "./spare-parts-warranty.route.js"
+import sparePartsUsageRoutes from "./spare-parts-usage.route.js";
 
 
 const router = express.Router();
@@ -45,5 +46,6 @@ router.use("/repair-appointments", repairAppointmentRoutes)
 router.use("/repair-tickets", repairTicketRoutes)
 router.use("/repair-details", repairDetailRoutes)
 router.use("/spare-parts-warranties", sparePartsWarrantyRoutes)
+router.use("/spare-parts-usages", sparePartsUsageRoutes);
 
 export default router;
