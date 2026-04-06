@@ -44,6 +44,8 @@ import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import "dayjs/locale/vi";
 import {
 	getAllInvoices,
@@ -53,6 +55,8 @@ import {
 } from "../../services/invoice.service";
 
 dayjs.extend(relativeTime);
+dayjs.extend(isSameOrBefore);
+dayjs.extend(isSameOrAfter);
 dayjs.locale("vi");
 
 // ─── DESIGN TOKENS ──────────────────────────────────────────────────────────
@@ -273,6 +277,11 @@ const injectStyles = () => {
 		}
 		.anim-in { animation: fadeSlideIn 0.35s ease; }
 
+		@keyframes slideInTop {
+			from { transform: translateY(-8px); opacity: 0; }
+			to   { transform: translateY(0); opacity: 1; }
+		}
+
 		.top-bar {
 			height: 3px;
 			background: linear-gradient(90deg, ${T.navy}, ${T.blue} 40%, ${T.gold} 70%, ${T.green});
@@ -452,11 +461,11 @@ const InvoiceManagement = () => {
 			if (res?.success) {
 				setSelectedInvoice(res.data);
 				setFormData({
-					created_date: res.data.created_date || dayjs().format("YYYY-MM-DD"),
-					total_cost: res.data.total_cost || "",
-					payment_method: res.data.payment_method || "",
-					discount_id: res.data.discount_id || "",
-					ticket_id: res.data.ticket_id || "",
+					created_date: res.data.created_date ?? dayjs().format("YYYY-MM-DD"),
+					total_cost: res.data.total_cost != null ? String(res.data.total_cost) : "",
+					payment_method: res.data.payment_method ?? "",
+					discount_id: res.data.discount_id ?? "",
+					ticket_id: res.data.ticket_id ?? "",
 				});
 				setFormErrors({});
 				setOpenDialog(true);
@@ -464,25 +473,67 @@ const InvoiceManagement = () => {
 		} catch { showSnackbar("Không thể tải hóa đơn", "error"); }
 	};
 
-	// ── Delete ─────────────────────────────────────────────────────────────
-	const handleDelete = async (id) => {
-		if (!window.confirm("Bạn có chắc chắn muốn xóa hóa đơn này?")) return;
-		try {
-			const res = await deleteInvoice(id);
-			if (res?.success) { showSnackbar("Xóa hóa đơn thành công"); fetchInvoices(); }
-			else showSnackbar(res?.message || "Không thể xóa", "error");
-		} catch { showSnackbar("Không thể xóa hóa đơn", "error"); }
-	};
+	// // ── Delete ─────────────────────────────────────────────────────────────
+	// const handleDelete = async (id) => {
+	// 	if (!window.confirm("Bạn có chắc chắn muốn xóa hóa đơn này?")) return;
+	// 	try {
+	// 		const res = await deleteInvoice(id);
+	// 		if (res?.success) {
+	// 			showSnackbar("Xóa hóa đơn thành công");
+	// 			fetchInvoices();
+	// 		}
+	// 		else {
+	// 			showSnackbar(res?.message || "Không thể xóa", "error");
+	// 		}
+	// 	} catch (error) {
+	// 		console.error("Delete error:", error);
+	// 		console.error("Error response:", error.response?.data);
 
-	const handleBulkDelete = async () => {
-		if (!selectedRows.length) return;
-		if (!window.confirm(`Xóa ${selectedRows.length} hóa đơn đã chọn?`)) return;
-		try {
-			await Promise.all(selectedRows.map(id => deleteInvoice(id)));
-			showSnackbar(`Đã xóa ${selectedRows.length} hóa đơn`);
-			setSelectedRows([]); fetchInvoices();
-		} catch { showSnackbar("Có lỗi khi xóa", "error"); }
-	};
+	// 		// Extract detailed error message from backend
+	// 		let errorMessage = "Không thể xóa hóa đơn";
+	// 		if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+	// 			errorMessage = error.response.data.errors.map(e => e.msg || e.message || e).join(", ");
+	// 		} else if (error.response?.data?.message) {
+	// 			errorMessage = error.response.data.message;
+	// 		} else if (error.response?.data?.error) {
+	// 			errorMessage = error.response.data.error;
+	// 		}
+
+	// 		console.log("Final error message:", errorMessage);
+	// 		showSnackbar(errorMessage, "error");
+	// 	}
+	// };
+
+	// const handleBulkDelete = async () => {
+	// 	if (!selectedRows.length) return;
+	// 	if (!window.confirm(`Xóa ${selectedRows.length} hóa đơn đã chọn?`)) return;
+	// 	try {
+	// 		const results = await Promise.all(selectedRows.map(id => deleteInvoice(id)));
+
+	// 		// Check if all deletes were successful
+	// 		const allSuccessful = results.every(res => res?.success);
+	// 		if (allSuccessful) {
+	// 			showSnackbar(`Đã xóa ${selectedRows.length} hóa đơn`);
+	// 			setSelectedRows([]);
+	// 			fetchInvoices();
+	// 		} else {
+	// 			showSnackbar("Có lỗi khi xóa một số hóa đơn", "warning");
+	// 			setSelectedRows([]);
+	// 			fetchInvoices();
+	// 		}
+	// 	} catch (error) {
+	// 		console.error("Bulk delete error:", error);
+	// 		let errorMessage = "Có lỗi khi xóa";
+	// 		if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+	// 			errorMessage = error.response.data.errors.map(e => e.msg || e.message || e).join(", ");
+	// 		} else if (error.response?.data?.message) {
+	// 			errorMessage = error.response.data.message;
+	// 		} else if (error.response?.data?.error) {
+	// 			errorMessage = error.response.data.error;
+	// 		}
+	// 		showSnackbar(errorMessage, "error");
+	// 	}
+	// };
 
 	// ── Form submit (edit only) ────────────────────────────────────────────
 	const validateForm = () => {
@@ -494,38 +545,129 @@ const InvoiceManagement = () => {
 	};
 
 	const handleSubmit = async () => {
-		if (!validateForm()) return;
+		// Validate only if total_cost has a value
+		if (formData.total_cost !== "" && formData.total_cost !== null && formData.total_cost !== undefined) {
+			if (isNaN(formData.total_cost)) {
+				showSnackbar("Tổng chi phí phải là số", "error");
+				return;
+			}
+			if (parseFloat(formData.total_cost) < 0) {
+				showSnackbar("Tổng chi phí không thể âm", "error");
+				return;
+			}
+		}
+
 		try {
-			const res = await updateInvoice(selectedInvoice.id, {
-				...formData,
-				total_cost: formData.total_cost ? parseFloat(formData.total_cost) : null,
-			});
-			if (res?.success) { showSnackbar("Cập nhật hóa đơn thành công"); setOpenDialog(false); fetchInvoices(); }
-			else showSnackbar(res?.message || "Có lỗi xảy ra", "error");
-		} catch { showSnackbar("Lỗi khi lưu hóa đơn", "error"); }
+			const updateData = {};
+
+			// Only add fields that are actually editable and have changed values
+			if (formData.created_date && formData.created_date.trim()) {
+				updateData.created_date = formData.created_date;
+			}
+
+			// Only add total_cost if it's a valid number (not empty string)
+			if (formData.total_cost !== "" && formData.total_cost !== null && formData.total_cost !== undefined) {
+				const cost = parseFloat(formData.total_cost);
+				if (!isNaN(cost)) {
+					updateData.total_cost = cost;
+				}
+			}
+
+			// Only add payment_method if it has a value
+			if (formData.payment_method && formData.payment_method.trim()) {
+				updateData.payment_method = formData.payment_method;
+			}
+
+			// NOTE: discount_id and ticket_id are read-only fields and should not be modified in the update
+
+			// If no fields to update, show message
+			if (Object.keys(updateData).length === 0) {
+				showSnackbar("Không có dữ liệu để cập nhật", "warning");
+				setOpenDialog(false);
+				return;
+			}
+
+			console.log("Updating with data:", updateData); // Debug log
+
+			const res = await updateInvoice(selectedInvoice.id, updateData);
+			if (res?.success) {
+				showSnackbar("Cập nhật hóa đơn thành công");
+				setOpenDialog(false);
+				fetchInvoices();
+			} else {
+				showSnackbar(res?.message || "Có lỗi xảy ra", "error");
+			}
+		} catch (error) {
+			console.error("Update error:", error);
+			console.error("Error response:", error.response?.data);
+
+			// Extract detailed error message from backend
+			let errorMessage = "Lỗi khi lưu hóa đơn";
+			if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+				errorMessage = error.response.data.errors.map(e => e.msg || e.message || e).join(", ");
+			} else if (error.response?.data?.message) {
+				errorMessage = error.response.data.message;
+			} else if (error.response?.data?.error) {
+				errorMessage = error.response.data.error;
+			}
+
+			console.log("Final error message:", errorMessage);
+			showSnackbar(errorMessage, "error");
+		}
+	};
+
+	// ─── HELPER: lấy voucher code hoặc fallback về discount_id ─────────────
+	const getVoucherDisplay = (inv) => {
+		if (!inv) return null;
+		return inv.voucher?.code || inv.discount_id || null;
+	};
+
+	// ─── HELPER: lấy ticket description hoặc fallback về ticket_id ──────────
+	const getTicketDisplay = (inv) => {
+		if (!inv) return null;
+		return inv.ticket?.description || inv.ticket_id || null;
+	};
+
+	// ─── HELPER: lấy tên khách hàng qua chain ticket → appointment → customer ──
+	const getCustomerDisplay = (inv) => {
+		if (!inv) return null;
+		return inv.ticket?.appointment?.customer?.full_name || null;
+	};
+
+	const getCustomerPhone = (inv) => {
+		if (!inv) return null;
+		return inv.ticket?.appointment?.customer?.phone_number || null;
 	};
 
 	// ── Sorting / Filtering / Pagination ──────────────────────────────────
 	const sortedInvoices = useMemo(() => {
 		let list = [...invoices];
 		if (filterPaymentMethod !== "all") list = list.filter(i => i.payment_method === filterPaymentMethod);
+
+		// Lọc theo customer name
 		if (searchTerm) {
 			const q = searchTerm.toLowerCase();
-			list = list.filter(i =>
-				i.payment_method?.toLowerCase().includes(q) ||
-				i.id?.toLowerCase().includes(q) ||
-				// search by voucher code or ticket description if they come from the API
-				i.voucher?.code?.toLowerCase().includes(q) ||
-				i.ticket?.description?.toLowerCase().includes(q)
-			);
+			list = list.filter(i => {
+				const customerName = getCustomerDisplay(i)?.toLowerCase() || "";
+				return customerName.includes(q);
+			});
 		}
+
+		// Lọc theo date range
+		if (dateRange.start) {
+			list = list.filter(i => dayjs(i.created_date).isSameOrAfter(dayjs(dateRange.start), 'day'));
+		}
+		if (dateRange.end) {
+			list = list.filter(i => dayjs(i.created_date).isSameOrBefore(dayjs(dateRange.end), 'day'));
+		}
+
 		list.sort((a, b) => {
 			let av = a[orderBy], bv = b[orderBy];
 			if (orderBy === "created_date") { av = new Date(av); bv = new Date(bv); }
 			return order === "asc" ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
 		});
 		return list;
-	}, [invoices, filterPaymentMethod, searchTerm, orderBy, order]);
+	}, [invoices, filterPaymentMethod, searchTerm, orderBy, order, dateRange]);
 
 	const paginatedInvoices = sortedInvoices.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
 	const totalPages = Math.ceil(sortedInvoices.length / rowsPerPage) || 1;
@@ -547,21 +689,6 @@ const InvoiceManagement = () => {
 		document.body.appendChild(a); a.click();
 		document.body.removeChild(a); URL.revokeObjectURL(url);
 		showSnackbar("Xuất CSV thành công");
-	};
-
-	// ─── HELPER: lấy voucher code hoặc fallback về discount_id ─────────────
-	// Backend có thể trả về nested { voucher: { code } } (khi dùng Sequelize include)
-	// hoặc chỉ có discount_id plain string — xử lý cả 2 trường hợp
-	const getVoucherDisplay = (inv) => {
-		if (!inv) return null;
-		return inv.voucher?.code || inv.discount_id || null;
-	};
-	// ─── HELPER: lấy ticket description hoặc fallback về ticket_id ──────────
-	// Tương tự: nếu backend include RepairTicket thì có inv.ticket.description,
-	// nếu không thì chỉ có ticket_id
-	const getTicketDisplay = (inv) => {
-		if (!inv) return null;
-		return inv.ticket?.description || inv.ticket_id || null;
 	};
 
 	// ══════════════════════════════════════════════════════════════════════
@@ -592,11 +719,11 @@ const InvoiceManagement = () => {
 							<button className="inv-btn" onClick={() => setShowFilters(!showFilters)}>
 								<FilterIcon sx={{ fontSize: 15 }} /> {showFilters ? "Ẩn bộ lọc" : "Bộ lọc"}
 							</button>
-							{selectedRows.length > 0 && (
+							{/* {selectedRows.length > 0 && (
 								<button className="inv-btn danger" onClick={handleBulkDelete}>
 									<DeleteIcon sx={{ fontSize: 15 }} /> Xóa {selectedRows.length} mục
 								</button>
-							)}
+							)} */}
 						</div>
 						<div style={{ display: "flex", gap: 8 }}>
 							<button className="inv-btn" onClick={fetchInvoices}>
@@ -618,28 +745,56 @@ const InvoiceManagement = () => {
 
 					{/* ── Filters ── */}
 					{showFilters && (
-						<div className="inv-card anim-in" style={{ padding: "18px 22px", marginBottom: 20 }}>
-							<div className="inv-label" style={{ marginBottom: 14 }}>🔍 Bộ lọc nâng cao</div>
-							<div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 11 }}>
-								<input
-									type="text" placeholder="Tìm kiếm hóa đơn..."
-									value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
-									style={{ padding: "9px 14px", borderRadius: 11, border: `1px solid ${T.border}`, fontFamily: "'DM Sans', sans-serif", fontSize: 13, outline: "none", background: T.surface }}
-								/>
-								<select
-									value={filterPaymentMethod} onChange={e => setFilterPaymentMethod(e.target.value)}
-									style={{ padding: "9px 14px", borderRadius: 11, border: `1px solid ${T.border}`, fontFamily: "'DM Sans', sans-serif", fontSize: 13, outline: "none", background: T.surface }}
-								>
-									<option value="all">Tất cả phương thức</option>
-									<option value="CASH">💰 Tiền mặt</option>
-									<option value="CREDIT_CARD">💳 Thẻ tín dụng</option>
-									<option value="BANK_TRANSFER">🏦 Chuyển khoản</option>
-									<option value="MOMO">📱 MoMo</option>
-									<option value="VNPAY">💸 VNPay</option>
-								</select>
-								<button className="inv-btn" onClick={handleReset}>
-									<ClearIcon sx={{ fontSize: 15 }} /> Xóa bộ lọc
-								</button>
+						<div className="inv-card anim-in" style={{ padding: "20px 22px", marginBottom: 20, background: "linear-gradient(135deg, #F8FAFE 0%, #FFFFFF 100%)", border: `1.5px solid ${T.blueBorder}` }}>
+							<div className="inv-label" style={{ marginBottom: 16, fontSize: 13 }}>🔍 Bộ lọc nâng cao</div>
+							<div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
+								<div>
+									<div className="inv-label" style={{ marginBottom: 8, fontSize: 10 }}>👤 Tên khách hàng</div>
+									<input
+										type="text" placeholder="Nhập tên khách hàng..."
+										value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
+										style={{ padding: "10px 14px", borderRadius: 11, border: `1px solid ${T.border}`, fontFamily: "'DM Sans', sans-serif", fontSize: 13, outline: "none", background: T.surface, width: "100%", transition: "all 0.2s", boxSizing: "border-box" }}
+										onFocus={(e) => { e.target.style.borderColor = T.blue; e.target.style.boxShadow = `0 0 0 3px ${T.blueBg}`; }}
+										onBlur={(e) => { e.target.style.borderColor = T.border; e.target.style.boxShadow = "none"; }}
+									/>
+								</div>
+								<div>
+									<div className="inv-label" style={{ marginBottom: 8, fontSize: 10 }}>💳 Phương thức thanh toán</div>
+									<select
+										value={filterPaymentMethod} onChange={e => setFilterPaymentMethod(e.target.value)}
+										style={{ padding: "10px 14px", borderRadius: 11, border: `1px solid ${T.border}`, fontFamily: "'DM Sans', sans-serif", fontSize: 13, outline: "none", background: T.surface, width: "100%", transition: "all 0.2s", boxSizing: "border-box" }}
+									>
+										<option value="all">Tất cả phương thức</option>
+										<option value="CASH">💰 Tiền mặt</option>
+										<option value="CREDIT_CARD">💳 Thẻ tín dụng</option>
+										<option value="BANK_TRANSFER">🏦 Chuyển khoản</option>
+										<option value="MOMO">📱 MoMo</option>
+										<option value="VNPAY">💸 VNPay</option>
+									</select>
+								</div>
+								<div>
+									<div className="inv-label" style={{ marginBottom: 8, fontSize: 10 }}>📅 Từ ngày</div>
+									<DatePicker
+										label="Chọn ngày"
+										value={dateRange.start}
+										onChange={(date) => setDateRange(r => ({ ...r, start: date }))}
+										slotProps={{ textField: { size: "small", fullWidth: true, sx: { "& .MuiOutlinedInput-root": { borderRadius: "10px", fontSize: 13 } } } }}
+									/>
+								</div>
+								<div>
+									<div className="inv-label" style={{ marginBottom: 8, fontSize: 10 }}>📅 Đến ngày</div>
+									<DatePicker
+										label="Chọn ngày"
+										value={dateRange.end}
+										onChange={(date) => setDateRange(r => ({ ...r, end: date }))}
+										slotProps={{ textField: { size: "small", fullWidth: true, sx: { "& .MuiOutlinedInput-root": { borderRadius: "10px", fontSize: 13 } } } }}
+									/>
+								</div>
+								<div style={{ display: "flex", alignItems: "flex-end" }}>
+									<button className="inv-btn" onClick={handleReset} style={{ width: "100%", justifyContent: "center", background: T.redBg, color: T.red, borderColor: T.redBorder }}>
+										<ClearIcon sx={{ fontSize: 15 }} /> Xóa tất cả bộ lọc
+									</button>
+								</div>
 							</div>
 						</div>
 					)}
@@ -667,7 +822,7 @@ const InvoiceManagement = () => {
 												onChange={toggleAll} style={{ cursor: "pointer" }}
 											/>
 										</th>
-										<th>Mã hóa đơn</th>
+										<th>Khách hàng</th>
 										<th style={{ cursor: "pointer" }} onClick={() => handleSort("created_date")}>
 											Ngày tạo {orderBy === "created_date" ? (order === "asc" ? "↑" : "↓") : ""}
 										</th>
@@ -697,9 +852,16 @@ const InvoiceManagement = () => {
 													<input type="checkbox" checked={selectedRows.includes(inv.id)} onChange={() => toggleRow(inv.id)} onClick={e => e.stopPropagation()} style={{ cursor: "pointer" }} />
 												</td>
 												<td>
-													<span className="inv-mono" style={{ color: T.navy, fontWeight: 600, fontSize: 11.5 }}>
-														{inv.id?.length > 13 ? `${inv.id.substring(0, 13)}…` : inv.id}
-													</span>
+													{getCustomerDisplay(inv) ? (
+														<div>
+															<div style={{ fontWeight: 600, fontSize: 13, color: T.textPri }}>👤 {getCustomerDisplay(inv)}</div>
+															{getCustomerPhone(inv) && (
+																<div style={{ fontSize: 11, color: T.textDim, marginTop: 2 }}>📞 {getCustomerPhone(inv)}</div>
+															)}
+														</div>
+													) : (
+														<span style={{ color: T.textMuted, fontSize: 12, fontStyle: "italic" }}>Chưa xác định</span>
+													)}
 												</td>
 												<td>
 													<div style={{ fontWeight: 500 }}>{inv.created_date ? dayjs(inv.created_date).format("DD/MM/YYYY") : "—"}</div>
@@ -730,9 +892,9 @@ const InvoiceManagement = () => {
 														<button className="inv-action-btn" style={{ color: T.gold }} onClick={() => handleOpenEdit(inv.id)} title="Chỉnh sửa">
 															<EditIcon sx={{ fontSize: 17 }} />
 														</button>
-														<button className="inv-action-btn" style={{ color: T.red }} onClick={() => handleDelete(inv.id)} title="Xóa">
+														{/* <button className="inv-action-btn" style={{ color: T.red }} onClick={() => handleDelete(inv.id)} title="Xóa">
 															<DeleteIcon sx={{ fontSize: 17 }} />
-														</button>
+														</button> */}
 													</div>
 												</td>
 											</tr>
@@ -757,68 +919,87 @@ const InvoiceManagement = () => {
 				</div>
 
 				{/* ══════ VIEW DIALOG (read-only) ══════ */}
-				<Dialog open={openViewDialog} onClose={() => setOpenViewDialog(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: "18px", overflow: "hidden" } }}>
-					<div style={{ height: 3, background: `linear-gradient(90deg, ${T.navy}, ${T.blue})` }} />
-					<DialogTitle sx={{ bgcolor: T.blueBg, borderBottom: `1px solid ${T.border}`, py: 2, px: 3 }}>
+				<Dialog open={openViewDialog} onClose={() => setOpenViewDialog(false)} maxWidth="sm" fullWidth
+					TransitionComponent={Grow} transitionDuration={400}
+					PaperProps={{ sx: { borderRadius: "20px", overflow: "hidden", boxShadow: "0 20px 60px rgba(26,43,94,0.15)" } }}>
+					<div style={{ height: 4, background: `linear-gradient(90deg, ${T.blue} 0%, ${T.navy} 50%, ${T.blue} 100%)`, animation: "slideInTop 0.5s ease" }} />
+					<DialogTitle sx={{ background: `linear-gradient(135deg, ${T.blueBg} 0%, rgba(235, 242, 253, 0.5) 100%)`, borderBottom: `2px solid ${T.blueBorder}`, py: 2.5, px: 3 }}>
 						<Box display="flex" alignItems="center" justifyContent="space-between">
-							<Box display="flex" alignItems="center" gap={1.2}>
-								<ReceiptIcon sx={{ color: T.blue, fontSize: 20 }} />
-								<Typography sx={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 16, color: T.navy }}>Chi tiết hóa đơn</Typography>
+							<Box display="flex" alignItems="center" gap={1.5}>
+								<Box sx={{ width: 36, height: 36, borderRadius: "12px", background: `linear-gradient(135deg, ${T.blue}, ${T.navy})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+									<ReceiptIcon sx={{ color: "#fff", fontSize: 20 }} />
+								</Box>
+								<Typography sx={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 18, color: T.navy, letterSpacing: "-0.3px" }}>Chi tiết hóa đơn</Typography>
 							</Box>
-							<IconButton onClick={() => setOpenViewDialog(false)} size="small" sx={{ color: T.textDim }}><CloseIcon fontSize="small" /></IconButton>
+							<IconButton onClick={() => setOpenViewDialog(false)} size="small" sx={{ color: T.textDim, transition: "all 0.2s", "&:hover": { color: T.blue, transform: "scale(1.1)" } }}><CloseIcon sx={{ fontSize: 22 }} /></IconButton>
 						</Box>
 					</DialogTitle>
 
-					<DialogContent sx={{ p: 3 }}>
+					<DialogContent sx={{ p: 3, background: "linear-gradient(180deg, #FFFFFF 0%, #F8FAFE 100%)" }}>
 						{viewLoading ? (
 							<Box display="flex" justifyContent="center" py={5}><CircularProgress sx={{ color: T.navy }} /></Box>
 						) : selectedInvoice ? (
 							<div className="anim-in">
 								{/* ID banner */}
-								<div style={{ background: `linear-gradient(135deg, ${T.navy} 0%, ${T.navyLight} 100%)`, borderRadius: 14, padding: "16px 20px", marginBottom: 18 }}>
-									<div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", marginBottom: 4 }}>Mã hóa đơn</div>
-									<div className="inv-mono" style={{ color: "#fff", fontSize: 13, fontWeight: 600 }}>{selectedInvoice.id}</div>
+								<div style={{ background: `linear-gradient(135deg, ${T.navy} 0%, ${T.navyLight} 100%)`, borderRadius: 16, padding: "20px 22px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: "0 8px 24px rgba(26,43,94,0.12)" }}>
+									<div>
+										<div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", marginBottom: 4 }}>Mã hóa đơn</div>
+										<div className="inv-mono" style={{ color: "#fff", fontSize: 13, fontWeight: 600 }}>{selectedInvoice.id}</div>
+									</div>
+									{getCustomerDisplay(selectedInvoice) && (
+										<div style={{ textAlign: "right" }}>
+											<div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", marginBottom: 4 }}>Khách hàng</div>
+											<div style={{ color: "#fff", fontSize: 14, fontWeight: 700 }}>👤 {getCustomerDisplay(selectedInvoice)}</div>
+											{getCustomerPhone(selectedInvoice) && (
+												<div style={{ color: "rgba(255,255,255,0.65)", fontSize: 11, marginTop: 2 }}>📞 {getCustomerPhone(selectedInvoice)}</div>
+											)}
+										</div>
+									)}
 								</div>
 
 								{/* Grid info */}
-								<div className="detail-grid" style={{ marginBottom: 16 }}>
-									<div className="detail-section">
-										<div className="inv-label" style={{ marginBottom: 6 }}>Ngày tạo</div>
-										<div style={{ fontSize: 15, fontWeight: 600, color: T.textPri }}>{dayjs(selectedInvoice.created_date).format("DD/MM/YYYY")}</div>
-										<div style={{ fontSize: 11, color: T.textDim, marginTop: 2 }}>{dayjs(selectedInvoice.created_date).fromNow()}</div>
+								<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 18 }}>
+									<div className="detail-section" style={{ background: "#EBF2FD", border: `1.5px solid ${T.blueBorder}`, boxShadow: "0 4px 12px rgba(27, 95, 196, 0.08)" }}>
+										<div className="inv-label" style={{ marginBottom: 8 }}>📅 Ngày tạo</div>
+										<div style={{ fontSize: 15, fontWeight: 700, color: T.blue }}>{dayjs(selectedInvoice.created_date).format("DD/MM/YYYY")}</div>
+										<div style={{ fontSize: 11, color: T.textDim, marginTop: 3 }}>{dayjs(selectedInvoice.created_date).fromNow()}</div>
 									</div>
-									<div className="detail-section">
-										<div className="inv-label" style={{ marginBottom: 6 }}>Tổng chi phí</div>
+									<div className="detail-section" style={{ background: "#EBF7F2", border: `1.5px solid ${T.greenBorder}`, boxShadow: "0 4px 12px rgba(26, 138, 90, 0.08)" }}>
+										<div className="inv-label" style={{ marginBottom: 8 }}>💰 Tổng chi phí</div>
 										<div style={{ fontSize: 20, fontWeight: 800, color: T.green, fontFamily: "'Sora',sans-serif" }}>{formatPrice(selectedInvoice.total_cost)}</div>
 									</div>
-									<div className="detail-section">
-										<div className="inv-label" style={{ marginBottom: 8 }}>Phương thức thanh toán</div>
+									<div className="detail-section" style={{ background: "#F3EEFB", border: `1.5px solid ${T.purpleBorder}`, boxShadow: "0 4px 12px rgba(107, 63, 160, 0.08)" }}>
+										<div className="inv-label" style={{ marginBottom: 8 }}>💳 Phương thức thanh toán</div>
 										<PaymentChip method={selectedInvoice.payment_method} />
 									</div>
-									<div className="detail-section" style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
-										<div className="inv-label" style={{ marginBottom: 6 }}>Trạng thái</div>
-										<span className="tag tag-green" style={{ width: "fit-content" }}>✓ Đã thanh toán</span>
+									<div className="detail-section" style={{ background: "#EBF7F2", border: `1.5px solid ${T.greenBorder}`, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+										<div className="inv-label" style={{ marginBottom: 8 }}>✓ Trạng thái</div>
+										<span className="tag tag-green" style={{ width: "fit-content", fontSize: 12, fontWeight: 700 }}>✓ Đã thanh toán</span>
 									</div>
 								</div>
 
 								{/* Locked fields */}
-								<div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-									<ReadOnlyField label="Mã voucher">
-										{getVoucherDisplay(selectedInvoice)
-											? <span className="tag tag-gold" style={{ fontSize: 12 }}>🎫 {getVoucherDisplay(selectedInvoice)}</span>
-											: <span style={{ color: T.textMuted, fontSize: 13 }}>Không áp dụng</span>}
-									</ReadOnlyField>
-
-									<ReadOnlyField label="Phiếu sửa chữa">
-										{getTicketDisplay(selectedInvoice)
-											? <span style={{ fontSize: 13, color: T.textSec }}>🔧 {getTicketDisplay(selectedInvoice)}</span>
-											: <span style={{ color: T.textMuted, fontSize: 13 }}>Không liên kết</span>}
-									</ReadOnlyField>
-								</div>
-
-								<div style={{ marginTop: 14, padding: "10px 14px", background: T.goldBg, borderRadius: 10, border: `1px solid ${T.goldBorder}`, display: "flex", alignItems: "center", gap: 7 }}>
-									<LockIcon sx={{ fontSize: 13, color: T.gold }} />
-									<span style={{ fontSize: 11.5, color: T.gold, fontWeight: 500 }}>Mã voucher và phiếu sửa chữa chỉ đọc, không thể chỉnh sửa</span>
+								<div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 18, padding: "16px", background: T.goldBg, borderRadius: 14, border: `1.5px solid ${T.goldBorder}`, boxShadow: "0 4px 12px rgba(184, 134, 11, 0.08)" }}>
+									<div style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 12, borderBottom: `1px solid ${T.goldBorder}` }}>
+										<LockIcon sx={{ fontSize: 18, color: T.gold }} />
+										<span style={{ fontSize: 12.5, color: T.gold, fontWeight: 700 }}>Thông tin chỉ đọc</span>
+									</div>
+									<div>
+										<div className="inv-label" style={{ marginBottom: 8, color: T.gold }}>🎫 Mã voucher (chỉ đọc)</div>
+										<div style={{ fontSize: 13 }}>
+											{getVoucherDisplay(selectedInvoice)
+												? <span className="tag tag-gold" style={{ fontSize: 12, fontWeight: 600 }}>🎫 {getVoucherDisplay(selectedInvoice)}</span>
+												: <span style={{ color: T.textMuted, fontSize: 13 }}><em>Không áp dụng</em></span>}
+										</div>
+									</div>
+									<div>
+										<div className="inv-label" style={{ marginBottom: 8, color: T.gold }}>🔧 Phiếu sửa chữa (chỉ đọc)</div>
+										<div style={{ fontSize: 13 }}>
+											{getTicketDisplay(selectedInvoice)
+												? <span style={{ color: T.textSec, fontWeight: 500 }}>🔧 {getTicketDisplay(selectedInvoice)}</span>
+												: <span style={{ color: T.textMuted, fontSize: 13 }}><em>Không liên kết</em></span>}
+										</div>
+									</div>
 								</div>
 							</div>
 						) : (
@@ -826,75 +1007,100 @@ const InvoiceManagement = () => {
 						)}
 					</DialogContent>
 
-					<DialogActions sx={{ p: 2, gap: 1, borderTop: `1px solid ${T.border}` }}>
-						<button className="inv-btn" onClick={() => setOpenViewDialog(false)}>Đóng</button>
-						<button className="inv-btn primary" onClick={() => window.print()}>
+					<DialogActions sx={{ p: 2.5, gap: 1.5, borderTop: `2px solid ${T.border}`, background: "linear-gradient(90deg, transparent, rgba(26,43,94,0.02))" }}>
+						<button className="inv-btn" onClick={() => setOpenViewDialog(false)} style={{ marginRight: "auto" }}>✕ Đóng</button>
+						<button className="inv-btn primary" onClick={() => window.print()} style={{ background: `linear-gradient(135deg, ${T.navy}, ${T.navyLight})`, borderColor: T.navy }}>
 							<PrintIcon sx={{ fontSize: 15 }} /> In hóa đơn
 						</button>
-						<button className="inv-btn primary" style={{ background: `linear-gradient(135deg, ${T.blue}, #2878E8)`, borderColor: T.blue }}>
-							<EmailIcon sx={{ fontSize: 15 }} /> Gửi email
-						</button>
+
 					</DialogActions>
 				</Dialog>
 
 				{/* ══════ EDIT DIALOG ══════ */}
-				<Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: "18px", overflow: "hidden" } }}>
-					<div style={{ height: 3, background: `linear-gradient(90deg, ${T.gold}, ${T.orange})` }} />
-					<DialogTitle sx={{ bgcolor: T.goldBg, borderBottom: `1px solid ${T.goldBorder}`, py: 2, px: 3 }}>
-						<Box display="flex" alignItems="center" gap={1.2}>
-							<EditIcon sx={{ color: T.gold, fontSize: 20 }} />
-							<Typography sx={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 16, color: T.navy }}>Chỉnh sửa hóa đơn</Typography>
+				<Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth
+					TransitionComponent={Grow} transitionDuration={400}
+					PaperProps={{ sx: { borderRadius: "20px", overflow: "hidden", boxShadow: "0 20px 60px rgba(192, 98, 10, 0.15)" } }}>
+					<div style={{ height: 4, background: `linear-gradient(90deg, ${T.gold} 0%, ${T.orange} 50%, ${T.gold} 100%)`, animation: "slideInTop 0.5s ease" }} />
+					<DialogTitle sx={{ background: `linear-gradient(135deg, ${T.goldBg} 0%, rgba(254, 243, 232, 0.5) 100%)`, borderBottom: `2px solid ${T.goldBorder}`, py: 2.5, px: 3 }}>
+						<Box display="flex" alignItems="center" gap={1.5} justifyContent="space-between">
+							<Box display="flex" alignItems="center" gap={1.5}>
+								<Box sx={{ width: 36, height: 36, borderRadius: "12px", background: `linear-gradient(135deg, ${T.gold}, ${T.orange})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+									<EditIcon sx={{ color: "#fff", fontSize: 20 }} />
+								</Box>
+								<Typography sx={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 18, color: T.navy, letterSpacing: "-0.3px" }}>Chỉnh sửa hóa đơn</Typography>
+							</Box>
+							<IconButton onClick={() => setOpenDialog(false)} size="small" sx={{ color: T.textDim, transition: "all 0.2s", "&:hover": { color: T.gold, transform: "scale(1.1)" } }}><CloseIcon sx={{ fontSize: 22 }} /></IconButton>
 						</Box>
 					</DialogTitle>
-					<DialogContent sx={{ p: 3 }}>
-						<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 4 }}>
-							<DatePicker
-								label="Ngày tạo"
-								value={formData.created_date ? dayjs(formData.created_date) : null}
-								onChange={d => setFormData(f => ({ ...f, created_date: d?.format("YYYY-MM-DD") || "" }))}
-								slotProps={{ textField: { fullWidth: true, size: "small" } }}
-							/>
-							<TextField
-								fullWidth size="small"
-								label="Tổng chi phí"
-								type="number"
-								value={formData.total_cost}
-								onChange={e => { setFormData(f => ({ ...f, total_cost: e.target.value })); setFormErrors(er => ({ ...er, total_cost: "" })); }}
-								InputProps={{ startAdornment: <InputAdornment position="start">₫</InputAdornment> }}
-								error={!!formErrors.total_cost}
-								helperText={formErrors.total_cost}
-							/>
-							<FormControl fullWidth size="small" sx={{ gridColumn: "1 / -1" }}>
-								<InputLabel>Phương thức thanh toán</InputLabel>
-								<Select value={formData.payment_method} onChange={e => setFormData(f => ({ ...f, payment_method: e.target.value }))} label="Phương thức thanh toán">
-									<MenuItem value="CASH">💰 Tiền mặt</MenuItem>
-									<MenuItem value="CREDIT_CARD">💳 Thẻ tín dụng</MenuItem>
-									<MenuItem value="BANK_TRANSFER">🏦 Chuyển khoản</MenuItem>
-									<MenuItem value="MOMO">📱 MoMo</MenuItem>
-									<MenuItem value="VNPAY">💸 VNPay</MenuItem>
-								</Select>
-							</FormControl>
+					<DialogContent sx={{ p: 3, background: "linear-gradient(180deg, #FFFFFF 0%, #FEF8EC 100%)" }}>
+						<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 6, marginBottom: 18 }}>
+							<div>
+								<div className="inv-label" style={{ marginBottom: 10, fontSize: 11.5 }}>📅 Ngày tạo</div>
+								<DatePicker
+									label="Chọn ngày"
+									value={formData.created_date ? dayjs(formData.created_date) : null}
+									onChange={d => setFormData(f => ({ ...f, created_date: d?.format("YYYY-MM-DD") || "" }))}
+									slotProps={{ textField: { fullWidth: true, size: "small", sx: { "& .MuiOutlinedInput-root": { borderRadius: "10px", transition: "all 0.2s" } } } }}
+								/>
+							</div>
+							<div>
+								<div className="inv-label" style={{ marginBottom: 10, fontSize: 11.5 }}>💰 Tổng chi phí</div>
+								<TextField
+									fullWidth size="small"
+									label="Nhập số tiền"
+									type="number"
+									value={formData.total_cost}
+									onChange={e => { setFormData(f => ({ ...f, total_cost: e.target.value })); setFormErrors(er => ({ ...er, total_cost: "" })); }}
+									InputProps={{ startAdornment: <InputAdornment position="start">₫</InputAdornment> }}
+									error={!!formErrors.total_cost}
+									helperText={formErrors.total_cost}
+									sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px", transition: "all 0.2s" } }}
+								/>
+							</div>
+							<div style={{ gridColumn: "1 / -1" }}>
+								<div className="inv-label" style={{ marginBottom: 10, fontSize: 11.5 }}>💳 Phương thức thanh toán</div>
+								<FormControl fullWidth size="small" sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px", transition: "all 0.2s" } }}>
+									<InputLabel>Chọn phương thức</InputLabel>
+									<Select value={formData.payment_method} onChange={e => setFormData(f => ({ ...f, payment_method: e.target.value }))} label="Chọn phương thức">
+										<MenuItem value="CASH">💰 Tiền mặt</MenuItem>
+										<MenuItem value="CREDIT_CARD">💳 Thẻ tín dụng</MenuItem>
+										<MenuItem value="BANK_TRANSFER">🏦 Chuyển khoản</MenuItem>
+										<MenuItem value="MOMO">📱 MoMo</MenuItem>
+										<MenuItem value="VNPAY">💸 VNPay</MenuItem>
+									</Select>
+								</FormControl>
+							</div>
 						</div>
 
 						{/* Locked fields in edit dialog — chỉ render khi đã có data */}
 						{selectedInvoice && (
-							<div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 10 }}>
-								<ReadOnlyField label="Mã voucher (chỉ đọc)">
-									{getVoucherDisplay(selectedInvoice)
-										? <span className="tag tag-gold" style={{ fontSize: 12 }}>🎫 {getVoucherDisplay(selectedInvoice)}</span>
-										: <span style={{ color: T.textMuted, fontSize: 13 }}>Không áp dụng</span>}
-								</ReadOnlyField>
-								<ReadOnlyField label="Phiếu sửa chữa (chỉ đọc)">
-									{getTicketDisplay(selectedInvoice)
-										? <span style={{ fontSize: 13 }}>🔧 {getTicketDisplay(selectedInvoice)}</span>
-										: <span style={{ color: T.textMuted, fontSize: 13 }}>Không liên kết</span>}
-								</ReadOnlyField>
+							<div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "14px", background: T.goldBg, borderRadius: 14, border: `1.5px solid ${T.goldBorder}`, boxShadow: "0 4px 12px rgba(184, 134, 11, 0.08)" }}>
+								<div style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 10, borderBottom: `1px solid ${T.goldBorder}` }}>
+									<LockIcon sx={{ fontSize: 16, color: T.gold }} />
+									<span style={{ fontSize: 12, color: T.gold, fontWeight: 700 }}>Thông tin chỉ đọc</span>
+								</div>
+								<div>
+									<div className="inv-label" style={{ marginBottom: 6, color: T.gold }}>🎫 Mã voucher</div>
+									<div>
+										{getVoucherDisplay(selectedInvoice)
+											? <span className="tag tag-gold" style={{ fontSize: 12, fontWeight: 600 }}>🎫 {getVoucherDisplay(selectedInvoice)}</span>
+											: <span style={{ color: T.textMuted, fontSize: 12, fontStyle: "italic" }}>Không áp dụng</span>}
+									</div>
+								</div>
+								<div>
+									<div className="inv-label" style={{ marginBottom: 6, color: T.gold }}>🔧 Phiếu sửa chữa</div>
+									<div>
+										{getTicketDisplay(selectedInvoice)
+											? <span style={{ fontSize: 12, color: T.textSec, fontWeight: 500 }}>🔧 {getTicketDisplay(selectedInvoice)}</span>
+											: <span style={{ color: T.textMuted, fontSize: 12, fontStyle: "italic" }}>Không liên kết</span>}
+									</div>
+								</div>
 							</div>
 						)}
 					</DialogContent>
-					<DialogActions sx={{ p: 2, gap: 1, borderTop: `1px solid ${T.border}` }}>
-						<button className="inv-btn" onClick={() => setOpenDialog(false)}>Hủy</button>
-						<button className="inv-btn primary" onClick={handleSubmit}>
+					<DialogActions sx={{ p: 2.5, gap: 1.5, borderTop: `2px solid ${T.goldBorder}`, background: "linear-gradient(90deg, transparent, rgba(192, 98, 10, 0.02))" }}>
+						<button className="inv-btn" onClick={() => setOpenDialog(false)} style={{ marginRight: "auto" }}>✕ Hủy</button>
+						<button className="inv-btn primary" onClick={handleSubmit} style={{ background: `linear-gradient(135deg, ${T.gold}, ${T.orange})`, borderColor: T.gold }}>
 							<SaveIcon sx={{ fontSize: 15 }} /> Lưu thay đổi
 						</button>
 					</DialogActions>
