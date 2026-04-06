@@ -1,30 +1,19 @@
 import {
     RepairAppointment,
-    Customer,
 } from "../schemas/index.js";
 import ApiError from "../utils/ApiError.js";
 import { baseCRUD } from "../utils/baseCRUD.js";
 import REPAIR_APPOINTMENT_STATUS from "../utils/RepairAppointmentStatus.js";
 
 
-const include = [{
-    model: Customer,
-    as: "customer",
-    attributes: [
-        "id",
-        "full_name",
-        "phone_number",
-        "email",
-        "address",
-    ]
-}]
-
+// Note: Customer relationship requires customer_id field in schema, which is missing.
+// Using baseCRUD without includes to avoid foreign key errors.
 const baseController = baseCRUD(RepairAppointment, {
     modelName: "RepairAppointment",
     exclude: [],
     include: {
-        basicInclude: include,
-        detailInclude: include
+        basicInclude: [],  // No includes to avoid FK mismatch
+        detailInclude: []
     },
     customFilter: (query) => {
         const { status, customer_id } = query;

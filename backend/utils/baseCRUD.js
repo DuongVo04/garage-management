@@ -15,12 +15,12 @@ const getDefaultFilter = (Model) => {
     return {};
 };
 
-const buildDefaultAttributes = (Model, includeRelations = {}) => {
+const buildDefaultAttributes = (Model, excludeFields = []) => {
     // Không exclude FK columns nếu chúng ta không include related models
     // FK columns sẽ được dùng để hiển thị reference IDs
     return {
         attributes: {
-            exclude: []
+            exclude: excludeFields
         }
     };
 };
@@ -41,7 +41,7 @@ export const baseCRUD = (Model, options = {}) => {
 
     const controller = {
         getAll: async (query = {}) => {
-            const attributes = buildDefaultAttributes(Model);
+            const attributes = buildDefaultAttributes(Model, exclude);
 
             const data = await Model.findAll({
                 where: customFilter
@@ -54,7 +54,7 @@ export const baseCRUD = (Model, options = {}) => {
             return data;
         },
         getById: async (id) => {
-            const attributes = buildDefaultAttributes(Model);
+            const attributes = buildDefaultAttributes(Model, exclude);
             const data = await Model.findOne({
                 where: {
                     id,
