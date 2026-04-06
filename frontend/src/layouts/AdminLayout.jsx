@@ -40,6 +40,7 @@ const MENU = [
 	{ label: "Khách hàng", path: "customers", icon: <PeopleIcon /> },
 	{ label: "Xe & Showroom", path: "carandshowroom", icon: <DirectionsCarIcon /> },
 	{ label: "Lịch dịch vụ", path: "services", icon: <EventIcon /> },
+	{ label: "Lịch xem xe", path: "appointments", icon: <EventIcon /> },
 	{ label: "Kho phụ tùng", path: "spare-parts", icon: <InventoryIcon /> },
 	{ label: "Hóa đơn", path: "invoices", icon: <ReceiptIcon /> },
 	{ label: "Nhân viên", path: "employees", icon: <BadgeIcon /> },
