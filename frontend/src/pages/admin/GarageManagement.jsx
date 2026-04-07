@@ -463,19 +463,33 @@ const GarageManagement = () => {
 
 	const handleCreateInvoice = async () => {
 		try {
-			const usageIds = repairDetails.flatMap(d => (d.usages || []).map(u => u.id));
-			const res = await finalizeInvoice({
+			const invoiceRes = await createInvoice({
 				ticket_id: selectedTicket.id,
 				total_cost: Math.round(calcTotal()),
 				payment_method: invoiceForm.payment_method,
 				created_date: invoiceForm.created_date.format('YYYY-MM-DD'),
-				...(selectedVoucher ? { discount_id: selectedVoucher.id } : {}),
-				usage_ids: usageIds,
-				appointment_id: selectedTicket.appointment_id || undefined
+				...(selectedVoucher ? { discount_id: selectedVoucher.id } : {})
 			});
-			if (!res.success) {
-				toast(res.message || 'Tạo hóa đơn thất bại', 'error');
+			if (!invoiceRes.success) {
+				toast(invoiceRes.message || 'Tạo hóa đơn thất bại', 'error');
 				return;
+			}
+			for (const detail of repairDetails) {
+				for (const usage of (detail.usages || [])) {
+					try {
+						await createSparePartsWarranty({
+							usage_id: usage.id,
+							start_date: Math.floor(Date.now() / 1000),
+							duration: 365
+						});
+					} catch (e) {
+						console.warn('Warranty skipped for usage:', usage.id, e.message);
+					}
+				}
+			}
+			await completeRepairTicket(selectedTicket.id);
+			if (selectedTicket.appointment_id) {
+				await updateRepairAppointmentStatus(selectedTicket.appointment_id, 'completed');
 			}
 			toast('Tạo hóa đơn thành công');
 			setDlgInvoice(false);

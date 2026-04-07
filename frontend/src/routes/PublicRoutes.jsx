@@ -6,6 +6,7 @@ import HomePage from "../pages/showroom/HomePage";
 import GaragePage from "../pages/garage/GaragePage";
 import BookingPage from "../pages/garage/BookingPage";
 import VehicleDetailPage from "../pages/showroom/VehicleDetailPage";
+import Contact from "../pages/Contact";
 
 
 const PublicRoutes = (
@@ -16,6 +17,7 @@ const PublicRoutes = (
 		<Route path="/vehicle/:id" element={<VehicleDetailPage />} />
 		<Route path="/login" element={<Login />} />
 		<Route path="/register" element={<Register />} />
+		<Route path="/contact" element={<Contact />} />
 	</Route>
 );
 
