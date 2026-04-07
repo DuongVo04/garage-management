@@ -70,11 +70,8 @@ const AppointmentsTab = ({ appointments, setSnackbar }) => {
         <Grid item xs={12} key={appointment.id}>
           <Card>
             <CardContent>
-              {/* Vùng chứa thông tin chính */}
-              <Grid container spacing={2} alignItems="flex-start">
-                
-                {/* 1. Cột Ngày hẹn */}
-                <Grid item xs={12} sm={6} md={2.5}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={2.5}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                     <EventIcon color="primary" />
                     <Typography variant="body2" color="text.secondary">Ngày hẹn</Typography>
@@ -84,8 +81,7 @@ const AppointmentsTab = ({ appointments, setSnackbar }) => {
                   </Typography>
                 </Grid>
 
-                {/* 2. Cột Giờ */}
-                <Grid item xs={12} sm={6} md={1.5}>
+                <Grid item xs={12} md={1.5}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                     <AccessTimeIcon color="primary" />
                     <Typography variant="body2" color="text.secondary">Giờ</Typography>
@@ -95,8 +91,7 @@ const AppointmentsTab = ({ appointments, setSnackbar }) => {
                   </Typography>
                 </Grid>
 
-                {/* 3. Cột Xe */}
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid item xs={12} md={3}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                     <DirectionsCarIcon color="primary" />
                     <Typography variant="body2" color="text.secondary">Xe</Typography>
@@ -109,8 +104,7 @@ const AppointmentsTab = ({ appointments, setSnackbar }) => {
                   </Typography>
                 </Grid>
 
-                {/* 4. Cột Thợ sửa */}
-                <Grid item xs={12} sm={6} md={2.5}>
+                <Grid item xs={12} md={2.5}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                     <PersonIcon color="primary" />
                     <Typography variant="body2" color="text.secondary">Thợ sửa</Typography>
@@ -120,23 +114,21 @@ const AppointmentsTab = ({ appointments, setSnackbar }) => {
                   </Typography>
                 </Grid>
 
-                {/* 5. Cột Trạng thái */}
-                <Grid item xs={12} md={2.5} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
-                  <Box>
+                <Grid item xs={12} md={2.5}>
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', height: '100%', pb: 2 }}>
                     {getStatusChip(appointment.status)}
                   </Box>
                 </Grid>
 
-                {/* 6. DÒNG MÔ TẢ - BỊ ÉP XUỐNG DƯỚI CÙNG (xs=12) */}
                 <Grid item xs={12}>
                   <Box sx={{ 
-                    mt: 1, 
-                    pt: 2, 
-                    borderTop: '1px dashed #e0e0e0', // Đường kẻ đứt phân cách
-                    display: 'flex', 
-                    gap: 1 
+                    pt: 1.5, 
+                    borderTop: '1px dashed #e0e0e0',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 1
                   }}>
-                    <Typography variant="body2" fontWeight={600} color="text.primary" sx={{ whiteSpace: 'nowrap' }}>
+                    <Typography variant="body2" color="text.primary" fontWeight={600} sx={{ whiteSpace: 'nowrap' }}>
                       Mô tả:
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
@@ -145,7 +137,6 @@ const AppointmentsTab = ({ appointments, setSnackbar }) => {
                   </Box>
                 </Grid>
 
-                {/* 7. Nút thao tác (Chỉ hiện khi Pending) */}
                 {appointment.status?.toLowerCase() === 'pending' && (
                   <Grid item xs={12}>
                     <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', mt: 1 }}>
@@ -158,7 +149,6 @@ const AppointmentsTab = ({ appointments, setSnackbar }) => {
                     </Box>
                   </Grid>
                 )}
-
               </Grid>
             </CardContent>
           </Card>
