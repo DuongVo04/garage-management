@@ -5,6 +5,7 @@ import { validate } from "../../middlewares/validation.middleware.js"
 import { authorize, verifyToken } from "../../middlewares/auth.middleware.js"
 import { response } from "../../utils/response.js"
 import { SparePartsUsage, SpareParts, RepairDetail } from "../../schemas/index.js"
+import sparePartsUsageValidator from "../../validators/spare-parts-usage.validator.js";
 
 const router = express.Router();
 
@@ -83,6 +84,8 @@ router.get("/:id",
 router.post("/",
     verifyToken,
     authorize(["ADMIN", "EMPLOYEE"]),
+    sparePartsUsageValidator, 
+    validate,
     async (req, res, next) => {
         try {
             const { repair_detail_id, ...usageData } = req.body;
@@ -108,6 +111,7 @@ router.put("/:id",
     verifyToken,
     authorize(["ADMIN", "EMPLOYEE"]),
     paramsIdValidator(),
+    sparePartsUsageValidator,
     validate,
     async (req, res, next) => {
         try {
