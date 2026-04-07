@@ -47,7 +47,7 @@ import {
 import {
 	createSparePartsWarranty
 } from '../../services/spare-parts-warranty.service';
-import { createInvoice } from '../../services/invoice.service';
+import { finalizeInvoice } from '../../services/invoice.service';
 import { getAllServices } from '../../services/service.service';
 import { getEmployees } from '../../services/employee.service';
 import { getAllVouchers } from '../../services/voucher.service';
@@ -463,33 +463,19 @@ const GarageManagement = () => {
 
 	const handleCreateInvoice = async () => {
 		try {
-			const invoiceRes = await createInvoice({
+			const usageIds = repairDetails.flatMap(d => (d.usages || []).map(u => u.id));
+			const res = await finalizeInvoice({
 				ticket_id: selectedTicket.id,
 				total_cost: Math.round(calcTotal()),
 				payment_method: invoiceForm.payment_method,
 				created_date: invoiceForm.created_date.format('YYYY-MM-DD'),
-				...(selectedVoucher ? { discount_id: selectedVoucher.id } : {})
+				...(selectedVoucher ? { discount_id: selectedVoucher.id } : {}),
+				usage_ids: usageIds,
+				appointment_id: selectedTicket.appointment_id || undefined
 			});
-			if (!invoiceRes.success) {
-				toast(invoiceRes.message || 'Tạo hóa đơn thất bại', 'error');
+			if (!res.success) {
+				toast(res.message || 'Tạo hóa đơn thất bại', 'error');
 				return;
-			}
-			for (const detail of repairDetails) {
-				for (const usage of (detail.usages || [])) {
-					try {
-						await createSparePartsWarranty({
-							usage_id: usage.id,
-							start_date: Math.floor(Date.now() / 1000),
-							duration: 365
-						});
-					} catch (e) {
-						console.warn('Warranty skipped for usage:', usage.id, e.message);
-					}
-				}
-			}
-			await completeRepairTicket(selectedTicket.id);
-			if (selectedTicket.appointment_id) {
-				await updateRepairAppointmentStatus(selectedTicket.appointment_id, 'completed');
 			}
 			toast('Tạo hóa đơn thành công');
 			setDlgInvoice(false);
@@ -546,7 +532,7 @@ const GarageManagement = () => {
 												<TableCell>{vehicle?.plate_number || '—'}</TableCell>
 												<TableCell><StatusChip status={app.status} /></TableCell>
 												<TableCell>
-													{(app.status === 'confirmed' || app.status === 'booked') && (
+													{(app.status === 'confirmed' || app.status === 'booked') && !relatedTicket && (
 														<Button
 															variant="contained" size="small" startIcon={<BuildIcon />}
 															onClick={() => openCreateTicket(app)} sx={{ mr: 1 }}

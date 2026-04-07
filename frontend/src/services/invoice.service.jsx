@@ -33,6 +33,16 @@ export const createInvoice = async (data) => {
 	}
 };
 
+export const finalizeInvoice = async (data) => {
+	try {
+		const res = await apiClient.post("/invoices/finalize", data);
+		return res.data;
+	} catch (error) {
+		console.error("finalizeInvoice error:", error.response?.data);
+		throw error;
+	}
+};
+
 export const updateInvoice = async (id, data) => {
 	try {
 		const res = await apiClient.put(`/invoices/${id}`, data);

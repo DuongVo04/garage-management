@@ -5,8 +5,74 @@ import { validate } from "../../middlewares/validation.middleware.js"
 import { authorize, verifyToken } from "../../middlewares/auth.middleware.js"
 import invoiceValidator from "../../validators/invoice.validator.js"
 import { response } from "../../utils/response.js"
+import { sequelize, Invoice, SparePartsWarranty, RepairTicket, RepairAppointment } from "../../schemas/index.js"
 
 const router = express.Router();
+
+// Tạo hóa đơn + bảo hành + hoàn thành ticket trong 1 transaction
+router.post("/finalize",
+    verifyToken,
+    authorize(["ADMIN", "EMPLOYEE"]),
+    async (req, res, next) => {
+        const t = await sequelize.transaction();
+        try {
+            const {
+                ticket_id,
+                total_cost,
+                payment_method,
+                created_date,
+                discount_id,
+                usage_ids = [],      // mảng usage_id cần tạo bảo hành
+                appointment_id       // để update trạng thái lịch hẹn
+            } = req.body;
+
+            if (!ticket_id) {
+                await t.rollback();
+                return response(res, false, "ticket_id là bắt buộc", 400);
+            }
+
+            // 1. Tạo hóa đơn
+            const invoice = await Invoice.create({
+                ticket_id,
+                total_cost,
+                payment_method,
+                created_date,
+                ...(discount_id ? { discount_id } : {})
+            }, { transaction: t });
+
+            // 2. Tạo bảo hành cho từng usage
+            if (usage_ids.length > 0) {
+                const warrantyData = usage_ids.map(usage_id => ({
+                    usage_id,
+                    start_date: Math.floor(Date.now() / 1000),
+                    duration: 365
+                }));
+                await SparePartsWarranty.bulkCreate(warrantyData, { transaction: t });
+            }
+
+            // 3. Hoàn thành phiếu sửa
+            const completedDate = new Date().toISOString().split('T')[0];
+            await RepairTicket.update(
+                { completed_date: completedDate },
+                { where: { id: ticket_id }, transaction: t }
+            );
+
+            // 4. Cập nhật trạng thái lịch hẹn
+            if (appointment_id) {
+                await RepairAppointment.update(
+                    { status: 'completed' },
+                    { where: { id: appointment_id }, transaction: t }
+                );
+            }
+
+            await t.commit();
+            return response(res, true, "Tạo hóa đơn thành công", 201, invoice);
+        } catch (error) {
+            await t.rollback();
+            next(error);
+        }
+    }
+);
 
 // Lấy danh sách hóa đơn (Admin và Employee)
 router.get("/",
