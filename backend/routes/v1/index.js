@@ -9,7 +9,6 @@ import voucherRoutes from "./voucher.route.js"
 import brandRoutes from "./brand.route.js"
 import serviceRoutes from "./service.route.js"
 import showroomVehicleRoutes from "./showroom-vehicle.route.js"
-import sparePartsUsageRoutes from "./spare-parts-usage.route.js" 
 import vehicleSpecificationsRoutes from "./vehicle-specifications.route.js" 
 import showroomVehicleImageRoutes from "./showroom-vehicle-image.route.js"
 import employeeRoutes from "./employee.route.js"
@@ -21,7 +20,7 @@ import repairAppointmentRoutes from "./repair-appointment.route.js"
 import repairTicketRoutes from "./repair-ticket.route.js"
 import repairDetailRoutes from "./repair-detail.route.js"
 import sparePartsWarrantyRoutes from "./spare-parts-warranty.route.js"
-import sparePartsUsageRoutes from "./spare-parts-usage.route.js";
+import sparePartsUsageRoutes from "./spare-parts-usage.route.js"
 
 
 const router = express.Router();

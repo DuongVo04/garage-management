@@ -69,16 +69,81 @@ const getCustomerByUserAccount = async (user) => {
 };
 
 const getMe = async (user) => {
-    // Tìm hồ sơ dựa vào account_id
+    // 1. Tìm hồ sơ dựa vào account_id
     const customer = await getCustomerByUserAccount(user);
 
-    // Nếu KHÔNG có hồ sơ (user mới), chỉ trả về null thay vì báo lỗi (throw Error)
+    // Nếu KHÔNG có hồ sơ (user mới), chỉ trả về null
     if (!customer) {
         return null; 
     }
 
-    // Nếu đã có hồ sơ thì lấy ra bình thường
-    return await baseController.getById(customer.id);
+    // 2. Lấy data full từ baseController
+    let customerData = await baseController.getById(customer.id);
+
+    // Ép kiểu về JSON object thuần để có thể gắn thêm thuộc tính mới
+    if (customerData && customerData.toJSON) {
+        customerData = customerData.toJSON();
+    } else {
+        // Fallback an toàn
+        customerData = JSON.parse(JSON.stringify(customerData));
+    }
+
+    // 3. Tiến hành "Enrich" (nhặt thêm) thông tin Xe và Thợ cho từng lịch hẹn
+    if (customerData && customerData.appointments && customerData.appointments.length > 0) {
+        // Import các bảng cần thiết
+        const { RepairTicket, CustomerVehicle, RepairDetail, Employee } = await import("../schemas/index.js");
+
+        for (let appt of customerData.appointments) {
+            appt.vehicle = null;
+            appt.mechanic = null;
+            appt.description = "Không có mô tả";
+
+            try {
+                // Tìm Phiếu sửa chữa (Ticket)
+                const ticket = await RepairTicket.findOne({
+                    where: { appointment_id: appt.id }
+                });
+
+                if (ticket) {
+                    appt.description = ticket.description; // Lấy mô tả
+
+                    // Tìm thông tin Xe
+                    if (ticket.customer_vehicle_id) {
+                        const selectedVehicle = await CustomerVehicle.findOne({
+                            where: { id: ticket.customer_vehicle_id },
+                            attributes: ["id", "name", "plate_number", "color"]
+                        });
+                        if (selectedVehicle) {
+                            appt.vehicle = selectedVehicle.toJSON();
+                        }
+                    }
+
+                    // Tìm thông tin Thợ
+                    const detail = await RepairDetail.findOne({
+                        where: { ticket_id: ticket.id }
+                    });
+
+                    if (detail && detail.employee_id) {
+                        const mechanic = await Employee.findOne({
+                            where: { id: detail.employee_id },
+                            attributes: ["id", "employee_name"]
+                        });
+                        if (mechanic) {
+                            appt.mechanic = {
+                                ...mechanic.toJSON(),
+                                name: mechanic.employee_name // Map đúng tên biến frontend cần
+                            };
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error(`❌ Lỗi khi lấy thêm dữ liệu cho lịch hẹn ${appt.id}:`, error.message);
+            }
+        }
+    }
+
+    // 4. Trả về toàn bộ data khách hàng (đã được bơm đầy đủ thông tin lịch hẹn)
+    return customerData;
 }
 
 const updateMe = async (user, data) => {

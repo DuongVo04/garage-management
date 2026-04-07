@@ -6,9 +6,7 @@ import {
   Grid,
   Typography,
   Chip,
-  Button,
-  Avatar,
-  AvatarGroup,
+  Button
 } from '@mui/material';
 import EventIcon from '@mui/icons-material/Event';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
@@ -39,19 +37,20 @@ const AppointmentsTab = ({ appointments, setSnackbar }) => {
     );
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'Chưa có';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
+  const formatDateOnly = (date) => {
+    if (!date) return '';
+    return new Date(date).toLocaleDateString('vi-VN');
+  };
+
+  const formatTimeOnly = (date) => {
+    if (!date) return '';
+    return new Date(date).toLocaleTimeString('vi-VN', {
       hour: '2-digit',
       minute: '2-digit',
     });
   };
 
-  if (appointments.length === 0) {
+  if (!appointments || appointments.length === 0) {
     return (
       <Box sx={{ textAlign: 'center', py: 8 }}>
         <EventIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
@@ -71,37 +70,36 @@ const AppointmentsTab = ({ appointments, setSnackbar }) => {
         <Grid item xs={12} key={appointment.id}>
           <Card>
             <CardContent>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={3}>
+              {/* Vùng chứa thông tin chính */}
+              <Grid container spacing={2} alignItems="flex-start">
+                
+                {/* 1. Cột Ngày hẹn */}
+                <Grid item xs={12} sm={6} md={2.5}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                     <EventIcon color="primary" />
-                    <Typography variant="body2" color="text.secondary">
-                      Ngày hẹn
-                    </Typography>
+                    <Typography variant="body2" color="text.secondary">Ngày hẹn</Typography>
                   </Box>
                   <Typography variant="body1" fontWeight="medium">
-                    {formatDate(appointment.appointment_date)}
+                    {formatDateOnly(appointment.appointment_date)}
                   </Typography>
                 </Grid>
 
-                <Grid item xs={12} md={2}>
+                {/* 2. Cột Giờ */}
+                <Grid item xs={12} sm={6} md={1.5}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                     <AccessTimeIcon color="primary" />
-                    <Typography variant="body2" color="text.secondary">
-                      Giờ
-                    </Typography>
+                    <Typography variant="body2" color="text.secondary">Giờ</Typography>
                   </Box>
                   <Typography variant="body1">
-                    {appointment.time_slot || '08:00 - 10:00'}
+                    {formatTimeOnly(appointment.appointment_date) || '08:00'}
                   </Typography>
                 </Grid>
 
-                <Grid item xs={12} md={3}>
+                {/* 3. Cột Xe */}
+                <Grid item xs={12} sm={6} md={3}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                     <DirectionsCarIcon color="primary" />
-                    <Typography variant="body2" color="text.secondary">
-                      Xe
-                    </Typography>
+                    <Typography variant="body2" color="text.secondary">Xe</Typography>
                   </Box>
                   <Typography variant="body1">
                     {appointment.vehicle?.name || 'Chưa có thông tin'}
@@ -111,30 +109,43 @@ const AppointmentsTab = ({ appointments, setSnackbar }) => {
                   </Typography>
                 </Grid>
 
-                <Grid item xs={12} md={2}>
+                {/* 4. Cột Thợ sửa */}
+                <Grid item xs={12} sm={6} md={2.5}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                     <PersonIcon color="primary" />
-                    <Typography variant="body2" color="text.secondary">
-                      Thợ sửa
-                    </Typography>
+                    <Typography variant="body2" color="text.secondary">Thợ sửa</Typography>
                   </Box>
                   <Typography variant="body1">
                     {appointment.mechanic?.name || 'Chưa phân công'}
                   </Typography>
                 </Grid>
 
-                <Grid item xs={12} md={2}>
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                {/* 5. Cột Trạng thái */}
+                <Grid item xs={12} md={2.5} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
+                  <Box>
                     {getStatusChip(appointment.status)}
                   </Box>
                 </Grid>
 
+                {/* 6. DÒNG MÔ TẢ - BỊ ÉP XUỐNG DƯỚI CÙNG (xs=12) */}
                 <Grid item xs={12}>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                    Mô tả: {appointment.description || 'Không có mô tả'}
-                  </Typography>
+                  <Box sx={{ 
+                    mt: 1, 
+                    pt: 2, 
+                    borderTop: '1px dashed #e0e0e0', // Đường kẻ đứt phân cách
+                    display: 'flex', 
+                    gap: 1 
+                  }}>
+                    <Typography variant="body2" fontWeight={600} color="text.primary" sx={{ whiteSpace: 'nowrap' }}>
+                      Mô tả:
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {appointment.description || 'Không có mô tả'}
+                    </Typography>
+                  </Box>
                 </Grid>
 
+                {/* 7. Nút thao tác (Chỉ hiện khi Pending) */}
                 {appointment.status?.toLowerCase() === 'pending' && (
                   <Grid item xs={12}>
                     <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', mt: 1 }}>
@@ -147,6 +158,7 @@ const AppointmentsTab = ({ appointments, setSnackbar }) => {
                     </Box>
                   </Grid>
                 )}
+
               </Grid>
             </CardContent>
           </Card>
