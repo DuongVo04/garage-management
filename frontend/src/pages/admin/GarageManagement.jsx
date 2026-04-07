@@ -518,7 +518,6 @@ const GarageManagement = () => {
 									<TableRow>
 										<TableCell>Khách hàng</TableCell>
 										<TableCell>Ngày hẹn</TableCell>
-										<TableCell>Dịch vụ</TableCell>
 										<TableCell>Xe</TableCell>
 										<TableCell>Biển số</TableCell>
 										<TableCell>Trạng thái</TableCell>
@@ -528,11 +527,11 @@ const GarageManagement = () => {
 								<TableBody>
 									{loadingAppts ? (
 										<TableRow>
-											<TableCell colSpan={7} align="center"><CircularProgress /></TableCell>
+											<TableCell colSpan={6} align="center"><CircularProgress /></TableCell>
 										</TableRow>
 									) : paginatedAppointments.length === 0 ? (
 										<TableRow>
-											<TableCell colSpan={7} align="center">Không có dữ liệu</TableCell>
+											<TableCell colSpan={6} align="center">Không có dữ liệu</TableCell>
 										</TableRow>
 									) : paginatedAppointments.map((app) => {
 										const vehicle = app.vehicles?.[0] || null;
@@ -541,7 +540,6 @@ const GarageManagement = () => {
 											<TableRow key={app.id}>
 												<TableCell>{app.customer?.full_name || '—'}</TableCell>
 												<TableCell>{dayjs(app.appointment_date).format('DD/MM/YYYY HH:mm')}</TableCell>
-												<TableCell>{relatedTicket?.service?.name || '—'}</TableCell>
 												<TableCell>{vehicle?.name || '—'}</TableCell>
 												<TableCell>{vehicle?.plate_number || '—'}</TableCell>
 												<TableCell><StatusChip status={app.status} /></TableCell>
@@ -708,7 +706,7 @@ const GarageManagement = () => {
 				{/* DIALOG: Xem chi tiết sửa xe (danh sách) */}
 				<Dialog open={dlgViewDetails} onClose={() => setDlgViewDetails(false)} maxWidth="md" fullWidth>
 					<DialogTitle>
-						Chi tiết sửa xe — {selectedTicket?.service?.name}
+						Chi tiết sửa xe
 						{selectedTicket && (
 							<Typography variant="body2" color="text.secondary">
 								Xe: {selectedTicket.vehicle?.name} | {selectedTicket.vehicle?.plate_number}
@@ -825,7 +823,7 @@ const GarageManagement = () => {
 									</Grid>
 								</Paper>
 								<Paper variant="outlined" sx={{ p: 2 }}>
-									<Typography variant="subtitle1" fontWeight={700} gutterBottom color="primary">Thông tin xe & dịch vụ</Typography>
+									<Typography variant="subtitle1" fontWeight={700} gutterBottom color="primary">Thông tin xe</Typography>
 									<Grid container spacing={2}>
 										<Grid item xs={6}>
 											<Typography variant="caption" color="text.secondary">Xe</Typography>
@@ -834,10 +832,6 @@ const GarageManagement = () => {
 										<Grid item xs={6}>
 											<Typography variant="caption" color="text.secondary">Biển số</Typography>
 											<Typography variant="body2">{selectedTicket?.vehicle?.plate_number || '—'}</Typography>
-										</Grid>
-										<Grid item xs={12}>
-											<Typography variant="caption" color="text.secondary">Dịch vụ</Typography>
-											<Typography variant="body2">{selectedTicket?.service?.name || '—'} - {parseFloat(selectedTicket?.service?.price || 0).toLocaleString()}đ</Typography>
 										</Grid>
 										{selectedTicket?.description && (
 											<Grid item xs={12}>

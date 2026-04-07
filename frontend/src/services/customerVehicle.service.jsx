@@ -29,7 +29,7 @@ const customerVehicleService = {
 
             // Thêm file ảnh nếu có
             if (imageFile) {
-                formData.append("image_path", imageFile);
+                formData.append("image", imageFile);
             }
 
             const response = await apiClient.post("/customer-vehicles", formData, {
@@ -59,7 +59,7 @@ const customerVehicleService = {
             });
 
             if (imageFile) {
-                formData.append("image_path", imageFile);
+                formData.append("image", imageFile);
             }
 
             const response = await apiClient.put(`/customer-vehicles/${id}`, formData, {

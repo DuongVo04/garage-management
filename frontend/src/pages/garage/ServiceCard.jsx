@@ -1,127 +1,171 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
 	Card, CardContent, CardActions, Typography, Box,
-	Button, Chip, Tooltip, IconButton
+	Button, Chip, Skeleton, Tooltip, Zoom
 } from '@mui/material';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import BuildIcon from '@mui/icons-material/Build';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import StarIcon from '@mui/icons-material/Star';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 
-// ─── Design Tokens (sync với GaragePage & BookingPage) ───────────────────────
 const TOKEN = {
 	coal: '#6a6ae1', ink: '#27272a', slate: '#3f3f46',
 	muted: '#71717a', border: '#e4e4e7', borderLight: '#f4f4f5',
 	surface: '#fafafa', white: '#ffffff',
 	gold: '#b45309', goldLight: '#fef3c7', goldMid: '#d97706',
-	green: '#15803d', greenLight: '#f0fdf4',
+	success: '#10b981', successLight: '#d1fae5',
+	info: '#3b82f6', infoLight: '#dbeafe'
 };
 
 const formatCurrency = (amount) =>
 	new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 
-/**
- * ServiceCard — dùng trên GaragePage
- *
- * Props:
- *   service    — object dịch vụ từ API
- *   isSelected — boolean: card này có đang được chọn không
- *   onToggle   — (id: number) => void: toggle chọn/bỏ dịch vụ
- *
- * Khi isSelected/onToggle KHÔNG được truyền (backward compat),
- * card vẫn hiển thị bình thường với nút "Đặt lịch ngay" đơn lẻ.
- */
-const ServiceCard = ({ service, isSelected = false, onToggle }) => {
+const formatDuration = (minutes) => {
+	if (!minutes) return '';
+	const hours = Math.floor(minutes / 60);
+	const mins = minutes % 60;
+	if (hours === 0) return `${mins} phút`;
+	return `${hours} giờ ${mins > 0 ? `${mins} phút` : ''}`;
+};
+
+const ServiceCard = ({ service, loading = false, featured = false, onBookNow }) => {
 	const navigate = useNavigate();
-	const multiSelectMode = typeof onToggle === 'function';
+	const [isHovered, setIsHovered] = useState(false);
+	const [imageError, setImageError] = useState(false);
 
-	// Đặt lịch đơn (khi không dùng multi-select)
-	const handleBookSingle = (e) => {
-		e.stopPropagation();
-		navigate('/booking', {
-			state: { selectedIds: [service.id] }
-		});
-	};
+	if (loading) {
+		return (
+			<Card elevation={0} sx={{ borderRadius: '16px', height: '100%' }}>
+				<CardContent sx={{ p: 2.5 }}>
+					<Skeleton variant="rectangular" width={40} height={40} sx={{ borderRadius: '10px', mb: 2 }} />
+					<Skeleton variant="text" width="80%" height={24} sx={{ mb: 1 }} />
+					<Skeleton variant="text" width="100%" height={60} />
+				</CardContent>
+			</Card>
+		);
+	}
 
-	// Toggle chọn trong multi-select mode
-	const handleToggle = () => {
-		if (multiSelectMode) onToggle(service.id);
+	const handleBookClick = () => {
+		if (onBookNow) {
+			onBookNow(service);
+		} else {
+			navigate('/booking', { state: { selectedService: service } });
+		}
 	};
 
 	return (
 		<Card
 			elevation={0}
-			onClick={multiSelectMode ? handleToggle : undefined}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
 			sx={{
 				height: '100%',
 				display: 'flex',
 				flexDirection: 'column',
-				borderRadius: '16px',
-				border: '1.5px solid',
-				borderColor: isSelected ? TOKEN.coal : TOKEN.border,
-				bgcolor: isSelected ? TOKEN.coal : TOKEN.white,
-				cursor: multiSelectMode ? 'pointer' : 'default',
-				transition: 'all 0.2s cubic-bezier(0.4,0,0.2,1)',
+				borderRadius: '20px',
+				border: featured ? '2px solid' : '1.5px solid',
+				borderColor: featured ? TOKEN.gold : TOKEN.border,
+				bgcolor: TOKEN.white,
+				transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
 				position: 'relative',
 				overflow: 'visible',
-				'&:hover': multiSelectMode ? {
-					borderColor: TOKEN.coal,
+				'&:hover': {
+					boxShadow: '0 12px 32px rgba(0,0,0,0.12)',
 					transform: 'translateY(-4px)',
-					boxShadow: isSelected
-						? '0 20px 40px rgba(0,0,0,0.2)'
-						: '0 10px 28px rgba(0,0,0,0.09)',
-				} : {
-					boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
-					transform: 'translateY(-2px)',
+					borderColor: featured ? TOKEN.goldMid : TOKEN.coal,
 				},
 			}}
 		>
-			{/* Selected badge */}
-			{isSelected && (
-				<Box sx={{
-					position: 'absolute', top: -10, right: -10,
-					width: 28, height: 28, borderRadius: '50%',
-					bgcolor: TOKEN.green,
-					display: 'flex', alignItems: 'center', justifyContent: 'center',
-					boxShadow: '0 2px 8px rgba(21,128,61,0.4)',
-					zIndex: 1,
-				}}>
-					<CheckCircleIcon sx={{ fontSize: 18, color: '#fff' }} />
+			{/* Featured Badge */}
+			{featured && (
+				<Box
+					sx={{
+						position: 'absolute',
+						top: -12,
+						right: 16,
+						bgcolor: TOKEN.gold,
+						color: TOKEN.white,
+						px: 1.5,
+						py: 0.5,
+						borderRadius: '20px',
+						fontSize: '0.7rem',
+						fontWeight: 700,
+						display: 'flex',
+						alignItems: 'center',
+						gap: 0.5,
+						zIndex: 1,
+						boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+					}}
+				>
+					<StarIcon sx={{ fontSize: 12 }} />
+					Phổ biến
 				</Box>
 			)}
 
 			<CardContent sx={{ p: 2.5, flex: 1 }}>
-				{/* Icon + Giá */}
+				{/* Icon + Giá + Thời gian */}
 				<Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+
 					<Box sx={{
-						width: 40, height: 40, borderRadius: '10px',
-						bgcolor: isSelected ? 'rgba(255,255,255,0.12)' : TOKEN.surface,
+						width: 44, height: 44, borderRadius: '12px',
+						bgcolor: TOKEN.surface,
 						display: 'flex', alignItems: 'center', justifyContent: 'center',
-						border: `1px solid ${isSelected ? 'rgba(255,255,255,0.15)' : TOKEN.border}`,
+						border: `1px solid ${TOKEN.border}`,
+						transition: 'all 0.2s',
+						...(isHovered && {
+							bgcolor: TOKEN.coal,
+							borderColor: TOKEN.coal,
+							'& svg': { color: TOKEN.white }
+						})
 					}}>
-						<BuildIcon sx={{ fontSize: 20, color: isSelected ? 'rgba(255,255,255,0.8)' : TOKEN.muted }} />
+						{service.icon ? (
+							<img src={service.icon} alt="" style={{ width: 22, height: 22 }} onError={() => setImageError(true)} />
+						) : (
+							<BuildIcon sx={{ fontSize: 22, color: isHovered ? TOKEN.white : TOKEN.muted, transition: 'color 0.2s' }} />
+						)}
 					</Box>
-					<Chip
-						label={formatCurrency(service.price)}
-						size="small"
-						sx={{
-							bgcolor: isSelected ? TOKEN.goldLight : TOKEN.borderLight,
-							color: isSelected ? TOKEN.gold : TOKEN.slate,
-							fontWeight: 800, fontSize: '0.72rem', height: 24,
-							border: isSelected ? `1px solid ${TOKEN.goldMid}55` : 'none',
-						}}
-					/>
+
+					<Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
+						<Chip
+							label={formatCurrency(service.price)}
+							size="small"
+							icon={<LocalOfferIcon sx={{ fontSize: 14 }} />}
+							sx={{
+								bgcolor: featured ? TOKEN.goldLight : TOKEN.borderLight,
+								color: featured ? TOKEN.gold : TOKEN.slate,
+								fontWeight: 800, fontSize: '0.75rem', height: 28,
+								'& .MuiChip-icon': { fontSize: 14, color: 'inherit' }
+							}}
+						/>
+						{service.duration && (
+							<Chip
+								label={formatDuration(service.duration)}
+								size="small"
+								variant="outlined"
+								icon={<AccessTimeIcon sx={{ fontSize: 14 }} />}
+								sx={{
+									height: 22, fontSize: '0.65rem',
+									borderColor: TOKEN.border,
+									color: TOKEN.muted,
+								}}
+							/>
+						)}
+					</Box>
 				</Box>
 
 				{/* Tên dịch vụ */}
 				<Typography
-					variant="subtitle2"
+					variant="subtitle1"
 					fontWeight={800}
 					sx={{
-						mb: 1, lineHeight: 1.35, fontSize: '0.9rem',
-						color: isSelected ? TOKEN.white : TOKEN.coal,
+						mb: 1,
+						lineHeight: 1.35,
+						fontSize: '1rem',
+						color: TOKEN.coal,
+						transition: 'color 0.2s',
+						...(isHovered && { color: TOKEN.ink })
 					}}
 				>
 					{service.name}
@@ -131,72 +175,71 @@ const ServiceCard = ({ service, isSelected = false, onToggle }) => {
 				<Typography
 					variant="body2"
 					sx={{
-						fontSize: '0.78rem', lineHeight: 1.6,
-						color: isSelected ? 'rgba(255,255,255,0.55)' : TOKEN.muted,
-						display: '-webkit-box', WebkitLineClamp: 3,
-						WebkitBoxOrient: 'vertical', overflow: 'hidden',
+						fontSize: '0.8rem',
+						lineHeight: 1.6,
+						color: TOKEN.muted,
+						display: '-webkit-box',
+						WebkitLineClamp: 3,
+						WebkitBoxOrient: 'vertical',
+						overflow: 'hidden',
+						mb: service.benefits ? 1.5 : 0
 					}}
 				>
 					{service.description || 'Dịch vụ bảo trì chuyên nghiệp giúp xe vận hành ổn định và bền lâu.'}
 				</Typography>
+
+				{/* Benefits */}
+				{service.benefits && service.benefits.length > 0 && (
+					<Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1.5 }}>
+						{service.benefits.slice(0, 2).map((benefit, idx) => (
+							<Chip
+								key={idx}
+								label={benefit}
+								size="small"
+								sx={{
+									height: 20,
+									fontSize: '0.65rem',
+									bgcolor: TOKEN.infoLight,
+									color: TOKEN.info,
+									fontWeight: 500
+								}}
+							/>
+						))}
+					</Box>
+				)}
 			</CardContent>
 
-			<CardActions sx={{ px: 2.5, pb: 2.5, pt: 0 }}>
-				{multiSelectMode ? (
-					// Multi-select: nút toggle thêm/bỏ
-					<Button
-						fullWidth
-						variant={isSelected ? 'outlined' : 'contained'}
-						size="small"
-						disableElevation
-						startIcon={
-							isSelected
-								? <RemoveCircleOutlineIcon sx={{ fontSize: '16px !important' }} />
-								: <AddCircleOutlineIcon sx={{ fontSize: '16px !important' }} />
-						}
-						onClick={(e) => { e.stopPropagation(); handleToggle(); }}
-						sx={{
-							borderRadius: '10px',
-							fontWeight: 700,
-							textTransform: 'none',
-							fontSize: '0.8rem',
-							py: 0.8,
-							...(isSelected ? {
-								borderColor: 'rgba(255,255,255,0.3)',
-								color: 'rgba(255,255,255,0.85)',
-								'&:hover': {
-									borderColor: '#ef4444',
-									color: '#ef4444',
-									bgcolor: 'rgba(239,68,68,0.08)',
-								}
-							} : {
-								bgcolor: TOKEN.coal, color: TOKEN.white,
-								'&:hover': { bgcolor: TOKEN.ink },
-							}),
-						}}
-					>
-						{isSelected ? 'Bỏ chọn' : 'Thêm vào lịch'}
-					</Button>
-				) : (
-					// Single mode: nút đặt lịch trực tiếp (backward compat)
+			{/* <CardActions sx={{ px: 2.5, pb: 2.5, pt: 0 }}>
+				<Tooltip title="Đặt lịch ngay" arrow TransitionComponent={Zoom}>
 					<Button
 						fullWidth
 						variant="contained"
-						size="small"
+						size="medium"
 						disableElevation
-						startIcon={<CalendarMonthIcon sx={{ fontSize: '16px !important' }} />}
-						onClick={handleBookSingle}
+						startIcon={<CalendarMonthIcon sx={{ fontSize: '18px' }} />}
+						onClick={handleBookClick}
 						sx={{
-							borderRadius: '10px', fontWeight: 700,
-							textTransform: 'none', fontSize: '0.8rem', py: 0.8,
-							bgcolor: TOKEN.coal, color: TOKEN.white,
-							'&:hover': { bgcolor: TOKEN.ink },
+							borderRadius: '12px',
+							fontWeight: 700,
+							textTransform: 'none',
+							fontSize: '0.85rem',
+							py: 1,
+							bgcolor: featured ? TOKEN.gold : TOKEN.coal,
+							color: TOKEN.white,
+							transition: 'all 0.2s',
+							'&:hover': {
+								bgcolor: featured ? TOKEN.goldMid : TOKEN.ink,
+								transform: 'scale(1.02)',
+							},
+							'&:active': {
+								transform: 'scale(0.98)',
+							}
 						}}
 					>
-						Đặt lịch ngay
+						Đặt lịch hẹn
 					</Button>
-				)}
-			</CardActions>
+				</Tooltip>
+			</CardActions> */}
 		</Card>
 	);
 };
