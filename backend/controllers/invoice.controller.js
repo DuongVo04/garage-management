@@ -1,14 +1,7 @@
 import { Invoice, Voucher, RepairTicket, RepairAppointment, Customer } from "../schemas/index.js"
 import { baseCRUD } from "../utils/baseCRUD.js"
 
-// ─── Chain JOIN để lấy tên khách hàng ────────────────────────────────────────
-// invoice.ticket_id
-//   → repair_ticket.id            (as: "ticket")
-//   → repair_ticket.appointment_id
-//     → repair_appointment.id     (as: "appointment")
-//     → repair_appointment.customer_id
-//       → customer.id             (as: "customer")   ← full_name ở đây
-// ─────────────────────────────────────────────────────────────────────────────
+
 const basicInclude = [
     {
         model: Voucher,
