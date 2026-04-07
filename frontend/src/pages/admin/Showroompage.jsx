@@ -6,7 +6,7 @@ import {
 	Grid, Tabs, Tab, Badge, Tooltip, CircularProgress, Snackbar,
 	Alert, Divider, Stack, InputAdornment, FormControlLabel, Switch,
 	Card, CardMedia, ImageList, ImageListItem, ImageListItemBar,
-	Skeleton, Fade, Zoom, alpha
+	Skeleton, Fade, Zoom, alpha, useTheme
 } from "@mui/material";
 import {
 	Add, Edit, Delete, Search, Close, CloudUpload, DirectionsCar,
@@ -59,19 +59,21 @@ import {
 	deleteVoucher
 } from "../../services/voucher.service";
 
-// ─── Theme tokens ──────────────────────────────────────────────────────────────
-const COLORS = {
-	primary: "#1A237E",
-	accent: "#5C6BC0",
-	surface: "#F8F9FE",
-	cardBg: "#FFFFFF",
-	border: "#E8EAF6",
-	text: "#1A1A2E",
-	muted: "#7986CB",
-	danger: "#EF5350",
-	success: "#26A69A",
-	warning: "#FFA726",
-};
+// ─── Theme tokens (dark/light aware) ──────────────────────────────────────────
+function getShowroomColors(isDark) {
+	return {
+		primary: isDark ? "#8ca8ff" : "#1A237E",
+		accent: isDark ? "#9fa8da" : "#5C6BC0",
+		surface: isDark ? "#1a1f2e" : "#F8F9FE",
+		cardBg: isDark ? "#1a1f2e" : "#FFFFFF",
+		border: isDark ? "rgba(255,255,255,0.1)" : "#E8EAF6",
+		text: isDark ? "#e2e8f0" : "#1A1A2E",
+		muted: isDark ? "#94a3b8" : "#7986CB",
+		danger: isDark ? "#f87171" : "#EF5350",
+		success: isDark ? "#4ade80" : "#26A69A",
+		warning: isDark ? "#fb923c" : "#FFA726",
+	};
+}
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 const formatPrice = (v) =>
@@ -129,7 +131,7 @@ const SpecGrid = ({ data }) => (
 	<Grid container spacing={1.5}>
 		{data.filter(d => d.value != null).map(d => (
 			<Grid item xs={6} key={d.label}>
-				<Box sx={{ p: 1.5, bgcolor: "#fff", borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
+				<Box sx={{ p: 1.5, bgcolor: "background.paper", borderRadius: 2, border: `1px solid ${COLORS.border}` }}>
 					<Typography variant="caption" color="text.secondary" fontWeight={600}>{d.label.toUpperCase()}</Typography>
 					<Typography fontWeight={700} fontSize={14} mt={0.3}>{d.value || "—"}</Typography>
 				</Box>
@@ -164,6 +166,9 @@ const FField = ({ label, value, onChange, type = "text", multiline = false, rows
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 export default function ShowroomPage() {
+	const muiTheme = useTheme();
+	const COLORS = getShowroomColors(muiTheme.palette.mode === "dark");
+
 	// Tab chính
 	const [mainTab, setMainTab] = useState(0); // 0: Xe, 1: Dịch vụ
 
@@ -796,11 +801,13 @@ export default function ShowroomPage() {
 
 	// ─────────────────────────────────────────────────────────────────────────
 	return (
-		<Box sx={{ minHeight: "100vh", bgcolor: COLORS.surface, fontFamily: "'DM Sans', sans-serif" }}>
+		<Box sx={{ minHeight: "100vh", bgcolor: "background.default", fontFamily: "'DM Sans', sans-serif" }}>
 			{/* Header */}
 			<Box sx={{
 				px: 4, py: 3,
-				background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.accent} 100%)`,
+				background: muiTheme.palette.mode === "dark"
+					? `linear-gradient(135deg, #1e2a5e 0%, #2d3f8c 100%)`
+					: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.accent} 100%)`,
 				color: "#fff",
 				boxShadow: "0 4px 20px rgba(26,35,126,0.3)"
 			}}>
@@ -820,7 +827,7 @@ export default function ShowroomPage() {
 			</Box>
 
 			{/* Main Tabs */}
-			<Box sx={{ px: 4, borderBottom: 1, borderColor: COLORS.border, bgcolor: "#fff" }}>
+			<Box sx={{ px: 4, borderBottom: 1, borderColor: COLORS.border, bgcolor: "background.paper" }}>
 				<Tabs value={mainTab} onChange={(_, v) => setMainTab(v)} sx={{ "& .MuiTabs-indicator": { bgcolor: COLORS.primary } }}>
 					<Tab label="Quản lý xe" icon={<DirectionsCar />} iconPosition="start" sx={{ textTransform: "none", fontWeight: 600 }} />
 					<Tab label="Quản lý hãng xe" icon={<Build />} iconPosition="start" sx={{ textTransform: "none", fontWeight: 600 }} />
@@ -835,8 +842,8 @@ export default function ShowroomPage() {
 					<Box sx={{ px: 4, py: 3, display: "flex", gap: 2.5, flexWrap: "wrap" }}>
 						{[
 							{ label: "Tổng xe", value: vehicles.length, color: COLORS.primary },
-							{ label: "Đang bán", value: vehicles.filter(v => v.status == 1).length, color: COLORS.success },
-							{ label: "Tạm ngừng", value: vehicles.filter(v => v.status == 0).length, color: COLORS.warning },
+							{ label: "Đang trưng bày", value: vehicles.filter(v => v.status == 1).length, color: COLORS.success },
+							{ label: "Ngừng trưng bày", value: vehicles.filter(v => v.status == 0).length, color: COLORS.warning },
 						].map(stat => (
 							<Paper key={stat.label} sx={{
 								px: 3, py: 2, borderRadius: 3, display: "flex",
@@ -876,7 +883,7 @@ export default function ShowroomPage() {
 									onChange={e => setSearch(e.target.value)}
 									InputProps={{
 										startAdornment: <InputAdornment position="start"><Search sx={{ color: COLORS.muted }} /></InputAdornment>,
-										sx: { borderRadius: 3, bgcolor: COLORS.surface }
+										sx: { borderRadius: 3, bgcolor: "background.paper" }
 									}}
 									sx={{ width: 340 }}
 								/>
@@ -965,7 +972,7 @@ export default function ShowroomPage() {
 													</TableCell>
 													<TableCell>{v.latest_odo != null ? `${Number(v.latest_odo).toLocaleString("vi-VN")} km` : "—"}</TableCell>
 													<TableCell>
-														<Chip label={v.status == 1 ? "Đang bán" : "Tạm ngừng"} size="small"
+														<Chip label={v.status == 1 ? "Đang trưng bày" : "Ngừng trưng bày"} size="small"
 															sx={{ bgcolor: v.status == 1 ? alpha(COLORS.success, 0.12) : alpha(COLORS.warning, 0.12), color: v.status == 1 ? COLORS.success : COLORS.warning, fontWeight: 700, fontSize: 11 }} />
 													</TableCell>
 													<TableCell align="right">
@@ -997,7 +1004,7 @@ export default function ShowroomPage() {
 							alignItems: "center",
 							justifyContent: "space-between",
 							borderBottom: `1px solid ${COLORS.border}`,
-							bgcolor: COLORS.surface
+							bgcolor: "background.paper"
 						}}>
 							<Typography fontWeight={700} fontSize={18}>Danh sách hãng xe</Typography>
 							<Button variant="contained" startIcon={<Add />} onClick={() => openBrandDialog()} sx={{ borderRadius: 2, textTransform: "none", bgcolor: COLORS.primary }}>
@@ -1051,7 +1058,7 @@ export default function ShowroomPage() {
 			{mainTab === 2 && (
 				<Box sx={{ p: 4 }}>
 					<Paper sx={{ borderRadius: 4, border: `1px solid ${COLORS.border}`, overflow: "hidden" }}>
-						<Box sx={{ px: 3, py: 2, display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1px solid ${COLORS.border}`, bgcolor: COLORS.surface }}>
+						<Box sx={{ px: 3, py: 2, display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1px solid ${COLORS.border}`, bgcolor: "background.paper" }}>
 							<Typography fontWeight={700} fontSize={18}>Danh sách dịch vụ</Typography>
 							<Button variant="contained" startIcon={<Add />} onClick={() => openServiceDialog()} sx={{ borderRadius: 2, textTransform: "none", bgcolor: COLORS.primary }}>Thêm dịch vụ</Button>
 						</Box>
@@ -1105,7 +1112,7 @@ export default function ShowroomPage() {
 			{mainTab === 3 && (
 				<Box sx={{ p: 4 }}>
 					<Paper sx={{ borderRadius: 4, border: `1px solid ${COLORS.border}`, overflow: "hidden" }}>
-						<Box sx={{ px: 3, py: 2, display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1px solid ${COLORS.border}`, bgcolor: COLORS.surface }}>
+						<Box sx={{ px: 3, py: 2, display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1px solid ${COLORS.border}`, bgcolor: "background.paper" }}>
 							<Typography fontWeight={700} fontSize={18}>Danh sách mã giảm giá</Typography>
 							<Button variant="contained" startIcon={<Add />} onClick={() => openVoucherDialog()} sx={{ borderRadius: 2, textTransform: "none", bgcolor: COLORS.primary }}>Thêm voucher</Button>
 						</Box>
@@ -1177,7 +1184,7 @@ export default function ShowroomPage() {
 									<Box sx={{ borderRadius: 3, overflow: "hidden", border: `1px solid ${COLORS.border}` }}>
 										<VehicleImage src={imgSrc(selected.thumbnail)} alt={selected.name} sxProps={{ height: 240 }} />
 									</Box>
-									<Box sx={{ mt: 2, p: 2, bgcolor: COLORS.surface, borderRadius: 2 }}>
+									<Box sx={{ mt: 2, p: 2, bgcolor: "background.paper", borderRadius: 2 }}>
 										<Stack spacing={1}>
 											<InfoRow label="Năm SX" value={selected.year} />
 											<InfoRow label="Giá mới" value={formatPrice(selected.new_price)} bold color={COLORS.primary} />
@@ -1196,7 +1203,7 @@ export default function ShowroomPage() {
 										<Tab value="interior" label="Nội thất" icon={<AirlineSeatReclineNormal fontSize="small" />} iconPosition="start" />
 										<Tab value="images" label="Thư viện ảnh" icon={<ImageIcon fontSize="small" />} iconPosition="start" />
 									</Tabs>
-									<Box sx={{ p: 2, bgcolor: COLORS.surface, borderRadius: 2, minHeight: 180 }}>
+									<Box sx={{ p: 2, bgcolor: "background.paper", borderRadius: 2, minHeight: 180 }}>
 										{activeSpecTab === "engine" && (selected.engine_spec ? <SpecGrid data={[
 											{ label: "Dung tích", value: selected.engine_spec.displacement },
 											{ label: "Số xi-lanh", value: selected.engine_spec.cylinders },
@@ -1241,7 +1248,7 @@ export default function ShowroomPage() {
 										)}
 									</Box>
 									{selected.description && (
-										<Box sx={{ mt: 2, p: 2, bgcolor: COLORS.surface, borderRadius: 2 }}>
+										<Box sx={{ mt: 2, p: 2, bgcolor: "background.paper", borderRadius: 2 }}>
 											<Typography variant="caption" color="text.secondary" fontWeight={700}>MÔ TẢ</Typography>
 											<Typography variant="body2" sx={{ mt: 0.5, lineHeight: 1.7 }}>{selected.description}</Typography>
 										</Box>
@@ -1274,7 +1281,7 @@ export default function ShowroomPage() {
 					px: 4,
 					py: 2.5,
 					borderBottom: `1px solid ${COLORS.border}`,
-					bgcolor: COLORS.surface
+					bgcolor: "background.paper"
 				}}>
 					<Box>
 						<Typography variant="h6" fontWeight={800} sx={{ color: COLORS.primary }}>
@@ -1303,7 +1310,7 @@ export default function ShowroomPage() {
 						pt: 3,
 						pb: 2,
 						borderBottom: `1px solid ${COLORS.border}`,
-						bgcolor: COLORS.surface
+						bgcolor: "background.paper"
 					}}>
 						<Stack direction="row" spacing={1} flexWrap="wrap">
 							{["info", "engine", "fuel", "steering", "size", "interior"].map(t => (
@@ -1354,7 +1361,7 @@ export default function ShowroomPage() {
 									<Paper variant="outlined" sx={{ p: 3, mb: 3, borderRadius: 4 }}>
 										<Typography variant="subtitle2" fontWeight={600} sx={{ mb: 2 }}>Ảnh đại diện</Typography>
 										<Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-											<Box sx={{ width: '100%', height: 180, borderRadius: 3, overflow: "hidden", border: `2px dashed ${thumbnailPreview ? COLORS.primary : COLORS.border}`, display: "flex", alignItems: "center", justifyContent: "center", bgcolor: COLORS.surface }}>
+											<Box sx={{ width: '100%', height: 180, borderRadius: 3, overflow: "hidden", border: `2px dashed ${thumbnailPreview ? COLORS.primary : COLORS.border}`, display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "background.paper" }}>
 												{thumbnailPreview ? (
 													<img src={thumbnailPreview} alt="thumbnail" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
 												) : (
@@ -1425,7 +1432,7 @@ export default function ShowroomPage() {
 												label="Thương hiệu *"
 												value={form.brand_id || ""}
 												onChange={e => setForm(p => ({ ...p, brand_id: e.target.value }))}
-												InputProps={{ sx: { borderRadius: 2, bgcolor: COLORS.surface } }}
+												InputProps={{ sx: { borderRadius: 2, bgcolor: "background.paper" } }}
 											>
 												<MenuItem value="" disabled>-- Chọn thương hiệu --</MenuItem>
 												{brandsData.map(brand => (
@@ -1449,8 +1456,8 @@ export default function ShowroomPage() {
 
 										<Grid item xs={12} sm={6}>
 											<TextField select size="small" fullWidth label="Trạng thái" value={form.status} onChange={(e) => setForm((p) => ({ ...p, status: e.target.value }))}>
-												<MenuItem value="1">✅ Đang bán</MenuItem>
-												<MenuItem value="0">⏸️ Tạm ngừng</MenuItem>
+												<MenuItem value="1">✅ Đang trưng bày</MenuItem>
+												<MenuItem value="0">⏸️ Ngừng trưng bày</MenuItem>
 											</TextField>
 										</Grid>
 
@@ -1476,7 +1483,7 @@ export default function ShowroomPage() {
 												value={form.description}
 												onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
 												placeholder="Nhập thông tin chi tiết về tình trạng xe, option, lịch sử bảo dưỡng..."
-												InputProps={{ sx: { borderRadius: 2, bgcolor: COLORS.surface } }}
+												InputProps={{ sx: { borderRadius: 2, bgcolor: "background.paper" } }}
 											/>
 										</Grid>
 									</Grid>
@@ -1694,7 +1701,7 @@ export default function ShowroomPage() {
 									display: "flex",
 									alignItems: "center",
 									justifyContent: "center",
-									bgcolor: COLORS.surface
+									bgcolor: "background.paper"
 								}}>
 									{brandLogoPreview ? (
 										<img
@@ -1715,8 +1722,8 @@ export default function ShowroomPage() {
 								</Button>
 							</Box>
 						</Box>
-						<TextField size="small" fullWidth label="Tên hãng xe *" value={brandForm.name} onChange={(e) => setBrandForm(prev => ({ ...prev, name: e.target.value }))} placeholder="VD: Toyota, Honda, BMW..." InputProps={{ sx: { borderRadius: 2, bgcolor: COLORS.surface } }} />
-						<TextField size="small" fullWidth label="Quốc gia *" value={brandForm.country} onChange={(e) => setBrandForm(prev => ({ ...prev, country: e.target.value }))} placeholder="VD: Nhật Bản, Đức, Mỹ..." InputProps={{ startAdornment: <InputAdornment position="start"><PublicIcon sx={{ color: COLORS.muted, fontSize: 20 }} /></InputAdornment>, sx: { borderRadius: 2, bgcolor: COLORS.surface } }} />
+						<TextField size="small" fullWidth label="Tên hãng xe *" value={brandForm.name} onChange={(e) => setBrandForm(prev => ({ ...prev, name: e.target.value }))} placeholder="VD: Toyota, Honda, BMW..." InputProps={{ sx: { borderRadius: 2, bgcolor: "background.paper" } }} />
+						<TextField size="small" fullWidth label="Quốc gia *" value={brandForm.country} onChange={(e) => setBrandForm(prev => ({ ...prev, country: e.target.value }))} placeholder="VD: Nhật Bản, Đức, Mỹ..." InputProps={{ startAdornment: <InputAdornment position="start"><PublicIcon sx={{ color: COLORS.muted, fontSize: 20 }} /></InputAdornment>, sx: { borderRadius: 2, bgcolor: "background.paper" } }} />
 					</Stack>
 				</DialogContent>
 
@@ -1748,12 +1755,12 @@ export default function ShowroomPage() {
 				</DialogTitle>
 				<DialogContent sx={{ p: 3.5 }}>
 					<Stack spacing={2.5}>
-						<TextField size="small" fullWidth label="Mã voucher *" value={voucherForm.code} onChange={(e) => setVoucherForm(prev => ({ ...prev, code: e.target.value.toUpperCase() }))} placeholder="VD: SUMMER2024" helperText="Mã code sẽ tự động chuyển thành chữ in hoa" InputProps={{ startAdornment: <InputAdornment position="start"><LocalOfferIcon sx={{ color: COLORS.muted, fontSize: 20 }} /></InputAdornment>, sx: { borderRadius: 2, bgcolor: COLORS.surface, fontFamily: "monospace", fontWeight: 600 } }} />
-						<TextField size="small" fullWidth label="Sự kiện (không bắt buộc)" value={voucherForm.event} onChange={(e) => setVoucherForm(prev => ({ ...prev, event: e.target.value }))} placeholder="VD: Khuyến mãi mùa hè, Black Friday..." InputProps={{ startAdornment: <InputAdornment position="start"><EventIcon sx={{ color: COLORS.muted, fontSize: 20 }} /></InputAdornment>, sx: { borderRadius: 2, bgcolor: COLORS.surface } }} />
-						<TextField size="small" fullWidth type="number" label="Phần trăm giảm giá *" value={voucherForm.percent} onChange={(e) => setVoucherForm(prev => ({ ...prev, percent: e.target.value }))} placeholder="VD: 10, 20, 50" helperText="Giá trị từ 0 đến 100" InputProps={{ startAdornment: <InputAdornment position="start"><PercentIcon sx={{ color: COLORS.muted, fontSize: 20 }} /></InputAdornment>, endAdornment: <InputAdornment position="end">%</InputAdornment>, sx: { borderRadius: 2, bgcolor: COLORS.surface } }} />
+						<TextField size="small" fullWidth label="Mã voucher *" value={voucherForm.code} onChange={(e) => setVoucherForm(prev => ({ ...prev, code: e.target.value.toUpperCase() }))} placeholder="VD: SUMMER2024" helperText="Mã code sẽ tự động chuyển thành chữ in hoa" InputProps={{ startAdornment: <InputAdornment position="start"><LocalOfferIcon sx={{ color: COLORS.muted, fontSize: 20 }} /></InputAdornment>, sx: { borderRadius: 2, bgcolor: "background.paper", fontFamily: "monospace", fontWeight: 600 } }} />
+						<TextField size="small" fullWidth label="Sự kiện (không bắt buộc)" value={voucherForm.event} onChange={(e) => setVoucherForm(prev => ({ ...prev, event: e.target.value }))} placeholder="VD: Khuyến mãi mùa hè, Black Friday..." InputProps={{ startAdornment: <InputAdornment position="start"><EventIcon sx={{ color: COLORS.muted, fontSize: 20 }} /></InputAdornment>, sx: { borderRadius: 2, bgcolor: "background.paper" } }} />
+						<TextField size="small" fullWidth type="number" label="Phần trăm giảm giá *" value={voucherForm.percent} onChange={(e) => setVoucherForm(prev => ({ ...prev, percent: e.target.value }))} placeholder="VD: 10, 20, 50" helperText="Giá trị từ 0 đến 100" InputProps={{ startAdornment: <InputAdornment position="start"><PercentIcon sx={{ color: COLORS.muted, fontSize: 20 }} /></InputAdornment>, endAdornment: <InputAdornment position="end">%</InputAdornment>, sx: { borderRadius: 2, bgcolor: "background.paper" } }} />
 						<Grid container spacing={2}>
-							<Grid item xs={6}><TextField size="small" fullWidth type="date" label="Từ ngày *" value={voucherForm.from} onChange={(e) => setVoucherForm(prev => ({ ...prev, from: e.target.value }))} InputLabelProps={{ shrink: true }} InputProps={{ startAdornment: <InputAdornment position="start"><DateRangeIcon sx={{ color: COLORS.muted, fontSize: 18 }} /></InputAdornment>, sx: { borderRadius: 2, bgcolor: COLORS.surface } }} /></Grid>
-							<Grid item xs={6}><TextField size="small" fullWidth type="date" label="Đến ngày *" value={voucherForm.to} onChange={(e) => setVoucherForm(prev => ({ ...prev, to: e.target.value }))} InputLabelProps={{ shrink: true }} InputProps={{ startAdornment: <InputAdornment position="start"><DateRangeIcon sx={{ color: COLORS.muted, fontSize: 18 }} /></InputAdornment>, sx: { borderRadius: 2, bgcolor: COLORS.surface } }} /></Grid>
+							<Grid item xs={6}><TextField size="small" fullWidth type="date" label="Từ ngày *" value={voucherForm.from} onChange={(e) => setVoucherForm(prev => ({ ...prev, from: e.target.value }))} InputLabelProps={{ shrink: true }} InputProps={{ startAdornment: <InputAdornment position="start"><DateRangeIcon sx={{ color: COLORS.muted, fontSize: 18 }} /></InputAdornment>, sx: { borderRadius: 2, bgcolor: "background.paper" } }} /></Grid>
+							<Grid item xs={6}><TextField size="small" fullWidth type="date" label="Đến ngày *" value={voucherForm.to} onChange={(e) => setVoucherForm(prev => ({ ...prev, to: e.target.value }))} InputLabelProps={{ shrink: true }} InputProps={{ startAdornment: <InputAdornment position="start"><DateRangeIcon sx={{ color: COLORS.muted, fontSize: 18 }} /></InputAdornment>, sx: { borderRadius: 2, bgcolor: "background.paper" } }} /></Grid>
 						</Grid>
 						<FormControlLabel control={<Switch checked={voucherForm.is_available} onChange={(e) => setVoucherForm(prev => ({ ...prev, is_available: e.target.checked }))} sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: COLORS.success }, '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: COLORS.success } }} />} label={<Stack direction="row" spacing={1} alignItems="center">{voucherForm.is_available ? <CheckCircleIcon sx={{ color: COLORS.success, fontSize: 20 }} /> : <CancelIcon sx={{ color: COLORS.warning, fontSize: 20 }} />}<Typography>{voucherForm.is_available ? "Kích hoạt voucher" : "Tạm dừng voucher"}</Typography></Stack>} />
 					</Stack>

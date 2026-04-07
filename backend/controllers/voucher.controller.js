@@ -5,7 +5,7 @@ import { Op } from "sequelize";
 
 export const voucherController = baseCRUD(Voucher, {
     modelName: "Voucher",
-    uniqueFields: ["voucher_code"],
+    uniqueFields: ["code"],
     defaultValues: { is_available: true },
 
     customFilter: (query) => {

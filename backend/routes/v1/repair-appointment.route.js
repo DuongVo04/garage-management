@@ -19,7 +19,7 @@ router.get("/",
     async (req, res, next) => {
         console.log("🔹 [GET /repair-appointments] Request started");
         try {
-            const { RepairAppointment, Customer, CustomerVehicle } = await import("../../schemas/index.js");
+            const { RepairAppointment, Customer, CustomerVehicle, Service } = await import("../../schemas/index.js");
             console.log("✅ [GET /repair-appointments] Schemas imported successfully");
 
             console.log("🔹 [GET /repair-appointments] Fetching all repair appointments...");
@@ -32,10 +32,11 @@ router.get("/",
 
             let appts = appointments.map(a => a.toJSON ? a.toJSON() : a);
 
-            // Enrich với customer và vehicles của customer
+            // Enrich với customer, vehicles và service
             for (const appt of appts) {
                 appt.customer = null;
                 appt.vehicles = [];
+                appt.service = null;  // ✅ Thêm service field
 
                 if (appt.customer_id) {
                     try {
@@ -55,6 +56,24 @@ router.get("/",
                         }
                     } catch (err) {
                         console.error(`  ❌ Error fetching customer/vehicles: ${err.message}`);
+                    }
+                }
+
+                // ✅ Lấy thông tin service nếu có service_id
+                if (appt.service_id) {
+                    try {
+                        const service = await Service.findOne({
+                            where: { id: appt.service_id, is_deleted: 0 },
+                            attributes: ["id", "name", "price", "description"]
+                        });
+                        if (service) {
+                            appt.service = service.toJSON();
+                            console.log(`  ✅ Loaded service: ${service.name} for appointment ${appt.id}`);
+                        } else {
+                            console.log(`  ⚠️ Service not found for id: ${appt.service_id}`);
+                        }
+                    } catch (err) {
+                        console.error(`  ❌ Error fetching service: ${err.message}`);
                     }
                 }
             }
@@ -107,6 +126,31 @@ router.post("/",
         }
     }
 )
+
+router.patch("/cancel-overdue",
+    verifyToken,
+    authorize(ROLE_NAME.ADMIN),
+    async (req, res, next) => {
+        try {
+            const { RepairAppointment } = await import("../../schemas/index.js");
+            const { Op } = await import("sequelize");
+
+            const [count] = await RepairAppointment.update(
+                { status: REPAIR_APPOINTMENT_STATUS.CANCELLED },
+                {
+                    where: {
+                        status: REPAIR_APPOINTMENT_STATUS.BOOKED,
+                        appointment_date: { [Op.lt]: new Date() }
+                    }
+                }
+            );
+
+            return response(res, true, `Cancelled ${count} overdue appointments`, 200, { count });
+        } catch (error) {
+            next(error);
+        }
+    }
+);
 
 router.patch("/:id/status",
     verifyToken,

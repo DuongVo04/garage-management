@@ -3,11 +3,12 @@ import apiClient from "./apiClient";
 // Lấy tất cả spare parts usage theo repair_detail_id
 export const getSparePartsUsagesByRepairDetailId = async (repairDetailId) => {
 	try {
-		const response = await apiClient.get(`/spare-parts-usage/by-detail/${repairDetailId}`);
+		// ✅ Sửa: api -> apiClient
+		const response = await apiClient.get(`/spare-parts-usage/by-repair-detail/${repairDetailId}`);
 		return response.data;
 	} catch (error) {
-		console.error("Error fetching spare parts usages:", error);
-		throw error;
+		console.error('Error fetching spare parts usages:', error);
+		return { success: false, data: [], message: error.message };
 	}
 };
 

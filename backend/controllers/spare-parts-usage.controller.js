@@ -5,7 +5,7 @@ const include = [
     {
         model: SpareParts,
         as: "spare_part",
-        attributes: ["id", "name", "code", "price", "quantity_in_stock", "unit_of_measure"]
+        attributes: ["id", "name", "code", "unit_price", "quantity_in_stock", "unit_of_measure"]
     }
 ];
 

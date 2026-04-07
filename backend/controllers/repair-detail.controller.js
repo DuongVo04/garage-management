@@ -1,11 +1,12 @@
-import { RepairDetail } from "../schemas/index.js"
-import { basePFKCRUD } from "../utils/basePFKCRUD.js"
+import { RepairDetail } from "../schemas/index.js";
+import { baseCRUD } from "../utils/baseCRUD.js";
 
-export const repairDetailController = basePFKCRUD(RepairDetail, {
+export const repairDetailController = baseCRUD(RepairDetail, {
     modelName: "RepairDetail",
-    primaryKey: "ticket_id",
+    exclude: [], 
     include: {
-        basicInclude: [],
+        basicInclude: [
+        ],
         detailInclude: []
     }
 });

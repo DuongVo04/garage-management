@@ -5,7 +5,7 @@ export const repairTicketController = baseCRUD(RepairTicket, {
     modelName: "RepairTicket",
     uniqueFields: [],
     defaultValues: {},
-    exclude: ["completed_date"],
+    exclude: [],
     include: {
         basicInclude: [],
         detailInclude: []

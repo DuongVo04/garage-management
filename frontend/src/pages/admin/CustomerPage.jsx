@@ -71,12 +71,15 @@ const CustomerPage = () => {
         onRefresh={handleCustomerDataChange}
       />
 
-      <CustomerForm
-        open={formOpen}
-        customerId={selectedCustomerId}
-        onClose={handleCloseForm}
-        onSuccess={handleFormSuccess}
-      />
+      {/* CustomerForm chỉ mở khi edit (customerId có giá trị) — không cho tạo mới từ admin */}
+      {selectedCustomerId && (
+        <CustomerForm
+          open={formOpen}
+          customerId={selectedCustomerId}
+          onClose={handleCloseForm}
+          onSuccess={handleFormSuccess}
+        />
+      )}
 
       <Snackbar
         open={snackbar.open}

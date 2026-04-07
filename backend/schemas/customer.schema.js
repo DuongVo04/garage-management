@@ -29,7 +29,9 @@ export default (sequelize) => {
         },
 
         account_id: {
-            type: DataTypes.STRING(50)
+            type: DataTypes.STRING(50),
+            allowNull: true,
+            defaultValue: null
         }
 
     }, {

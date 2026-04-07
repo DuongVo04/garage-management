@@ -9,6 +9,7 @@ import voucherRoutes from "./voucher.route.js"
 import brandRoutes from "./brand.route.js"
 import serviceRoutes from "./service.route.js"
 import showroomVehicleRoutes from "./showroom-vehicle.route.js"
+import sparePartsUsageRoutes from "./spare-parts-usage.route.js" 
 import vehicleSpecificationsRoutes from "./vehicle-specifications.route.js" 
 import showroomVehicleImageRoutes from "./showroom-vehicle-image.route.js"
 import employeeRoutes from "./employee.route.js"
@@ -34,6 +35,7 @@ router.use("/vouchers", voucherRoutes);
 router.use("/brands", brandRoutes);
 router.use("/services", serviceRoutes);
 router.use("/showroom-vehicles", showroomVehicleRoutes);
+router.use("/spare-parts-usage", sparePartsUsageRoutes); 
 router.use("/showroom-vehicles", vehicleSpecificationsRoutes);
 router.use("/showroom-vehicles", showroomVehicleImageRoutes);
 router.use("/employees", employeeRoutes);

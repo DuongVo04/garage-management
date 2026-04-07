@@ -1,42 +1,59 @@
+// repair-detail.service.jsx
 import apiClient from "./apiClient";
 
-// Lấy chi tiết sửa xe theo ticket_id (có thể trả về MẢNG)
+// Lấy chi tiết sửa xe theo ticket_id
 export const getRepairDetailsByTicketId = async (ticketId) => {
 	try {
-		// Sửa endpoint để trả về mảng các repair details
-		const response = await apiClient.get(`/repair-details/ticket/${ticketId}`);
+		const response = await apiClient.get(`/repair-details/by-ticket/${ticketId}`);
 		return response.data;
 	} catch (error) {
-		console.error("Error fetching repair details:", error);
+		console.error("Error fetching repair details by ticket:", error);
 		throw error;
 	}
-};
-
-// Giữ lại hàm cũ cho tương thích (deprecated)
-export const getRepairDetailByTicketId = async (ticketId) => {
-	console.warn('getRepairDetailByTicketId is deprecated, use getRepairDetailsByTicketId');
-	const response = await apiClient.get(`/repair-details/ticket/${ticketId}`);
-	return response.data;
 };
 
 // Tạo chi tiết sửa xe
 export const createRepairDetail = async (ticketId, data) => {
 	try {
-		const response = await apiClient.post(`/repair-details`, { ...data, ticket_id: ticketId });
+		const payload = {
+			employee_id: data.employee_id,
+			note: data.note || null,
+			repair_date: data.repair_date || null,
+			// usage_id có thể thêm sau nếu cần
+		};
+
+		const response = await apiClient.post(`/repair-details/${ticketId}`, payload);
 		return response.data;
 	} catch (error) {
-		console.error("Error creating repair detail:", error);
+		console.error("Error creating repair detail:", error.response?.data || error.message);
 		throw error;
 	}
 };
 
-// Cập nhật chi tiết sửa xe - cần detail_id
-export const updateRepairDetail = async (detailId, data) => {
+// Cập nhật repair detail theo ID của RepairDetail (KHÔNG phải ticketId)
+export const updateRepairDetail = async (repairDetailId, data) => {
 	try {
-		const response = await apiClient.put(`/repair-details/${detailId}`, data);
+		const payload = {};
+		if (data.employee_id !== undefined) payload.employee_id = data.employee_id;
+		if (data.note !== undefined) payload.note = data.note;
+		if (data.repair_date !== undefined) payload.repair_date = data.repair_date;
+		if (data.usage_id !== undefined) payload.usage_id = data.usage_id;
+
+		const response = await apiClient.put(`/repair-details/${repairDetailId}`, payload);
 		return response.data;
 	} catch (error) {
 		console.error("Error updating repair detail:", error);
+		throw error;
+	}
+};
+
+// Xóa repair detail theo ID
+export const deleteRepairDetail = async (repairDetailId) => {
+	try {
+		const response = await apiClient.delete(`/repair-details/${repairDetailId}`);
+		return response.data;
+	} catch (error) {
+		console.error("Error deleting repair detail:", error);
 		throw error;
 	}
 };

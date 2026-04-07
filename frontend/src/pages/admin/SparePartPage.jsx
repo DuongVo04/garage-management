@@ -277,7 +277,7 @@ const SparePartPage = () => {
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
-            <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+            <TableRow>
               <TableCell align="center" sx={{ fontWeight: 'bold' }}>STT</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Hình ảnh</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Tên phụ tùng</TableCell>

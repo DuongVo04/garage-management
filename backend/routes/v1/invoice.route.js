@@ -41,6 +41,7 @@ router.get("/:id",
 router.post("/",
     verifyToken,
     authorize(["ADMIN", "EMPLOYEE"]),
+    (req, _res, next) => { console.log("[POST /invoices] body:", JSON.stringify(req.body)); next(); },
     invoiceValidator,
     validate,
     async (req, res, next) => {

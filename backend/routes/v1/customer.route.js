@@ -143,10 +143,11 @@ router.post("/by-admin",
     validate,
     async (req, res, next) => {
         try {
-            const data = await customerController.create(req.body);
+            const data = await customerController.create({ ...req.body, account_id: null });
 
             return response(res, true, "Create customer successfully", 201, data);
         } catch (error) {
+            console.error("[POST /customers/by-admin] Error:", error);
             next(error);
         }
     }

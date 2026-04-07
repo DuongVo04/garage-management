@@ -19,6 +19,7 @@ import {
 	CircularProgress,
 	Grow,
 	Slide,
+	useTheme,
 } from "@mui/material";
 import {
 	Add as AddIcon,
@@ -59,45 +60,54 @@ dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
 dayjs.locale("vi");
 
-// ─── DESIGN TOKENS ──────────────────────────────────────────────────────────
-const T = {
-	bg: "#F0F2F8",
-	surface: "#FFFFFF",
-	card: "#FFFFFF",
-	border: "#E2E8F4",
-	borderHi: "#C8D4EE",
+// ─── DESIGN TOKENS (dark/light aware) ───────────────────────────────────────
+function getTokens(isDark) {
+	return {
+		bg: isDark ? "#0f1117" : "#F0F2F8",
+		surface: isDark ? "#1a1f2e" : "#FFFFFF",
+		card: isDark ? "#1a1f2e" : "#FFFFFF",
+		cardHover: isDark ? "#1f2538" : "#F7F9FF",
+		border: isDark ? "rgba(255,255,255,0.08)" : "#E2E8F4",
+		borderHi: isDark ? "rgba(255,255,255,0.18)" : "#C8D4EE",
 
-	navy: "#1A2B5E",
-	navyLight: "#2D4080",
-	gold: "#B8860B",
-	goldBg: "#FDF8EC",
-	goldBorder: "#E8D08A",
+		navy: isDark ? "#93b4ff" : "#1A2B5E",
+		navyLight: isDark ? "#b8ccff" : "#2D4080",
+		gold: isDark ? "#f0c040" : "#B8860B",
+		goldBg: isDark ? "rgba(184,134,11,0.12)" : "#FDF8EC",
+		goldBorder: isDark ? "rgba(184,134,11,0.35)" : "#E8D08A",
 
-	green: "#1A8A5A",
-	greenBg: "#EBF7F2",
-	greenBorder: "#A8DFC5",
+		green: isDark ? "#4ade80" : "#1A8A5A",
+		greenBg: isDark ? "rgba(26,138,90,0.15)" : "#EBF7F2",
+		greenBorder: isDark ? "rgba(26,138,90,0.35)" : "#A8DFC5",
 
-	blue: "#1B5FC4",
-	blueBg: "#EBF2FD",
-	blueBorder: "#A8C4F0",
+		blue: isDark ? "#60a5fa" : "#1B5FC4",
+		blueBg: isDark ? "rgba(27,95,196,0.15)" : "#EBF2FD",
+		blueBorder: isDark ? "rgba(27,95,196,0.35)" : "#A8C4F0",
 
-	red: "#C0392B",
-	redBg: "#FDECEA",
-	redBorder: "#F0B8B3",
+		red: isDark ? "#f87171" : "#C0392B",
+		redBg: isDark ? "rgba(192,57,43,0.15)" : "#FDECEA",
+		redBorder: isDark ? "rgba(192,57,43,0.35)" : "#F0B8B3",
 
-	orange: "#C0620A",
-	orangeBg: "#FEF3E8",
-	orangeBorder: "#F0CDA0",
+		orange: isDark ? "#fb923c" : "#C0620A",
+		orangeBg: isDark ? "rgba(192,98,10,0.15)" : "#FEF3E8",
+		orangeBorder: isDark ? "rgba(192,98,10,0.35)" : "#F0CDA0",
 
-	purple: "#6B3FA0",
-	purpleBg: "#F3EEFB",
-	purpleBorder: "#C8AEED",
+		purple: isDark ? "#c084fc" : "#6B3FA0",
+		purpleBg: isDark ? "rgba(107,63,160,0.15)" : "#F3EEFB",
+		purpleBorder: isDark ? "rgba(107,63,160,0.35)" : "#C8AEED",
 
-	textPri: "#1A2238",
-	textSec: "#4A5578",
-	textDim: "#8A96B0",
-	textMuted: "#B0B8CC",
-};
+		textPri: isDark ? "#f1f5f9" : "#1A2238",
+		textSec: isDark ? "#94a3b8" : "#4A5578",
+		textDim: isDark ? "#64748b" : "#8A96B0",
+		textMuted: isDark ? "#475569" : "#B0B8CC",
+
+		tableTh: isDark ? "rgba(255,255,255,0.04)" : "#F5F7FC",
+		tableTrHover: isDark ? "rgba(255,255,255,0.04)" : "#F8FAFE",
+		tableBorder: isDark ? "rgba(255,255,255,0.06)" : "#F0F3FA",
+		filterBg: isDark ? "rgba(27,95,196,0.08)" : "linear-gradient(135deg, #F8FAFE 0%, #FFFFFF 100%)",
+		readonlyBg: isDark ? "rgba(255,255,255,0.04)" : "#F5F7FC",
+	};
+}
 
 const formatPrice = (v) =>
 	v != null
@@ -109,185 +119,6 @@ const formatCompactPrice = (v) => {
 	if (v >= 1e9) return `${(v / 1e9).toFixed(1)} tỷ ₫`;
 	if (v >= 1e6) return `${(v / 1e6).toFixed(1)} tr ₫`;
 	return formatPrice(v);
-};
-
-// ─── STYLE INJECTION ─────────────────────────────────────────────────────────
-const injectStyles = () => {
-	if (document.getElementById("invoice-styles")) return;
-	const s = document.createElement("style");
-	s.id = "invoice-styles";
-	s.textContent = `
-		@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&display=swap');
-
-		.inv-root * { box-sizing: border-box; }
-		.inv-root { font-family: 'DM Sans', sans-serif; background: ${T.bg}; min-height: 100vh; }
-
-		.inv-card {
-			background: ${T.card};
-			border: 1px solid ${T.border};
-			border-radius: 18px;
-			transition: box-shadow 0.25s, border-color 0.25s, transform 0.25s;
-		}
-		.inv-card:hover { border-color: ${T.borderHi}; box-shadow: 0 8px 40px rgba(26,43,94,0.10); }
-
-		.inv-heading {
-			font-family: 'Sora', sans-serif;
-			font-weight: 800;
-			color: ${T.navy};
-			letter-spacing: -0.5px;
-		}
-		.inv-label {
-			font-size: 10.5px;
-			font-weight: 700;
-			letter-spacing: 1.5px;
-			text-transform: uppercase;
-			color: ${T.textDim};
-			font-family: 'DM Sans', sans-serif;
-		}
-		.inv-mono {
-			font-family: 'IBM Plex Mono', monospace;
-			font-size: 12px;
-		}
-
-		.stat-num {
-			font-family: 'Sora', sans-serif;
-			font-weight: 800;
-			color: ${T.textPri};
-			font-size: 28px;
-			line-height: 1.15;
-			letter-spacing: -0.8px;
-		}
-
-		.tag {
-			display: inline-flex; align-items: center; gap: 5px;
-			padding: 3px 10px; border-radius: 20px;
-			font-size: 11px; font-weight: 600; border: 1px solid;
-			font-family: 'DM Sans', sans-serif;
-			white-space: nowrap;
-		}
-		.tag-green  { background:${T.greenBg};  color:${T.green};  border-color:${T.greenBorder}; }
-		.tag-red    { background:${T.redBg};    color:${T.red};    border-color:${T.redBorder}; }
-		.tag-gold   { background:${T.goldBg};   color:${T.gold};   border-color:${T.goldBorder}; }
-		.tag-blue   { background:${T.blueBg};   color:${T.blue};   border-color:${T.blueBorder}; }
-		.tag-purple { background:${T.purpleBg}; color:${T.purple}; border-color:${T.purpleBorder}; }
-		.tag-orange { background:${T.orangeBg}; color:${T.orange}; border-color:${T.orangeBorder}; }
-		.tag-gray   { background:#F0F3FA; color:${T.textDim}; border-color:${T.border}; }
-
-		.inv-btn {
-			display: inline-flex; align-items: center; gap: 6px;
-			padding: 8px 16px; border-radius: 11px;
-			border: 1px solid ${T.border};
-			background: ${T.surface};
-			color: ${T.textSec};
-			font-size: 12.5px; font-weight: 600;
-			cursor: pointer; transition: all 0.18s;
-			font-family: 'DM Sans', sans-serif;
-			white-space: nowrap;
-		}
-		.inv-btn:hover:not(:disabled) {
-			border-color: ${T.navy}; color: ${T.navy};
-			box-shadow: 0 2px 10px rgba(26,43,94,0.13);
-			transform: translateY(-1px);
-		}
-		.inv-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-		.inv-btn.primary {
-			background: linear-gradient(135deg, ${T.navy} 0%, ${T.navyLight} 100%);
-			color: #fff; border-color: ${T.navy};
-		}
-		.inv-btn.primary:hover:not(:disabled) { opacity: 0.92; }
-		.inv-btn.danger { color: ${T.red}; border-color: ${T.redBorder}; }
-		.inv-btn.danger:hover:not(:disabled) { background: ${T.redBg}; border-color: ${T.red}; color: ${T.red}; }
-
-		.inv-table { width: 100%; border-collapse: collapse; }
-		.inv-table th {
-			background: #F5F7FC;
-			color: ${T.textDim};
-			font-size: 10.5px;
-			font-weight: 700;
-			letter-spacing: 1.2px;
-			text-transform: uppercase;
-			padding: 13px 16px;
-			border-bottom: 1px solid ${T.border};
-			text-align: left;
-			font-family: 'DM Sans', sans-serif;
-			white-space: nowrap;
-		}
-		.inv-table td {
-			padding: 13px 16px;
-			font-size: 13px;
-			color: ${T.textSec};
-			border-bottom: 1px solid #F0F3FA;
-			font-family: 'DM Sans', sans-serif;
-			vertical-align: middle;
-		}
-		.inv-table tr:last-child td { border-bottom: none; }
-		.inv-table tbody tr { transition: background 0.15s; }
-		.inv-table tbody tr:hover td { background: #F8FAFE; }
-
-		.inv-action-btn {
-			background: none; border: 1px solid transparent; cursor: pointer;
-			padding: 5px; border-radius: 8px;
-			display: inline-flex; align-items: center; justify-content: center;
-			transition: all 0.15s;
-		}
-		.inv-action-btn:hover { border-color: currentColor; background: rgba(0,0,0,0.04); transform: scale(1.1); }
-
-		.live-dot {
-			width: 7px; height: 7px; border-radius: 50%;
-			background: ${T.green};
-			animation: livepulse 2s infinite;
-			flex-shrink: 0;
-		}
-		@keyframes livepulse {
-			0%   { box-shadow: 0 0 0 0 rgba(26,138,90,0.45); }
-			70%  { box-shadow: 0 0 0 8px rgba(26,138,90,0); }
-			100% { box-shadow: 0 0 0 0 rgba(26,138,90,0); }
-		}
-
-		.readonly-field {
-			background: #F5F7FC !important;
-			border-radius: 10px;
-			padding: 12px 16px;
-			border: 1px solid ${T.border};
-		}
-		.readonly-field-label {
-			font-size: 10px; font-weight: 700; letter-spacing: 1.3px;
-			text-transform: uppercase; color: ${T.textDim};
-			display: flex; align-items: center; gap: 5px;
-			margin-bottom: 6px;
-			font-family: 'DM Sans', sans-serif;
-		}
-		.readonly-field-value {
-			font-size: 13.5px; font-weight: 500; color: ${T.textPri};
-			font-family: 'DM Sans', sans-serif;
-		}
-
-		.detail-grid {
-			display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-		}
-
-		.detail-section {
-			background: #F8FAFE; border-radius: 14px; padding: 16px 18px;
-			border: 1px solid ${T.border};
-		}
-
-		@keyframes fadeSlideIn {
-			from { opacity:0; transform: translateY(6px); }
-			to   { opacity:1; transform: translateY(0); }
-		}
-		.anim-in { animation: fadeSlideIn 0.35s ease; }
-
-		@keyframes slideInTop {
-			from { transform: translateY(-8px); opacity: 0; }
-			to   { transform: translateY(0); opacity: 1; }
-		}
-
-		.top-bar {
-			height: 3px;
-			background: linear-gradient(90deg, ${T.navy}, ${T.blue} 40%, ${T.gold} 70%, ${T.green});
-		}
-	`;
-	document.head.appendChild(s);
 };
 
 // ─── HOOK ĐẾM SỐ ───────────────────────────────────────────────────────────
@@ -310,18 +141,37 @@ const useCountUp = (targetValue, duration = 750) => {
 	return count;
 };
 
+// ─── FONT INJECTION ──────────────────────────────────────────────────────────
+const injectFonts = () => {
+	if (document.getElementById("inv-fonts")) return;
+	const s = document.createElement("link");
+	s.id = "inv-fonts";
+	s.rel = "stylesheet";
+	s.href = "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&display=swap";
+	document.head.appendChild(s);
+};
+
 // ─── STAT CARD ──────────────────────────────────────────────────────────────
-const StatCard = ({ title, value, icon, iconBg, iconColor, sub, mono }) => {
+const StatCard = ({ title, value, icon, iconBg, sub, mono }) => {
+	const theme = useTheme();
+	const T = getTokens(theme.palette.mode === "dark");
 	const counted = useCountUp(value, 750);
 	return (
-		<div className="inv-card" style={{ padding: "20px 22px" }}>
+		<div style={{
+			background: T.card, border: `1px solid ${T.border}`, borderRadius: 18,
+			padding: "20px 22px",
+			transition: "box-shadow 0.25s, border-color 0.25s, transform 0.25s",
+		}}
+			onMouseEnter={e => { e.currentTarget.style.borderColor = T.borderHi; e.currentTarget.style.boxShadow = "0 8px 40px rgba(26,43,94,0.10)"; }}
+			onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.boxShadow = "none"; }}
+		>
 			<div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
 				<div style={{ flex: 1 }}>
-					<div className="inv-label" style={{ marginBottom: 10 }}>{title}</div>
-					<div className={`stat-num ${mono ? "inv-mono" : ""}`} style={{ fontSize: mono ? 22 : 28 }}>
+					<div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", color: T.textDim, marginBottom: 10, fontFamily: "'DM Sans', sans-serif" }}>{title}</div>
+					<div style={{ fontFamily: mono ? "'IBM Plex Mono', monospace" : "'Sora', sans-serif", fontWeight: 800, color: T.textPri, fontSize: mono ? 22 : 28, lineHeight: 1.15, letterSpacing: "-0.8px" }}>
 						{mono ? formatPrice(counted) : counted.toLocaleString("vi-VN")}
 					</div>
-					{sub && <div style={{ fontSize: 11, color: T.textDim, marginTop: 5, fontWeight: 500 }}>{sub}</div>}
+					{sub && <div style={{ fontSize: 11, color: T.textDim, marginTop: 5, fontWeight: 500, fontFamily: "'DM Sans', sans-serif" }}>{sub}</div>}
 				</div>
 				<div style={{ width: 44, height: 44, borderRadius: 13, background: iconBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginLeft: 10 }}>
 					{icon}
@@ -332,16 +182,16 @@ const StatCard = ({ title, value, icon, iconBg, iconColor, sub, mono }) => {
 };
 
 // ─── LIVE CLOCK ─────────────────────────────────────────────────────────────
-const LiveClock = () => {
+const LiveClock = ({ T }) => {
 	const [t, setT] = useState(new Date());
 	useEffect(() => { const id = setInterval(() => setT(new Date()), 1000); return () => clearInterval(id); }, []);
 	return (
 		<div style={{ textAlign: "right" }}>
-			<div className="inv-label" style={{ fontSize: 9.5, marginBottom: 4 }}>THỜI GIAN THỰC</div>
+			<div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", color: T.textDim, marginBottom: 4, fontFamily: "'DM Sans', sans-serif" }}>THỜI GIAN THỰC</div>
 			<div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 19, fontWeight: 600, color: T.navy, letterSpacing: 1 }}>
 				{t.toLocaleTimeString("vi-VN")}
 			</div>
-			<div style={{ fontSize: 11, color: T.textDim, fontWeight: 500, marginTop: 2 }}>
+			<div style={{ fontSize: 11, color: T.textDim, fontWeight: 500, marginTop: 2, fontFamily: "'DM Sans', sans-serif" }}>
 				{t.toLocaleDateString("vi-VN", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
 			</div>
 		</div>
@@ -350,50 +200,83 @@ const LiveClock = () => {
 
 // ─── PAYMENT CHIP ───────────────────────────────────────────────────────────
 const PAYMENT_CONFIG = {
-	CASH: { label: "Tiền mặt", cls: "tag-green", icon: "💰" },
-	CREDIT_CARD: { label: "Thẻ tín dụng", cls: "tag-blue", icon: "💳" },
-	BANK_TRANSFER: { label: "Chuyển khoản", cls: "tag-purple", icon: "🏦" },
-	MOMO: { label: "MoMo", cls: "tag-red", icon: "📱" },
-	VNPAY: { label: "VNPay", cls: "tag-orange", icon: "💸" },
-};
-const PaymentChip = ({ method }) => {
-	const c = PAYMENT_CONFIG[method] || { label: method || "Chưa xác định", cls: "tag-gray", icon: "💳" };
-	return <span className={`tag ${c.cls}`}>{c.icon} {c.label}</span>;
+	CASH: { label: "Tiền mặt", icon: "💰" },
+	CREDIT_CARD: { label: "Thẻ tín dụng", icon: "💳" },
+	BANK_TRANSFER: { label: "Chuyển khoản", icon: "🏦" },
+	TRANSFER: { label: "Chuyển khoản", icon: "🏦" },
+	MOMO: { label: "MoMo", icon: "📱" },
+	VNPAY: { label: "VNPay", icon: "💸" },
 };
 
-// ─── READ-ONLY FIELD ─────────────────────────────────────────────────────────
-const ReadOnlyField = ({ label, children }) => (
-	<div className="readonly-field">
-		<div className="readonly-field-label">
-			<LockIcon sx={{ fontSize: 10 }} /> {label}
-		</div>
-		<div className="readonly-field-value">{children}</div>
-	</div>
-);
+const PaymentChip = ({ method, T }) => {
+	const cfg = PAYMENT_CONFIG[method] || { label: method || "Chưa xác định", icon: "💳" };
+	const colorMap = {
+		CASH: [T.greenBg, T.green, T.greenBorder],
+		CREDIT_CARD: [T.blueBg, T.blue, T.blueBorder],
+		BANK_TRANSFER: [T.purpleBg, T.purple, T.purpleBorder],
+		TRANSFER: [T.purpleBg, T.purple, T.purpleBorder],
+		MOMO: [T.redBg, T.red, T.redBorder],
+		VNPAY: [T.orangeBg, T.orange, T.orangeBorder],
+	};
+	const [bg, color, border] = colorMap[method] || [T.card, T.textDim, T.border];
+	return (
+		<span style={{
+			display: "inline-flex", alignItems: "center", gap: 5,
+			padding: "3px 10px", borderRadius: 20,
+			fontSize: 11, fontWeight: 600, border: `1px solid ${border}`,
+			background: bg, color,
+			fontFamily: "'DM Sans', sans-serif", whiteSpace: "nowrap",
+		}}>
+			{cfg.icon} {cfg.label}
+		</span>
+	);
+};
+
+// ─── TAG helper ─────────────────────────────────────────────────────────────
+function tag(bg, color, border) {
+	return {
+		display: "inline-flex", alignItems: "center", gap: 5,
+		padding: "3px 10px", borderRadius: 20,
+		fontSize: 11, fontWeight: 600, border: `1px solid ${border}`,
+		background: bg, color,
+		fontFamily: "'DM Sans', sans-serif", whiteSpace: "nowrap",
+	};
+}
+
+// ─── BTN style helper ───────────────────────────────────────────────────────
+function btnStyle(T, variant = "default") {
+	const base = {
+		display: "inline-flex", alignItems: "center", gap: 6,
+		padding: "8px 16px", borderRadius: 11,
+		border: `1px solid ${T.border}`,
+		background: T.surface, color: T.textSec,
+		fontSize: 12.5, fontWeight: 600, cursor: "pointer",
+		fontFamily: "'DM Sans', sans-serif", whiteSpace: "nowrap",
+		transition: "all 0.18s",
+	};
+	if (variant === "primary") return { ...base, background: `linear-gradient(135deg, ${T.navy} 0%, ${T.navyLight} 100%)`, color: "#fff", borderColor: T.navy };
+	if (variant === "danger") return { ...base, color: T.red, borderColor: T.redBorder };
+	return base;
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════
 const InvoiceManagement = () => {
+	const theme = useTheme();
+	const isDark = theme.palette.mode === "dark";
+	const T = getTokens(isDark);
+
 	const [invoices, setInvoices] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
-
 	const [openDialog, setOpenDialog] = useState(false);
 	const [openViewDialog, setOpenViewDialog] = useState(false);
-	const [selectedInvoice, setSelectedInvoice] = useState(null);
 	const [viewLoading, setViewLoading] = useState(false);
-
-	const [formData, setFormData] = useState({
-		created_date: dayjs().format("YYYY-MM-DD"),
-		total_cost: "",
-		payment_method: "",
-		discount_id: "",
-		ticket_id: "",
-	});
-	const [formErrors, setFormErrors] = useState({});
-
+	const [selectedInvoice, setSelectedInvoice] = useState(null);
 	const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+	const [formData, setFormData] = useState({ created_date: "", total_cost: "", payment_method: "", discount_id: "", ticket_id: "" });
+	const [formErrors, setFormErrors] = useState({});
 	const [page, setPage] = useState(0);
 	const [rowsPerPage] = useState(10);
 	const [searchTerm, setSearchTerm] = useState("");
@@ -404,9 +287,8 @@ const InvoiceManagement = () => {
 	const [showFilters, setShowFilters] = useState(false);
 	const [selectedRows, setSelectedRows] = useState([]);
 
-	useEffect(() => { injectStyles(); }, []);
+	useEffect(() => { injectFonts(); }, []);
 
-	// ── Fetch ──────────────────────────────────────────────────────────────
 	const fetchInvoices = useCallback(async () => {
 		setLoading(true);
 		setError(null);
@@ -432,17 +314,15 @@ const InvoiceManagement = () => {
 
 	const showSnackbar = (message, severity = "success") => setSnackbar({ open: true, message, severity });
 
-	// ── Stats ──────────────────────────────────────────────────────────────
 	const stats = useMemo(() => {
 		const totalRevenue = invoices.reduce((s, inv) => s + (parseFloat(inv.total_cost) || 0), 0);
 		const cashPayments = invoices.filter(i => i.payment_method === "CASH").length;
-		const digitalPayments = invoices.filter(i => ["CREDIT_CARD", "BANK_TRANSFER", "MOMO", "VNPAY"].includes(i.payment_method)).length;
+		const digitalPayments = invoices.filter(i => ["CREDIT_CARD", "BANK_TRANSFER", "TRANSFER", "MOMO", "VNPAY"].includes(i.payment_method)).length;
 		const discountApplied = invoices.filter(i => i.discount_id).length;
 		const thisMonth = invoices.filter(i => dayjs(i.created_date).isSame(dayjs(), "month")).length;
 		return { total: invoices.length, totalRevenue, cashPayments, digitalPayments, avgValue: invoices.length ? totalRevenue / invoices.length : 0, discountApplied, thisMonth };
 	}, [invoices]);
 
-	// ── View (READ-ONLY) ───────────────────────────────────────────────────
 	const handleOpenView = async (id) => {
 		if (!id) return showSnackbar("ID hóa đơn không hợp lệ", "error");
 		setViewLoading(true);
@@ -454,7 +334,6 @@ const InvoiceManagement = () => {
 		finally { setViewLoading(false); }
 	};
 
-	// ── Edit ───────────────────────────────────────────────────────────────
 	const handleOpenEdit = async (id) => {
 		try {
 			const res = await getInvoiceById(id);
@@ -473,194 +352,46 @@ const InvoiceManagement = () => {
 		} catch { showSnackbar("Không thể tải hóa đơn", "error"); }
 	};
 
-	// // ── Delete ─────────────────────────────────────────────────────────────
-	// const handleDelete = async (id) => {
-	// 	if (!window.confirm("Bạn có chắc chắn muốn xóa hóa đơn này?")) return;
-	// 	try {
-	// 		const res = await deleteInvoice(id);
-	// 		if (res?.success) {
-	// 			showSnackbar("Xóa hóa đơn thành công");
-	// 			fetchInvoices();
-	// 		}
-	// 		else {
-	// 			showSnackbar(res?.message || "Không thể xóa", "error");
-	// 		}
-	// 	} catch (error) {
-	// 		console.error("Delete error:", error);
-	// 		console.error("Error response:", error.response?.data);
-
-	// 		// Extract detailed error message from backend
-	// 		let errorMessage = "Không thể xóa hóa đơn";
-	// 		if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
-	// 			errorMessage = error.response.data.errors.map(e => e.msg || e.message || e).join(", ");
-	// 		} else if (error.response?.data?.message) {
-	// 			errorMessage = error.response.data.message;
-	// 		} else if (error.response?.data?.error) {
-	// 			errorMessage = error.response.data.error;
-	// 		}
-
-	// 		console.log("Final error message:", errorMessage);
-	// 		showSnackbar(errorMessage, "error");
-	// 	}
-	// };
-
-	// const handleBulkDelete = async () => {
-	// 	if (!selectedRows.length) return;
-	// 	if (!window.confirm(`Xóa ${selectedRows.length} hóa đơn đã chọn?`)) return;
-	// 	try {
-	// 		const results = await Promise.all(selectedRows.map(id => deleteInvoice(id)));
-
-	// 		// Check if all deletes were successful
-	// 		const allSuccessful = results.every(res => res?.success);
-	// 		if (allSuccessful) {
-	// 			showSnackbar(`Đã xóa ${selectedRows.length} hóa đơn`);
-	// 			setSelectedRows([]);
-	// 			fetchInvoices();
-	// 		} else {
-	// 			showSnackbar("Có lỗi khi xóa một số hóa đơn", "warning");
-	// 			setSelectedRows([]);
-	// 			fetchInvoices();
-	// 		}
-	// 	} catch (error) {
-	// 		console.error("Bulk delete error:", error);
-	// 		let errorMessage = "Có lỗi khi xóa";
-	// 		if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
-	// 			errorMessage = error.response.data.errors.map(e => e.msg || e.message || e).join(", ");
-	// 		} else if (error.response?.data?.message) {
-	// 			errorMessage = error.response.data.message;
-	// 		} else if (error.response?.data?.error) {
-	// 			errorMessage = error.response.data.error;
-	// 		}
-	// 		showSnackbar(errorMessage, "error");
-	// 	}
-	// };
-
-	// ── Form submit (edit only) ────────────────────────────────────────────
-	const validateForm = () => {
-		const errors = {};
-		if (formData.total_cost && isNaN(formData.total_cost)) errors.total_cost = "Phải là số";
-		if (formData.total_cost && parseFloat(formData.total_cost) < 0) errors.total_cost = "Không thể âm";
-		setFormErrors(errors);
-		return !Object.keys(errors).length;
-	};
-
 	const handleSubmit = async () => {
-		// Validate only if total_cost has a value
-		if (formData.total_cost !== "" && formData.total_cost !== null && formData.total_cost !== undefined) {
-			if (isNaN(formData.total_cost)) {
-				showSnackbar("Tổng chi phí phải là số", "error");
-				return;
-			}
-			if (parseFloat(formData.total_cost) < 0) {
-				showSnackbar("Tổng chi phí không thể âm", "error");
-				return;
-			}
+		if (formData.total_cost !== "" && formData.total_cost !== null) {
+			if (isNaN(formData.total_cost)) { showSnackbar("Tổng chi phí phải là số", "error"); return; }
+			if (parseFloat(formData.total_cost) < 0) { showSnackbar("Tổng chi phí không thể âm", "error"); return; }
 		}
-
 		try {
 			const updateData = {};
-
-			// Only add fields that are actually editable and have changed values
-			if (formData.created_date && formData.created_date.trim()) {
-				updateData.created_date = formData.created_date;
-			}
-
-			// Only add total_cost if it's a valid number (not empty string)
-			if (formData.total_cost !== "" && formData.total_cost !== null && formData.total_cost !== undefined) {
+			if (formData.created_date?.trim()) updateData.created_date = formData.created_date;
+			if (formData.total_cost !== "" && formData.total_cost !== null) {
 				const cost = parseFloat(formData.total_cost);
-				if (!isNaN(cost)) {
-					updateData.total_cost = cost;
-				}
+				if (!isNaN(cost)) updateData.total_cost = cost;
 			}
-
-			// Only add payment_method if it has a value
-			if (formData.payment_method && formData.payment_method.trim()) {
-				updateData.payment_method = formData.payment_method;
-			}
-
-			// NOTE: discount_id and ticket_id are read-only fields and should not be modified in the update
-
-			// If no fields to update, show message
-			if (Object.keys(updateData).length === 0) {
-				showSnackbar("Không có dữ liệu để cập nhật", "warning");
-				setOpenDialog(false);
-				return;
-			}
-
-			console.log("Updating with data:", updateData); // Debug log
+			if (formData.payment_method?.trim()) updateData.payment_method = formData.payment_method;
+			if (!Object.keys(updateData).length) { showSnackbar("Không có dữ liệu để cập nhật", "warning"); setOpenDialog(false); return; }
 
 			const res = await updateInvoice(selectedInvoice.id, updateData);
-			if (res?.success) {
-				showSnackbar("Cập nhật hóa đơn thành công");
-				setOpenDialog(false);
-				fetchInvoices();
-			} else {
-				showSnackbar(res?.message || "Có lỗi xảy ra", "error");
-			}
+			if (res?.success) { showSnackbar("Cập nhật hóa đơn thành công"); setOpenDialog(false); fetchInvoices(); }
+			else showSnackbar(res?.message || "Có lỗi xảy ra", "error");
 		} catch (error) {
-			console.error("Update error:", error);
-			console.error("Error response:", error.response?.data);
-
-			// Extract detailed error message from backend
-			let errorMessage = "Lỗi khi lưu hóa đơn";
-			if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
-				errorMessage = error.response.data.errors.map(e => e.msg || e.message || e).join(", ");
-			} else if (error.response?.data?.message) {
-				errorMessage = error.response.data.message;
-			} else if (error.response?.data?.error) {
-				errorMessage = error.response.data.error;
-			}
-
-			console.log("Final error message:", errorMessage);
-			showSnackbar(errorMessage, "error");
+			let msg = "Lỗi khi lưu hóa đơn";
+			if (error.response?.data?.errors?.length) msg = error.response.data.errors.map(e => e.msg || e.message || e).join(", ");
+			else if (error.response?.data?.message) msg = error.response.data.message;
+			showSnackbar(msg, "error");
 		}
 	};
 
-	// ─── HELPER: lấy voucher code hoặc fallback về discount_id ─────────────
-	const getVoucherDisplay = (inv) => {
-		if (!inv) return null;
-		return inv.voucher?.code || inv.discount_id || null;
-	};
+	const getVoucherDisplay = (inv) => inv?.voucher?.code || inv?.discount_id || null;
+	const getTicketDisplay = (inv) => inv?.ticket?.description || inv?.ticket_id || null;
+	const getCustomerDisplay = (inv) => inv?.ticket?.appointment?.customer?.full_name || null;
+	const getCustomerPhone = (inv) => inv?.ticket?.appointment?.customer?.phone_number || null;
 
-	// ─── HELPER: lấy ticket description hoặc fallback về ticket_id ──────────
-	const getTicketDisplay = (inv) => {
-		if (!inv) return null;
-		return inv.ticket?.description || inv.ticket_id || null;
-	};
-
-	// ─── HELPER: lấy tên khách hàng qua chain ticket → appointment → customer ──
-	const getCustomerDisplay = (inv) => {
-		if (!inv) return null;
-		return inv.ticket?.appointment?.customer?.full_name || null;
-	};
-
-	const getCustomerPhone = (inv) => {
-		if (!inv) return null;
-		return inv.ticket?.appointment?.customer?.phone_number || null;
-	};
-
-	// ── Sorting / Filtering / Pagination ──────────────────────────────────
 	const sortedInvoices = useMemo(() => {
 		let list = [...invoices];
 		if (filterPaymentMethod !== "all") list = list.filter(i => i.payment_method === filterPaymentMethod);
-
-		// Lọc theo customer name
 		if (searchTerm) {
 			const q = searchTerm.toLowerCase();
-			list = list.filter(i => {
-				const customerName = getCustomerDisplay(i)?.toLowerCase() || "";
-				return customerName.includes(q);
-			});
+			list = list.filter(i => getCustomerDisplay(i)?.toLowerCase().includes(q));
 		}
-
-		// Lọc theo date range
-		if (dateRange.start) {
-			list = list.filter(i => dayjs(i.created_date).isSameOrAfter(dayjs(dateRange.start), 'day'));
-		}
-		if (dateRange.end) {
-			list = list.filter(i => dayjs(i.created_date).isSameOrBefore(dayjs(dateRange.end), 'day'));
-		}
-
+		if (dateRange.start) list = list.filter(i => dayjs(i.created_date).isSameOrAfter(dayjs(dateRange.start), "day"));
+		if (dateRange.end) list = list.filter(i => dayjs(i.created_date).isSameOrBefore(dayjs(dateRange.end), "day"));
 		list.sort((a, b) => {
 			let av = a[orderBy], bv = b[orderBy];
 			if (orderBy === "created_date") { av = new Date(av); bv = new Date(bv); }
@@ -671,12 +402,9 @@ const InvoiceManagement = () => {
 
 	const paginatedInvoices = sortedInvoices.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
 	const totalPages = Math.ceil(sortedInvoices.length / rowsPerPage) || 1;
-
 	const handleSort = (prop) => { setOrder(orderBy === prop && order === "asc" ? "desc" : "asc"); setOrderBy(prop); };
-
 	const toggleRow = (id) => setSelectedRows(p => p.includes(id) ? p.filter(r => r !== id) : [...p, id]);
 	const toggleAll = () => setSelectedRows(selectedRows.length === paginatedInvoices.length ? [] : paginatedInvoices.map(i => i.id));
-
 	const handleReset = () => { setSearchTerm(""); setFilterPaymentMethod("all"); setDateRange({ start: null, end: null }); setPage(0); };
 
 	const exportToCSV = () => {
@@ -691,47 +419,44 @@ const InvoiceManagement = () => {
 		showSnackbar("Xuất CSV thành công");
 	};
 
-	// ══════════════════════════════════════════════════════════════════════
-	// RENDER
-	// ══════════════════════════════════════════════════════════════════════
+	// Common inline styles
+	const labelStyle = { fontSize: 10.5, fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", color: T.textDim, fontFamily: "'DM Sans', sans-serif" };
+
 	return (
 		<LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="vi">
-			<div className="inv-root">
-				<div className="top-bar" />
+			<div style={{ fontFamily: "'DM Sans', sans-serif", background: T.bg, minHeight: "100vh" }}>
+				{/* TOP COLOR BAR */}
+				<div style={{ height: 3, background: `linear-gradient(90deg, ${T.navy}, ${T.blue} 40%, ${T.gold} 70%, ${T.green})` }} />
+
 				<div style={{ maxWidth: 1380, margin: "0 auto", padding: "26px 22px 44px" }}>
 
 					{/* ── Header ── */}
 					<div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 26 }}>
 						<div>
-							<div className="inv-label" style={{ marginBottom: 5 }}>Quản lý tài chính</div>
-							<div className="inv-heading" style={{ fontSize: 34, lineHeight: 1 }}>HÓA ĐƠN</div>
+							<div style={{ ...labelStyle, marginBottom: 5 }}>Quản lý tài chính</div>
+							<div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, color: T.textPri, fontSize: 34, lineHeight: 1, letterSpacing: "-0.5px" }}>HÓA ĐƠN</div>
 							<div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 9 }}>
-								<div className="live-dot" />
+								<div style={{
+									width: 7, height: 7, borderRadius: "50%", background: T.green, flexShrink: 0,
+									animation: "livepulse 2s infinite",
+								}} />
+								<style>{`@keyframes livepulse{0%{box-shadow:0 0 0 0 rgba(26,138,90,0.45)}70%{box-shadow:0 0 0 8px rgba(26,138,90,0)}100%{box-shadow:0 0 0 0 rgba(26,138,90,0)}}`}</style>
 								<span style={{ fontSize: 11.5, color: T.textDim, fontWeight: 500 }}>Cập nhật theo thời gian thực</span>
 							</div>
 						</div>
-						<LiveClock />
+						<LiveClock T={T} />
 					</div>
 
 					{/* ── Action bar ── */}
 					<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18, flexWrap: "wrap", gap: 10 }}>
 						<div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-							<button className="inv-btn" onClick={() => setShowFilters(!showFilters)}>
+							<button style={btnStyle(T)} onClick={() => setShowFilters(!showFilters)}>
 								<FilterIcon sx={{ fontSize: 15 }} /> {showFilters ? "Ẩn bộ lọc" : "Bộ lọc"}
 							</button>
-							{/* {selectedRows.length > 0 && (
-								<button className="inv-btn danger" onClick={handleBulkDelete}>
-									<DeleteIcon sx={{ fontSize: 15 }} /> Xóa {selectedRows.length} mục
-								</button>
-							)} */}
 						</div>
 						<div style={{ display: "flex", gap: 8 }}>
-							<button className="inv-btn" onClick={fetchInvoices}>
-								<RefreshIcon sx={{ fontSize: 15 }} /> Làm mới
-							</button>
-							<button className="inv-btn" onClick={exportToCSV}>
-								<ExportIcon sx={{ fontSize: 15 }} /> Xuất CSV
-							</button>
+							<button style={btnStyle(T)} onClick={fetchInvoices}><RefreshIcon sx={{ fontSize: 15 }} /> Làm mới</button>
+							<button style={btnStyle(T)} onClick={exportToCSV}><ExportIcon sx={{ fontSize: 15 }} /> Xuất CSV</button>
 						</div>
 					</div>
 
@@ -745,63 +470,43 @@ const InvoiceManagement = () => {
 
 					{/* ── Filters ── */}
 					{showFilters && (
-						<div className="inv-card anim-in" style={{ padding: "20px 22px", marginBottom: 20, background: "linear-gradient(135deg, #F8FAFE 0%, #FFFFFF 100%)", border: `1.5px solid ${T.blueBorder}` }}>
-							<div className="inv-label" style={{ marginBottom: 16, fontSize: 13 }}>🔍 Bộ lọc nâng cao</div>
-							<div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
-								<div>
-									<div className="inv-label" style={{ marginBottom: 8, fontSize: 10 }}>👤 Tên khách hàng</div>
-									<input
-										type="text" placeholder="Nhập tên khách hàng..."
-										value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
-										style={{ padding: "10px 14px", borderRadius: 11, border: `1px solid ${T.border}`, fontFamily: "'DM Sans', sans-serif", fontSize: 13, outline: "none", background: T.surface, width: "100%", transition: "all 0.2s", boxSizing: "border-box" }}
-										onFocus={(e) => { e.target.style.borderColor = T.blue; e.target.style.boxShadow = `0 0 0 3px ${T.blueBg}`; }}
-										onBlur={(e) => { e.target.style.borderColor = T.border; e.target.style.boxShadow = "none"; }}
-									/>
-								</div>
-								<div>
-									<div className="inv-label" style={{ marginBottom: 8, fontSize: 10 }}>💳 Phương thức thanh toán</div>
-									<select
-										value={filterPaymentMethod} onChange={e => setFilterPaymentMethod(e.target.value)}
-										style={{ padding: "10px 14px", borderRadius: 11, border: `1px solid ${T.border}`, fontFamily: "'DM Sans', sans-serif", fontSize: 13, outline: "none", background: T.surface, width: "100%", transition: "all 0.2s", boxSizing: "border-box" }}
-									>
-										<option value="all">Tất cả phương thức</option>
-										<option value="CASH">💰 Tiền mặt</option>
-										<option value="CREDIT_CARD">💳 Thẻ tín dụng</option>
-										<option value="BANK_TRANSFER">🏦 Chuyển khoản</option>
-										<option value="MOMO">📱 MoMo</option>
-										<option value="VNPAY">💸 VNPay</option>
-									</select>
-								</div>
-								<div>
-									<div className="inv-label" style={{ marginBottom: 8, fontSize: 10 }}>📅 Từ ngày</div>
-									<DatePicker
-										label="Chọn ngày"
-										value={dateRange.start}
-										onChange={(date) => setDateRange(r => ({ ...r, start: date }))}
-										slotProps={{ textField: { size: "small", fullWidth: true, sx: { "& .MuiOutlinedInput-root": { borderRadius: "10px", fontSize: 13 } } } }}
-									/>
-								</div>
-								<div>
-									<div className="inv-label" style={{ marginBottom: 8, fontSize: 10 }}>📅 Đến ngày</div>
-									<DatePicker
-										label="Chọn ngày"
-										value={dateRange.end}
-										onChange={(date) => setDateRange(r => ({ ...r, end: date }))}
-										slotProps={{ textField: { size: "small", fullWidth: true, sx: { "& .MuiOutlinedInput-root": { borderRadius: "10px", fontSize: 13 } } } }}
-									/>
-								</div>
-								<div style={{ display: "flex", alignItems: "flex-end" }}>
-									<button className="inv-btn" onClick={handleReset} style={{ width: "100%", justifyContent: "center", background: T.redBg, color: T.red, borderColor: T.redBorder }}>
-										<ClearIcon sx={{ fontSize: 15 }} /> Xóa tất cả bộ lọc
-									</button>
-								</div>
+						<div style={{
+							background: isDark ? T.card : "linear-gradient(135deg, #F8FAFE 0%, #FFFFFF 100%)",
+							border: `1.5px solid ${T.blueBorder}`,
+							borderRadius: 18, padding: "20px 22px", marginBottom: 20,
+						}}>
+							<div style={{ ...labelStyle, marginBottom: 16, fontSize: 13 }}>🔍 Bộ lọc nâng cao</div>
+							<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto auto auto", gap: 12, alignItems: "center" }}>
+								<TextField
+									size="small" label="Tìm khách hàng" value={searchTerm}
+									onChange={e => setSearchTerm(e.target.value)}
+									InputProps={{ startAdornment: <InputAdornment position="start"><MoneyIcon sx={{ fontSize: 16, color: T.textDim }} /></InputAdornment> }}
+									sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
+								/>
+								<FormControl size="small">
+									<InputLabel>Phương thức</InputLabel>
+									<Select value={filterPaymentMethod} onChange={e => setFilterPaymentMethod(e.target.value)} label="Phương thức" sx={{ borderRadius: "10px" }}>
+										<MenuItem value="all">Tất cả</MenuItem>
+										<MenuItem value="CASH">💰 Tiền mặt</MenuItem>
+										<MenuItem value="CREDIT_CARD">💳 Thẻ tín dụng</MenuItem>
+										<MenuItem value="BANK_TRANSFER">🏦 Chuyển khoản (BANK_TRANSFER)</MenuItem>
+										<MenuItem value="TRANSFER">🏦 Chuyển khoản (TRANSFER)</MenuItem>
+										<MenuItem value="MOMO">📱 MoMo</MenuItem>
+										<MenuItem value="VNPAY">💸 VNPay</MenuItem>
+									</Select>
+								</FormControl>
+								<DatePicker label="Từ ngày" value={dateRange.start} onChange={d => setDateRange(r => ({ ...r, start: d }))}
+									slotProps={{ textField: { size: "small", sx: { "& .MuiOutlinedInput-root": { borderRadius: "10px" } } } }} />
+								<DatePicker label="Đến ngày" value={dateRange.end} onChange={d => setDateRange(r => ({ ...r, end: d }))}
+									slotProps={{ textField: { size: "small", sx: { "& .MuiOutlinedInput-root": { borderRadius: "10px" } } } }} />
+								<button style={btnStyle(T)} onClick={handleReset}><ClearIcon sx={{ fontSize: 15 }} /> Xóa lọc</button>
 							</div>
 						</div>
 					)}
 
 					{/* ── Error ── */}
 					{error && (
-						<div className="inv-card" style={{ padding: "14px 18px", marginBottom: 20, background: T.redBg, borderColor: T.redBorder }}>
+						<div style={{ padding: "14px 18px", marginBottom: 20, background: T.redBg, borderColor: T.redBorder, border: `1px solid ${T.redBorder}`, borderRadius: 18 }}>
 							<div style={{ display: "flex", alignItems: "center", gap: 8, color: T.red }}>
 								<WarningIcon sx={{ fontSize: 18 }} />
 								<span style={{ fontSize: 13, fontWeight: 500 }}>{error}</span>
@@ -811,28 +516,39 @@ const InvoiceManagement = () => {
 					)}
 
 					{/* ── Table ── */}
-					<div className="inv-card" style={{ overflow: "hidden" }}>
+					<div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, overflow: "hidden" }}>
 						<div style={{ overflowX: "auto" }}>
-							<table className="inv-table">
+							<table style={{ width: "100%", borderCollapse: "collapse" }}>
 								<thead>
 									<tr>
-										<th style={{ width: 36 }}>
+										<th style={{ width: 36, background: T.tableTh, padding: "13px 16px", borderBottom: `1px solid ${T.border}` }}>
 											<input type="checkbox"
 												checked={selectedRows.length === paginatedInvoices.length && paginatedInvoices.length > 0}
 												onChange={toggleAll} style={{ cursor: "pointer" }}
 											/>
 										</th>
-										<th>Khách hàng</th>
-										<th style={{ cursor: "pointer" }} onClick={() => handleSort("created_date")}>
-											Ngày tạo {orderBy === "created_date" ? (order === "asc" ? "↑" : "↓") : ""}
-										</th>
-										<th style={{ textAlign: "right", cursor: "pointer" }} onClick={() => handleSort("total_cost")}>
-											Tổng chi phí {orderBy === "total_cost" ? (order === "asc" ? "↑" : "↓") : ""}
-										</th>
-										<th>Phương thức</th>
-										<th>Voucher</th>
-										<th>Phiếu sửa chữa</th>
-										<th style={{ textAlign: "center" }}>Thao tác</th>
+										{[
+											{ label: "Khách hàng" },
+											{ label: "Ngày tạo", key: "created_date", sortable: true },
+											{ label: "Tổng chi phí", key: "total_cost", sortable: true, align: "right" },
+											{ label: "Phương thức" },
+											{ label: "Voucher" },
+											{ label: "Phiếu sửa chữa" },
+											{ label: "Thao tác", align: "center" },
+										].map(({ label, key, sortable, align }) => (
+											<th key={label} onClick={sortable ? () => handleSort(key) : undefined}
+												style={{
+													background: T.tableTh, color: T.textDim,
+													fontSize: 10.5, fontWeight: 700, letterSpacing: "1.2px",
+													textTransform: "uppercase", padding: "13px 16px",
+													borderBottom: `1px solid ${T.border}`,
+													textAlign: align || "left", fontFamily: "'DM Sans', sans-serif",
+													whiteSpace: "nowrap", cursor: sortable ? "pointer" : "default",
+												}}
+											>
+												{label} {sortable && orderBy === key ? (order === "asc" ? "↑" : "↓") : ""}
+											</th>
+										))}
 									</tr>
 								</thead>
 								<tbody>
@@ -843,60 +559,68 @@ const InvoiceManagement = () => {
 									) : paginatedInvoices.length === 0 ? (
 										<tr><td colSpan={8} style={{ textAlign: "center", padding: "56px 20px" }}>
 											<ReceiptIcon sx={{ fontSize: 44, color: T.textMuted, display: "block", margin: "0 auto 10px" }} />
-											<div style={{ color: T.textDim, fontSize: 13.5 }}>Không có hóa đơn nào</div>
+											<div style={{ color: T.textDim, fontSize: 13.5, fontFamily: "'DM Sans', sans-serif" }}>Không có hóa đơn nào</div>
 										</td></tr>
-									) : paginatedInvoices.map(inv => (
+									) : paginatedInvoices.map((inv, idx) => (
 										<Grow in timeout={250} key={inv.id}>
-											<tr>
-												<td>
+											<tr
+												onMouseEnter={e => e.currentTarget.querySelectorAll("td").forEach(td => td.style.background = T.tableTrHover)}
+												onMouseLeave={e => e.currentTarget.querySelectorAll("td").forEach(td => td.style.background = "transparent")}
+											>
+												<td style={{ padding: "13px 16px", borderBottom: idx < paginatedInvoices.length - 1 ? `1px solid ${T.tableBorder}` : "none", background: "transparent", transition: "background 0.15s" }}>
 													<input type="checkbox" checked={selectedRows.includes(inv.id)} onChange={() => toggleRow(inv.id)} onClick={e => e.stopPropagation()} style={{ cursor: "pointer" }} />
 												</td>
-												<td>
-													{getCustomerDisplay(inv) ? (
-														<div>
-															<div style={{ fontWeight: 600, fontSize: 13, color: T.textPri }}>👤 {getCustomerDisplay(inv)}</div>
-															{getCustomerPhone(inv) && (
-																<div style={{ fontSize: 11, color: T.textDim, marginTop: 2 }}>📞 {getCustomerPhone(inv)}</div>
-															)}
+												{[
+													// Customer
+													<td key="customer" style={{ padding: "13px 16px", fontSize: 13, color: T.textSec, borderBottom: idx < paginatedInvoices.length - 1 ? `1px solid ${T.tableBorder}` : "none", fontFamily: "'DM Sans', sans-serif", background: "transparent", transition: "background 0.15s" }}>
+														{getCustomerDisplay(inv) ? (
+															<div>
+																<div style={{ fontWeight: 600, fontSize: 13, color: T.textPri }}>👤 {getCustomerDisplay(inv)}</div>
+																{getCustomerPhone(inv) && <div style={{ fontSize: 11, color: T.textDim, marginTop: 2 }}>📞 {getCustomerPhone(inv)}</div>}
+															</div>
+														) : <span style={{ color: T.textMuted, fontSize: 12, fontStyle: "italic" }}>Chưa xác định</span>}
+													</td>,
+													// Date
+													<td key="date" style={{ padding: "13px 16px", fontSize: 13, color: T.textSec, borderBottom: idx < paginatedInvoices.length - 1 ? `1px solid ${T.tableBorder}` : "none", fontFamily: "'DM Sans', sans-serif", background: "transparent", transition: "background 0.15s" }}>
+														<div style={{ fontWeight: 500 }}>{inv.created_date ? dayjs(inv.created_date).format("DD/MM/YYYY") : "—"}</div>
+														<div style={{ fontSize: 10.5, color: T.textDim }}>{dayjs(inv.created_date).fromNow()}</div>
+													</td>,
+													// Total
+													<td key="total" style={{ padding: "13px 16px", fontSize: 13, textAlign: "right", borderBottom: idx < paginatedInvoices.length - 1 ? `1px solid ${T.tableBorder}` : "none", background: "transparent", transition: "background 0.15s" }}>
+														<span style={{ color: T.green, fontWeight: 700, fontSize: 13.5 }}>{formatPrice(inv.total_cost)}</span>
+													</td>,
+													// Payment
+													<td key="payment" style={{ padding: "13px 16px", borderBottom: idx < paginatedInvoices.length - 1 ? `1px solid ${T.tableBorder}` : "none", background: "transparent", transition: "background 0.15s" }}>
+														<PaymentChip method={inv.payment_method} T={T} />
+													</td>,
+													// Voucher
+													<td key="voucher" style={{ padding: "13px 16px", borderBottom: idx < paginatedInvoices.length - 1 ? `1px solid ${T.tableBorder}` : "none", background: "transparent", transition: "background 0.15s" }}>
+														{getVoucherDisplay(inv)
+															? <span style={tag(T.goldBg, T.gold, T.goldBorder)}>🎫 {getVoucherDisplay(inv)}</span>
+															: <span style={{ color: T.textMuted }}>—</span>}
+													</td>,
+													// Ticket
+													<td key="ticket" style={{ padding: "13px 16px", borderBottom: idx < paginatedInvoices.length - 1 ? `1px solid ${T.tableBorder}` : "none", background: "transparent", transition: "background 0.15s" }}>
+														{getTicketDisplay(inv)
+															? <span style={{ fontSize: 12.5, color: T.textSec, maxWidth: 180, display: "inline-block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={getTicketDisplay(inv)}>🔧 {getTicketDisplay(inv)}</span>
+															: <span style={{ color: T.textMuted }}>—</span>}
+													</td>,
+													// Actions
+													<td key="actions" style={{ padding: "13px 16px", borderBottom: idx < paginatedInvoices.length - 1 ? `1px solid ${T.tableBorder}` : "none", background: "transparent", transition: "background 0.15s" }}>
+														<div style={{ display: "flex", gap: 3, justifyContent: "center" }}>
+															<button style={{ background: "none", border: `1px solid transparent`, cursor: "pointer", padding: 5, borderRadius: 8, display: "inline-flex", alignItems: "center", color: T.blue, transition: "all 0.15s" }}
+																onClick={() => handleOpenView(inv.id)} title="Xem chi tiết"
+																onMouseEnter={e => { e.currentTarget.style.borderColor = T.blue; e.currentTarget.style.background = T.blueBg; }}
+																onMouseLeave={e => { e.currentTarget.style.borderColor = "transparent"; e.currentTarget.style.background = "none"; }}
+															><ViewIcon sx={{ fontSize: 17 }} /></button>
+															<button style={{ background: "none", border: `1px solid transparent`, cursor: "pointer", padding: 5, borderRadius: 8, display: "inline-flex", alignItems: "center", color: T.gold, transition: "all 0.15s" }}
+																onClick={() => handleOpenEdit(inv.id)} title="Chỉnh sửa"
+																onMouseEnter={e => { e.currentTarget.style.borderColor = T.gold; e.currentTarget.style.background = T.goldBg; }}
+																onMouseLeave={e => { e.currentTarget.style.borderColor = "transparent"; e.currentTarget.style.background = "none"; }}
+															><EditIcon sx={{ fontSize: 17 }} /></button>
 														</div>
-													) : (
-														<span style={{ color: T.textMuted, fontSize: 12, fontStyle: "italic" }}>Chưa xác định</span>
-													)}
-												</td>
-												<td>
-													<div style={{ fontWeight: 500 }}>{inv.created_date ? dayjs(inv.created_date).format("DD/MM/YYYY") : "—"}</div>
-													<div style={{ fontSize: 10.5, color: T.textDim }}>{dayjs(inv.created_date).fromNow()}</div>
-												</td>
-												<td style={{ textAlign: "right" }}>
-													<span style={{ color: T.green, fontWeight: 700, fontSize: 13.5 }}>{formatPrice(inv.total_cost)}</span>
-												</td>
-												<td><PaymentChip method={inv.payment_method} /></td>
-												<td>
-													{getVoucherDisplay(inv)
-														? <span className="tag tag-gold">🎫 {getVoucherDisplay(inv)}</span>
-														: <span style={{ color: T.textMuted }}>—</span>}
-												</td>
-												<td>
-													{getTicketDisplay(inv) ? (
-														<span style={{ fontSize: 12.5, color: T.textSec, maxWidth: 180, display: "inline-block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-															title={getTicketDisplay(inv)}>
-															🔧 {getTicketDisplay(inv)}
-														</span>
-													) : <span style={{ color: T.textMuted }}>—</span>}
-												</td>
-												<td>
-													<div style={{ display: "flex", gap: 3, justifyContent: "center" }}>
-														<button className="inv-action-btn" style={{ color: T.blue }} onClick={() => handleOpenView(inv.id)} title="Xem chi tiết">
-															<ViewIcon sx={{ fontSize: 17 }} />
-														</button>
-														<button className="inv-action-btn" style={{ color: T.gold }} onClick={() => handleOpenEdit(inv.id)} title="Chỉnh sửa">
-															<EditIcon sx={{ fontSize: 17 }} />
-														</button>
-														{/* <button className="inv-action-btn" style={{ color: T.red }} onClick={() => handleDelete(inv.id)} title="Xóa">
-															<DeleteIcon sx={{ fontSize: 17 }} />
-														</button> */}
-													</div>
-												</td>
+													</td>,
+												]}
 											</tr>
 										</Grow>
 									))}
@@ -906,24 +630,22 @@ const InvoiceManagement = () => {
 
 						{/* Pagination */}
 						<div style={{ padding: "14px 20px", borderTop: `1px solid ${T.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
-							<div className="inv-label">
-								{paginatedInvoices.length} / {sortedInvoices.length} hóa đơn
-							</div>
+							<div style={{ ...labelStyle }}>{paginatedInvoices.length} / {sortedInvoices.length} hóa đơn</div>
 							<div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-								<button className="inv-btn" onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}>← Trước</button>
+								<button style={btnStyle(T)} onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}>← Trước</button>
 								<span style={{ fontSize: 12.5, color: T.textSec, fontWeight: 500 }}>Trang {page + 1} / {totalPages}</span>
-								<button className="inv-btn" onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}>Sau →</button>
+								<button style={btnStyle(T)} onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}>Sau →</button>
 							</div>
 						</div>
 					</div>
 				</div>
 
-				{/* ══════ VIEW DIALOG (read-only) ══════ */}
+				{/* ══════ VIEW DIALOG ══════ */}
 				<Dialog open={openViewDialog} onClose={() => setOpenViewDialog(false)} maxWidth="sm" fullWidth
 					TransitionComponent={Grow} transitionDuration={400}
-					PaperProps={{ sx: { borderRadius: "20px", overflow: "hidden", boxShadow: "0 20px 60px rgba(26,43,94,0.15)" } }}>
-					<div style={{ height: 4, background: `linear-gradient(90deg, ${T.blue} 0%, ${T.navy} 50%, ${T.blue} 100%)`, animation: "slideInTop 0.5s ease" }} />
-					<DialogTitle sx={{ background: `linear-gradient(135deg, ${T.blueBg} 0%, rgba(235, 242, 253, 0.5) 100%)`, borderBottom: `2px solid ${T.blueBorder}`, py: 2.5, px: 3 }}>
+					PaperProps={{ sx: { borderRadius: "20px", overflow: "hidden", boxShadow: "0 20px 60px rgba(26,43,94,0.15)", bgcolor: "background.paper" } }}>
+					<div style={{ height: 4, background: `linear-gradient(90deg, ${T.blue} 0%, ${T.navy} 50%, ${T.blue} 100%)` }} />
+					<DialogTitle sx={{ background: isDark ? `rgba(27,95,196,0.12)` : `linear-gradient(135deg, ${T.blueBg} 0%, rgba(235,242,253,0.5) 100%)`, borderBottom: `2px solid ${T.blueBorder}`, py: 2.5, px: 3 }}>
 						<Box display="flex" alignItems="center" justifyContent="space-between">
 							<Box display="flex" alignItems="center" gap={1.5}>
 								<Box sx={{ width: 36, height: 36, borderRadius: "12px", background: `linear-gradient(135deg, ${T.blue}, ${T.navy})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -931,97 +653,82 @@ const InvoiceManagement = () => {
 								</Box>
 								<Typography sx={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 18, color: T.navy, letterSpacing: "-0.3px" }}>Chi tiết hóa đơn</Typography>
 							</Box>
-							<IconButton onClick={() => setOpenViewDialog(false)} size="small" sx={{ color: T.textDim, transition: "all 0.2s", "&:hover": { color: T.blue, transform: "scale(1.1)" } }}><CloseIcon sx={{ fontSize: 22 }} /></IconButton>
+							<IconButton onClick={() => setOpenViewDialog(false)} size="small" sx={{ color: T.textDim, "&:hover": { color: T.blue } }}><CloseIcon sx={{ fontSize: 22 }} /></IconButton>
 						</Box>
 					</DialogTitle>
 
-					<DialogContent sx={{ p: 3, background: "linear-gradient(180deg, #FFFFFF 0%, #F8FAFE 100%)" }}>
+					<DialogContent sx={{ p: 3, bgcolor: "background.paper" }}>
 						{viewLoading ? (
 							<Box display="flex" justifyContent="center" py={5}><CircularProgress sx={{ color: T.navy }} /></Box>
 						) : selectedInvoice ? (
-							<div className="anim-in">
+							<div>
 								{/* ID banner */}
-								<div style={{ background: `linear-gradient(135deg, ${T.navy} 0%, ${T.navyLight} 100%)`, borderRadius: 16, padding: "20px 22px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: "0 8px 24px rgba(26,43,94,0.12)" }}>
+								<div style={{ background: `linear-gradient(135deg, ${T.navy} 0%, ${T.navyLight} 100%)`, borderRadius: 16, padding: "20px 22px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
 									<div>
 										<div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", marginBottom: 4 }}>Mã hóa đơn</div>
-										<div className="inv-mono" style={{ color: "#fff", fontSize: 13, fontWeight: 600 }}>{selectedInvoice.id}</div>
+										<div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, color: "#fff", fontWeight: 600 }}>{selectedInvoice.id}</div>
 									</div>
 									{getCustomerDisplay(selectedInvoice) && (
 										<div style={{ textAlign: "right" }}>
 											<div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", marginBottom: 4 }}>Khách hàng</div>
 											<div style={{ color: "#fff", fontSize: 14, fontWeight: 700 }}>👤 {getCustomerDisplay(selectedInvoice)}</div>
-											{getCustomerPhone(selectedInvoice) && (
-												<div style={{ color: "rgba(255,255,255,0.65)", fontSize: 11, marginTop: 2 }}>📞 {getCustomerPhone(selectedInvoice)}</div>
-											)}
+											{getCustomerPhone(selectedInvoice) && <div style={{ color: "rgba(255,255,255,0.65)", fontSize: 11, marginTop: 2 }}>📞 {getCustomerPhone(selectedInvoice)}</div>}
 										</div>
 									)}
 								</div>
 
-								{/* Grid info */}
+								{/* Info grid */}
 								<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 18 }}>
-									<div className="detail-section" style={{ background: "#EBF2FD", border: `1.5px solid ${T.blueBorder}`, boxShadow: "0 4px 12px rgba(27, 95, 196, 0.08)" }}>
-										<div className="inv-label" style={{ marginBottom: 8 }}>📅 Ngày tạo</div>
-										<div style={{ fontSize: 15, fontWeight: 700, color: T.blue }}>{dayjs(selectedInvoice.created_date).format("DD/MM/YYYY")}</div>
-										<div style={{ fontSize: 11, color: T.textDim, marginTop: 3 }}>{dayjs(selectedInvoice.created_date).fromNow()}</div>
-									</div>
-									<div className="detail-section" style={{ background: "#EBF7F2", border: `1.5px solid ${T.greenBorder}`, boxShadow: "0 4px 12px rgba(26, 138, 90, 0.08)" }}>
-										<div className="inv-label" style={{ marginBottom: 8 }}>💰 Tổng chi phí</div>
-										<div style={{ fontSize: 20, fontWeight: 800, color: T.green, fontFamily: "'Sora',sans-serif" }}>{formatPrice(selectedInvoice.total_cost)}</div>
-									</div>
-									<div className="detail-section" style={{ background: "#F3EEFB", border: `1.5px solid ${T.purpleBorder}`, boxShadow: "0 4px 12px rgba(107, 63, 160, 0.08)" }}>
-										<div className="inv-label" style={{ marginBottom: 8 }}>💳 Phương thức thanh toán</div>
-										<PaymentChip method={selectedInvoice.payment_method} />
-									</div>
-									<div className="detail-section" style={{ background: "#EBF7F2", border: `1.5px solid ${T.greenBorder}`, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-										<div className="inv-label" style={{ marginBottom: 8 }}>✓ Trạng thái</div>
-										<span className="tag tag-green" style={{ width: "fit-content", fontSize: 12, fontWeight: 700 }}>✓ Đã thanh toán</span>
-									</div>
+									{[
+										{ bg: T.blueBg, border: T.blueBorder, label: "📅 Ngày tạo", content: <><div style={{ fontSize: 15, fontWeight: 700, color: T.blue }}>{dayjs(selectedInvoice.created_date).format("DD/MM/YYYY")}</div><div style={{ fontSize: 11, color: T.textDim, marginTop: 3 }}>{dayjs(selectedInvoice.created_date).fromNow()}</div></> },
+										{ bg: T.greenBg, border: T.greenBorder, label: "💰 Tổng chi phí", content: <div style={{ fontSize: 20, fontWeight: 800, color: T.green, fontFamily: "'Sora',sans-serif" }}>{formatPrice(selectedInvoice.total_cost)}</div> },
+										{ bg: T.purpleBg, border: T.purpleBorder, label: "💳 Phương thức thanh toán", content: <PaymentChip method={selectedInvoice.payment_method} T={T} /> },
+										{ bg: T.greenBg, border: T.greenBorder, label: "✓ Trạng thái", content: <span style={tag(T.greenBg, T.green, T.greenBorder)}>✓ Đã thanh toán</span> },
+									].map(({ bg, border, label, content }, i) => (
+										<div key={i} style={{ background: bg, border: `1.5px solid ${border}`, borderRadius: 14, padding: "16px 18px" }}>
+											<div style={{ ...labelStyle, marginBottom: 8 }}>{label}</div>
+											{content}
+										</div>
+									))}
 								</div>
 
-								{/* Locked fields */}
-								<div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 18, padding: "16px", background: T.goldBg, borderRadius: 14, border: `1.5px solid ${T.goldBorder}`, boxShadow: "0 4px 12px rgba(184, 134, 11, 0.08)" }}>
-									<div style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 12, borderBottom: `1px solid ${T.goldBorder}` }}>
+								{/* Readonly info */}
+								<div style={{ background: T.goldBg, border: `1.5px solid ${T.goldBorder}`, borderRadius: 14, padding: 16 }}>
+									<div style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 12, borderBottom: `1px solid ${T.goldBorder}`, marginBottom: 12 }}>
 										<LockIcon sx={{ fontSize: 18, color: T.gold }} />
 										<span style={{ fontSize: 12.5, color: T.gold, fontWeight: 700 }}>Thông tin chỉ đọc</span>
 									</div>
-									<div>
-										<div className="inv-label" style={{ marginBottom: 8, color: T.gold }}>🎫 Mã voucher (chỉ đọc)</div>
-										<div style={{ fontSize: 13 }}>
-											{getVoucherDisplay(selectedInvoice)
-												? <span className="tag tag-gold" style={{ fontSize: 12, fontWeight: 600 }}>🎫 {getVoucherDisplay(selectedInvoice)}</span>
-												: <span style={{ color: T.textMuted, fontSize: 13 }}><em>Không áp dụng</em></span>}
-										</div>
+									<div style={{ marginBottom: 12 }}>
+										<div style={{ ...labelStyle, color: T.gold, marginBottom: 8 }}>🎫 Mã voucher (chỉ đọc)</div>
+										{getVoucherDisplay(selectedInvoice)
+											? <span style={tag(T.goldBg, T.gold, T.goldBorder)}>🎫 {getVoucherDisplay(selectedInvoice)}</span>
+											: <span style={{ color: T.textMuted, fontStyle: "italic" }}>Không áp dụng</span>}
 									</div>
 									<div>
-										<div className="inv-label" style={{ marginBottom: 8, color: T.gold }}>🔧 Phiếu sửa chữa (chỉ đọc)</div>
-										<div style={{ fontSize: 13 }}>
-											{getTicketDisplay(selectedInvoice)
-												? <span style={{ color: T.textSec, fontWeight: 500 }}>🔧 {getTicketDisplay(selectedInvoice)}</span>
-												: <span style={{ color: T.textMuted, fontSize: 13 }}><em>Không liên kết</em></span>}
-										</div>
+										<div style={{ ...labelStyle, color: T.gold, marginBottom: 8 }}>🔧 Phiếu sửa chữa (chỉ đọc)</div>
+										{getTicketDisplay(selectedInvoice)
+											? <span style={{ color: T.textSec, fontWeight: 500 }}>🔧 {getTicketDisplay(selectedInvoice)}</span>
+											: <span style={{ color: T.textMuted, fontStyle: "italic" }}>Không liên kết</span>}
 									</div>
 								</div>
 							</div>
-						) : (
-							<Alert severity="error">Không thể tải thông tin hóa đơn</Alert>
-						)}
+						) : <Alert severity="error">Không thể tải thông tin hóa đơn</Alert>}
 					</DialogContent>
 
-					<DialogActions sx={{ p: 2.5, gap: 1.5, borderTop: `2px solid ${T.border}`, background: "linear-gradient(90deg, transparent, rgba(26,43,94,0.02))" }}>
-						<button className="inv-btn" onClick={() => setOpenViewDialog(false)} style={{ marginRight: "auto" }}>✕ Đóng</button>
-						<button className="inv-btn primary" onClick={() => window.print()} style={{ background: `linear-gradient(135deg, ${T.navy}, ${T.navyLight})`, borderColor: T.navy }}>
+					<DialogActions sx={{ p: 2.5, gap: 1.5, borderTop: `2px solid ${T.border}`, bgcolor: "background.paper" }}>
+						<button style={{ ...btnStyle(T), marginRight: "auto" }} onClick={() => setOpenViewDialog(false)}>✕ Đóng</button>
+						<button style={btnStyle(T, "primary")} onClick={() => window.print()}>
 							<PrintIcon sx={{ fontSize: 15 }} /> In hóa đơn
 						</button>
-
 					</DialogActions>
 				</Dialog>
 
 				{/* ══════ EDIT DIALOG ══════ */}
 				<Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth
 					TransitionComponent={Grow} transitionDuration={400}
-					PaperProps={{ sx: { borderRadius: "20px", overflow: "hidden", boxShadow: "0 20px 60px rgba(192, 98, 10, 0.15)" } }}>
-					<div style={{ height: 4, background: `linear-gradient(90deg, ${T.gold} 0%, ${T.orange} 50%, ${T.gold} 100%)`, animation: "slideInTop 0.5s ease" }} />
-					<DialogTitle sx={{ background: `linear-gradient(135deg, ${T.goldBg} 0%, rgba(254, 243, 232, 0.5) 100%)`, borderBottom: `2px solid ${T.goldBorder}`, py: 2.5, px: 3 }}>
+					PaperProps={{ sx: { borderRadius: "20px", overflow: "hidden", boxShadow: "0 20px 60px rgba(192,98,10,0.15)", bgcolor: "background.paper" } }}>
+					<div style={{ height: 4, background: `linear-gradient(90deg, ${T.gold} 0%, ${T.orange} 50%, ${T.gold} 100%)` }} />
+					<DialogTitle sx={{ background: isDark ? `rgba(184,134,11,0.1)` : `linear-gradient(135deg, ${T.goldBg} 0%, rgba(254,243,232,0.5) 100%)`, borderBottom: `2px solid ${T.goldBorder}`, py: 2.5, px: 3 }}>
 						<Box display="flex" alignItems="center" gap={1.5} justifyContent="space-between">
 							<Box display="flex" alignItems="center" gap={1.5}>
 								<Box sx={{ width: 36, height: 36, borderRadius: "12px", background: `linear-gradient(135deg, ${T.gold}, ${T.orange})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -1029,78 +736,70 @@ const InvoiceManagement = () => {
 								</Box>
 								<Typography sx={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 18, color: T.navy, letterSpacing: "-0.3px" }}>Chỉnh sửa hóa đơn</Typography>
 							</Box>
-							<IconButton onClick={() => setOpenDialog(false)} size="small" sx={{ color: T.textDim, transition: "all 0.2s", "&:hover": { color: T.gold, transform: "scale(1.1)" } }}><CloseIcon sx={{ fontSize: 22 }} /></IconButton>
+							<IconButton onClick={() => setOpenDialog(false)} size="small" sx={{ color: T.textDim, "&:hover": { color: T.gold } }}><CloseIcon sx={{ fontSize: 22 }} /></IconButton>
 						</Box>
 					</DialogTitle>
-					<DialogContent sx={{ p: 3, background: "linear-gradient(180deg, #FFFFFF 0%, #FEF8EC 100%)" }}>
+					<DialogContent sx={{ p: 3, bgcolor: "background.paper" }}>
 						<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 6, marginBottom: 18 }}>
 							<div>
-								<div className="inv-label" style={{ marginBottom: 10, fontSize: 11.5 }}>📅 Ngày tạo</div>
+								<div style={{ ...labelStyle, marginBottom: 10 }}>📅 Ngày tạo</div>
 								<DatePicker
 									label="Chọn ngày"
 									value={formData.created_date ? dayjs(formData.created_date) : null}
 									onChange={d => setFormData(f => ({ ...f, created_date: d?.format("YYYY-MM-DD") || "" }))}
-									slotProps={{ textField: { fullWidth: true, size: "small", sx: { "& .MuiOutlinedInput-root": { borderRadius: "10px", transition: "all 0.2s" } } } }}
+									slotProps={{ textField: { fullWidth: true, size: "small", sx: { "& .MuiOutlinedInput-root": { borderRadius: "10px" } } } }}
 								/>
 							</div>
 							<div>
-								<div className="inv-label" style={{ marginBottom: 10, fontSize: 11.5 }}>💰 Tổng chi phí</div>
+								<div style={{ ...labelStyle, marginBottom: 10 }}>💰 Tổng chi phí</div>
 								<TextField
-									fullWidth size="small"
-									label="Nhập số tiền"
-									type="number"
+									fullWidth size="small" label="Nhập số tiền" type="number"
 									value={formData.total_cost}
 									onChange={e => { setFormData(f => ({ ...f, total_cost: e.target.value })); setFormErrors(er => ({ ...er, total_cost: "" })); }}
 									InputProps={{ startAdornment: <InputAdornment position="start">₫</InputAdornment> }}
-									error={!!formErrors.total_cost}
-									helperText={formErrors.total_cost}
-									sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px", transition: "all 0.2s" } }}
+									error={!!formErrors.total_cost} helperText={formErrors.total_cost}
+									sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
 								/>
 							</div>
 							<div style={{ gridColumn: "1 / -1" }}>
-								<div className="inv-label" style={{ marginBottom: 10, fontSize: 11.5 }}>💳 Phương thức thanh toán</div>
-								<FormControl fullWidth size="small" sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px", transition: "all 0.2s" } }}>
+								<div style={{ ...labelStyle, marginBottom: 10 }}>💳 Phương thức thanh toán</div>
+								<FormControl fullWidth size="small" sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}>
 									<InputLabel>Chọn phương thức</InputLabel>
 									<Select value={formData.payment_method} onChange={e => setFormData(f => ({ ...f, payment_method: e.target.value }))} label="Chọn phương thức">
 										<MenuItem value="CASH">💰 Tiền mặt</MenuItem>
 										<MenuItem value="CREDIT_CARD">💳 Thẻ tín dụng</MenuItem>
-										<MenuItem value="BANK_TRANSFER">🏦 Chuyển khoản</MenuItem>
+										<MenuItem value="BANK_TRANSFER">🏦 Chuyển khoản (BANK_TRANSFER)</MenuItem>
+										<MenuItem value="TRANSFER">🏦 Chuyển khoản (TRANSFER)</MenuItem>
 										<MenuItem value="MOMO">📱 MoMo</MenuItem>
 										<MenuItem value="VNPAY">💸 VNPay</MenuItem>
 									</Select>
 								</FormControl>
 							</div>
 						</div>
-
-						{/* Locked fields in edit dialog — chỉ render khi đã có data */}
 						{selectedInvoice && (
-							<div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "14px", background: T.goldBg, borderRadius: 14, border: `1.5px solid ${T.goldBorder}`, boxShadow: "0 4px 12px rgba(184, 134, 11, 0.08)" }}>
-								<div style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 10, borderBottom: `1px solid ${T.goldBorder}` }}>
+							<div style={{ background: T.goldBg, border: `1.5px solid ${T.goldBorder}`, borderRadius: 14, padding: 14 }}>
+								<div style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 10, borderBottom: `1px solid ${T.goldBorder}`, marginBottom: 12 }}>
 									<LockIcon sx={{ fontSize: 16, color: T.gold }} />
 									<span style={{ fontSize: 12, color: T.gold, fontWeight: 700 }}>Thông tin chỉ đọc</span>
 								</div>
-								<div>
-									<div className="inv-label" style={{ marginBottom: 6, color: T.gold }}>🎫 Mã voucher</div>
-									<div>
-										{getVoucherDisplay(selectedInvoice)
-											? <span className="tag tag-gold" style={{ fontSize: 12, fontWeight: 600 }}>🎫 {getVoucherDisplay(selectedInvoice)}</span>
-											: <span style={{ color: T.textMuted, fontSize: 12, fontStyle: "italic" }}>Không áp dụng</span>}
-									</div>
+								<div style={{ marginBottom: 10 }}>
+									<div style={{ ...labelStyle, color: T.gold, marginBottom: 6 }}>🎫 Mã voucher</div>
+									{getVoucherDisplay(selectedInvoice)
+										? <span style={tag(T.goldBg, T.gold, T.goldBorder)}>🎫 {getVoucherDisplay(selectedInvoice)}</span>
+										: <span style={{ color: T.textMuted, fontSize: 12, fontStyle: "italic" }}>Không áp dụng</span>}
 								</div>
 								<div>
-									<div className="inv-label" style={{ marginBottom: 6, color: T.gold }}>🔧 Phiếu sửa chữa</div>
-									<div>
-										{getTicketDisplay(selectedInvoice)
-											? <span style={{ fontSize: 12, color: T.textSec, fontWeight: 500 }}>🔧 {getTicketDisplay(selectedInvoice)}</span>
-											: <span style={{ color: T.textMuted, fontSize: 12, fontStyle: "italic" }}>Không liên kết</span>}
-									</div>
+									<div style={{ ...labelStyle, color: T.gold, marginBottom: 6 }}>🔧 Phiếu sửa chữa</div>
+									{getTicketDisplay(selectedInvoice)
+										? <span style={{ fontSize: 12, color: T.textSec, fontWeight: 500 }}>🔧 {getTicketDisplay(selectedInvoice)}</span>
+										: <span style={{ color: T.textMuted, fontSize: 12, fontStyle: "italic" }}>Không liên kết</span>}
 								</div>
 							</div>
 						)}
 					</DialogContent>
-					<DialogActions sx={{ p: 2.5, gap: 1.5, borderTop: `2px solid ${T.goldBorder}`, background: "linear-gradient(90deg, transparent, rgba(192, 98, 10, 0.02))" }}>
-						<button className="inv-btn" onClick={() => setOpenDialog(false)} style={{ marginRight: "auto" }}>✕ Hủy</button>
-						<button className="inv-btn primary" onClick={handleSubmit} style={{ background: `linear-gradient(135deg, ${T.gold}, ${T.orange})`, borderColor: T.gold }}>
+					<DialogActions sx={{ p: 2.5, gap: 1.5, borderTop: `2px solid ${T.goldBorder}`, bgcolor: "background.paper" }}>
+						<button style={{ ...btnStyle(T), marginRight: "auto" }} onClick={() => setOpenDialog(false)}>✕ Hủy</button>
+						<button style={{ ...btnStyle(T, "primary"), background: `linear-gradient(135deg, ${T.gold}, ${T.orange})`, borderColor: T.gold }} onClick={handleSubmit}>
 							<SaveIcon sx={{ fontSize: 15 }} /> Lưu thay đổi
 						</button>
 					</DialogActions>

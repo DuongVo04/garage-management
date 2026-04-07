@@ -5,15 +5,17 @@ import {
 	Button, Divider, CircularProgress, Alert, Stack,
 	Dialog, DialogContent, Card, CardContent,
 	Breadcrumbs, Link, Chip, Fade,
+	Select, MenuItem, FormControl, InputLabel, FormHelperText,
 } from '@mui/material';
 import {
 	Person, Phone, Email, CheckCircle, Build,
 	Schedule, AccessTime, NavigateNext,
 	CheckCircleOutline, RadioButtonUnchecked,
-	Verified, Home
+	Verified, Home, DirectionsCar,
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 import apiClient from '../../services/apiClient';
+import { getMyCustomerInfo } from '../../services/customer.service';
 
 // ─── Design Tokens ────────────────────────────────────────────────────────────
 const TOKEN = {
@@ -167,6 +169,8 @@ const BookingPage = () => {
 	const [success, setSuccess] = useState(false);
 	const [submitError, setSubmitError] = useState(null);
 	const [touched, setTouched] = useState({});
+	const [customerData, setCustomerData] = useState(null);
+	const [selectedVehicleId, setSelectedVehicleId] = useState('');
 
 	const [formData, setFormData] = useState({
 		appointment_date: '',
@@ -185,32 +189,42 @@ const BookingPage = () => {
 		}
 	}, [location.state, serviceId]);
 
-	// ── Fetch services ────────────────────────────────────────────────────────
+	// ── Fetch services + customer info ──────────────────────────────────────
 	useEffect(() => {
-		const fetchAllServices = async () => {
+		const fetchAll = async () => {
 			try {
-				const response = await apiClient.get('/services?is_deleted=false');
-				const services = response.data?.data || response.data || [];
-				setAllServices(services);
+				const [servicesRes, customerRes] = await Promise.all([
+					apiClient.get('/services?is_deleted=false'),
+					getMyCustomerInfo(),
+				]);
+
+				// Services
+				const services = servicesRes.data?.data || servicesRes.data || [];
+				setAllServices(Array.isArray(services) ? services : []);
+
+				// Customer info → auto-fill form
+				if (customerRes?.success && customerRes.data) {
+					const c = customerRes.data;
+					setCustomerData(c);
+					setFormData(prev => ({
+						...prev,
+						customer_name: c.full_name || prev.customer_name || '',
+						customer_phone: c.phone_number || prev.customer_phone || '',
+						customer_email: c.email || prev.customer_email || '',
+					}));
+					// Pre-select vehicle if only one
+					if (c.vehicles?.length === 1) {
+						setSelectedVehicleId(c.vehicles[0].id);
+					}
+				}
 			} catch (err) {
-				setFetchError('Không thể kết nối với hệ thống dịch vụ. Vui lòng thử lại sau.');
+				setFetchError('Không thể kết nối với hệ thống. Vui lòng thử lại sau.');
 			} finally {
 				setLoading(false);
 			}
 		};
-		fetchAllServices();
+		fetchAll();
 	}, []);
-
-	useEffect(() => {
-		if (user) {
-			setFormData(prev => ({
-				...prev,
-				customer_name: user.full_name || '',
-				customer_phone: user.phone_number || '',
-				customer_email: user.email || '',
-			}));
-		}
-	}, [user]);
 
 	// ── Handlers ──────────────────────────────────────────────────────────────
 	const toggleService = useCallback((id) => {
@@ -239,6 +253,12 @@ const BookingPage = () => {
 		selectedServiceId ? allServices.find(s => s.id === selectedServiceId) : null,
 		[allServices, selectedServiceId]);
 
+	const vehicles = customerData?.vehicles || [];
+
+	const selectedVehicle = useMemo(() =>
+		selectedVehicleId ? vehicles.find(v => v.id === selectedVehicleId) : null,
+		[vehicles, selectedVehicleId]);
+
 	const totalPrice = useMemo(() =>
 		selectedService ? Number(selectedService.price) || 0 : 0,
 		[selectedService]);
@@ -249,11 +269,13 @@ const BookingPage = () => {
 
 	const stepStatus = useMemo(() => ({
 		services: selectedServiceId !== null,
+		vehicle: vehicles.length === 0 || !!selectedVehicleId, // optional if no vehicles
 		personal: !fieldErrors.customer_name && !fieldErrors.customer_phone && !fieldErrors.customer_email
 			&& !!formData.customer_name && !!formData.customer_phone && !!formData.customer_email,
 		schedule: !fieldErrors.appointment_date && !!formData.appointment_date,
-	}), [fieldErrors, formData, selectedServiceId]);
+	}), [fieldErrors, formData, selectedServiceId, selectedVehicleId, vehicles.length]);
 
+	const totalSteps = vehicles.length > 0 ? 4 : 3;
 	const completedSteps = Object.values(stepStatus).filter(Boolean).length;
 
 	const formatCurrency = useCallback((amount) =>
@@ -278,6 +300,8 @@ const BookingPage = () => {
 			const payload = {
 				appointment_date: formData.appointment_date,
 				customer_id: user?.id,
+				service_id: selectedServiceId,  // <-- ID này quan trọng
+				vehicle_id: selectedVehicleId || undefined,
 				customer_info: {
 					full_name: formData.customer_name,
 					phone_number: formData.customer_phone,
@@ -285,7 +309,17 @@ const BookingPage = () => {
 				}
 			};
 
+			// 🔍 DEBUG: In ra console để kiểm tra
+			console.log('=== DEBUG BOOKING ===');
+			console.log('1. Selected Service ID:', selectedServiceId);
+			console.log('2. Selected Service Object:', selectedService);
+			console.log('3. Full Payload:', payload);
+			console.log('=====================');
+
 			const response = await apiClient.post('/repair-appointments', payload);
+
+			// 🔍 DEBUG: In response từ server
+			console.log('4. Server Response:', response.data);
 
 			if (response.data.success) {
 				setSuccess(true);
@@ -340,12 +374,12 @@ const BookingPage = () => {
 						{/* Progress */}
 						<Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
 							<Typography variant="caption" fontWeight={700} sx={{ color: TOKEN.muted }}>
-								Hoàn thành {completedSteps}/3 bước
+								Hoàn thành {completedSteps}/{totalSteps} bước
 							</Typography>
 							<Box sx={{ width: 80, height: 4, bgcolor: TOKEN.borderLight, borderRadius: 2, overflow: 'hidden' }}>
 								<Box sx={{
 									height: '100%', borderRadius: 2, bgcolor: TOKEN.coal,
-									width: `${(completedSteps / 3) * 100}%`,
+									width: `${(completedSteps / totalSteps) * 100}%`,
 									transition: 'width 0.4s ease',
 								}} />
 							</Box>
@@ -418,10 +452,116 @@ const BookingPage = () => {
 								</Box>
 							)}
 
-							{/* STEP 2 */}
-							<SectionTitle number={2} icon={Person} title="Thông tin cá nhân"
+							{/* STEP 2 — Phương tiện (chỉ hiện nếu có xe) */}
+							{vehicles.length > 0 && (
+								<>
+									<SectionTitle number={2} icon={DirectionsCar} title="Chọn phương tiện"
+										isActive={stepStatus.services && !stepStatus.vehicle} isDone={stepStatus.vehicle && !!selectedVehicleId} />
+									<Paper elevation={0} sx={{ p: 3.5, borderRadius: '16px', border: `1px solid ${TOKEN.border}`, bgcolor: TOKEN.white }}>
+										<Box sx={{
+											display: 'grid',
+											gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
+											gap: 2,
+										}}>
+											{/* Option: không chọn xe */}
+											<Box
+												onClick={() => setSelectedVehicleId('')}
+												sx={{
+													p: 2, borderRadius: '12px', cursor: 'pointer',
+													border: '1.5px dashed',
+													borderColor: !selectedVehicleId ? TOKEN.coal : TOKEN.border,
+													bgcolor: !selectedVehicleId ? `${TOKEN.coal}08` : TOKEN.white,
+													display: 'flex', alignItems: 'center', gap: 1.5,
+													transition: 'all 0.18s ease',
+													'&:hover': { borderColor: TOKEN.coal },
+												}}
+											>
+												<Box sx={{
+													width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
+													display: 'flex', alignItems: 'center', justifyContent: 'center',
+													bgcolor: !selectedVehicleId ? TOKEN.coal : TOKEN.borderLight,
+												}}>
+													<DirectionsCar sx={{ fontSize: 18, color: !selectedVehicleId ? '#fff' : TOKEN.muted }} />
+												</Box>
+												<Box>
+													<Typography variant="caption" fontWeight={700}
+														sx={{ color: !selectedVehicleId ? TOKEN.coal : TOKEN.slate, display: 'block' }}>
+														Chưa chọn xe
+													</Typography>
+													<Typography variant="caption" sx={{ color: TOKEN.muted, fontSize: '0.72rem' }}>
+														Bỏ qua bước này
+													</Typography>
+												</Box>
+												{!selectedVehicleId && (
+													<CheckCircle sx={{ fontSize: 16, color: TOKEN.coal, ml: 'auto', flexShrink: 0 }} />
+												)}
+											</Box>
+
+											{vehicles.map((vehicle) => (
+												<Box
+													key={vehicle.id}
+													onClick={() => setSelectedVehicleId(vehicle.id)}
+													sx={{
+														p: 2, borderRadius: '12px', cursor: 'pointer',
+														border: '1.5px solid',
+														borderColor: selectedVehicleId === vehicle.id ? TOKEN.coal : TOKEN.border,
+														bgcolor: selectedVehicleId === vehicle.id ? TOKEN.coal : TOKEN.white,
+														display: 'flex', alignItems: 'center', gap: 1.5,
+														transition: 'all 0.18s ease',
+														'&:hover': {
+															borderColor: TOKEN.coal,
+															transform: 'translateY(-2px)',
+															boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+														},
+													}}
+												>
+													<Box sx={{
+														width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
+														display: 'flex', alignItems: 'center', justifyContent: 'center',
+														bgcolor: selectedVehicleId === vehicle.id ? 'rgba(255,255,255,0.15)' : TOKEN.borderLight,
+													}}>
+														<DirectionsCar sx={{
+															fontSize: 18,
+															color: selectedVehicleId === vehicle.id ? '#fff' : TOKEN.muted,
+														}} />
+													</Box>
+													<Box sx={{ flex: 1, minWidth: 0 }}>
+														<Typography variant="caption" fontWeight={700} noWrap
+															sx={{ color: selectedVehicleId === vehicle.id ? TOKEN.white : TOKEN.coal, display: 'block' }}>
+															{vehicle.name || `${vehicle.brand?.name || ''} ${vehicle.type || ''}`.trim() || 'Xe của tôi'}
+														</Typography>
+														<Typography variant="caption" noWrap
+															sx={{ color: selectedVehicleId === vehicle.id ? 'rgba(255,255,255,0.6)' : TOKEN.muted, fontSize: '0.72rem' }}>
+															{vehicle.plate_number || 'Chưa có biển số'}
+														</Typography>
+													</Box>
+													{selectedVehicleId === vehicle.id && (
+														<CheckCircle sx={{ fontSize: 16, color: '#fff', flexShrink: 0 }} />
+													)}
+												</Box>
+											))}
+										</Box>
+									</Paper>
+								</>
+							)}
+
+							{/* STEP 2 or 3 — Thông tin cá nhân */}
+							<SectionTitle number={vehicles.length > 0 ? 3 : 2} icon={Person} title="Thông tin cá nhân"
 								isActive={stepStatus.services && !stepStatus.personal} isDone={stepStatus.personal} />
 							<Paper elevation={0} sx={{ p: 3.5, borderRadius: '16px', border: `1px solid ${TOKEN.border}`, bgcolor: TOKEN.white }}>
+								{/* Auto-fill badge */}
+								{customerData && (
+									<Box sx={{
+										display: 'flex', alignItems: 'center', gap: 1,
+										mb: 2.5, px: 1.5, py: 1, borderRadius: '8px',
+										bgcolor: TOKEN.greenLight, border: `1px solid ${TOKEN.green}22`,
+									}}>
+										<CheckCircle sx={{ fontSize: 14, color: TOKEN.green }} />
+										<Typography variant="caption" fontWeight={600} sx={{ color: TOKEN.green }}>
+											Đã tự động điền từ hồ sơ của bạn — có thể chỉnh sửa nếu cần
+										</Typography>
+									</Box>
+								)}
 								<Grid container spacing={2.5}>
 									<Grid item xs={12}>
 										<FormField label="Họ và tên *" name="customer_name"
@@ -447,11 +587,56 @@ const BookingPage = () => {
 											InputProps={{ startAdornment: <Email sx={{ mr: 1, fontSize: 18, color: TOKEN.muted }} /> }}
 										/>
 									</Grid>
+									<Grid item xs={12}>
+										<FormControl fullWidth>
+											<InputLabel sx={{ fontSize: '0.88rem' }}>Phương tiện</InputLabel>
+											<Select
+												value={selectedVehicleId}
+												onChange={(e) => setSelectedVehicleId(e.target.value)}
+												label="Phương tiện"
+												sx={{
+													borderRadius: '10px', bgcolor: TOKEN.white, fontSize: '0.92rem',
+													'& fieldset': { borderColor: TOKEN.border },
+													'&:hover fieldset': { borderColor: TOKEN.coal },
+													'&.Mui-focused fieldset': { borderColor: TOKEN.coal, borderWidth: 2 },
+												}}
+											>
+												<MenuItem value="">
+													<Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+														<DirectionsCar sx={{ fontSize: 16, color: TOKEN.muted }} />
+														<Typography variant="body2" sx={{ color: TOKEN.muted }}>Không chọn xe</Typography>
+													</Box>
+												</MenuItem>
+												{vehicles.map((vehicle) => (
+													<MenuItem key={vehicle.id} value={vehicle.id}>
+														<Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+															<DirectionsCar sx={{ fontSize: 16, color: TOKEN.coal }} />
+															<Box>
+																<Typography variant="body2" fontWeight={600} sx={{ color: TOKEN.coal, lineHeight: 1.3 }}>
+																	{vehicle.name || `${vehicle.brand?.name || ''} ${vehicle.type || ''}`.trim() || 'Xe của tôi'}
+																</Typography>
+																{vehicle.plate_number && (
+																	<Typography variant="caption" sx={{ color: TOKEN.muted, fontSize: '0.72rem', display: 'block' }}>
+																		{vehicle.plate_number}
+																	</Typography>
+																)}
+															</Box>
+														</Box>
+													</MenuItem>
+												))}
+											</Select>
+											<FormHelperText sx={{ mx: 0, mt: 0.5, fontSize: '0.75rem', minHeight: '1.2em' }}>
+												{vehicles.length === 0
+													? 'Chưa có xe — thêm xe trong hồ sơ của bạn'
+													: 'Tùy chọn — chọn xe để kỹ thuật viên chuẩn bị tốt hơn'}
+											</FormHelperText>
+										</FormControl>
+									</Grid>
 								</Grid>
 							</Paper>
 
-							{/* STEP 3 */}
-							<SectionTitle number={3} icon={Schedule} title="Thời gian hẹn"
+							{/* STEP 3 or 4 — Thời gian hẹn */}
+							<SectionTitle number={vehicles.length > 0 ? 4 : 3} icon={Schedule} title="Thời gian hẹn"
 								isActive={stepStatus.personal && !stepStatus.schedule} isDone={stepStatus.schedule} />
 							<Paper elevation={0} sx={{ p: 3.5, borderRadius: '16px', border: `1px solid ${TOKEN.border}`, bgcolor: TOKEN.white }}>
 								<Grid container spacing={2.5}>
@@ -507,6 +692,30 @@ const BookingPage = () => {
 										<Typography variant="caption" fontWeight={800} sx={{ color: TOKEN.gold, flexShrink: 0 }}>
 											{formatCurrency(selectedService.price)}
 										</Typography>
+									</Box>
+								)}
+
+								{selectedVehicle && (
+									<Box sx={{
+										display: 'flex', justifyContent: 'space-between',
+										alignItems: 'flex-start', gap: 1.5,
+										p: 1.5, borderRadius: '10px',
+										bgcolor: TOKEN.surface, border: `1px solid ${TOKEN.borderLight}`,
+										mb: 2.5,
+									}}>
+										<Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+											<DirectionsCar sx={{ fontSize: 14, color: TOKEN.coal, mt: 0.3, flexShrink: 0 }} />
+											<Box>
+												<Typography variant="caption" fontWeight={700} sx={{ color: TOKEN.coal, lineHeight: 1.4, display: 'block' }}>
+													{selectedVehicle.name || `${selectedVehicle.brand?.name || ''} ${selectedVehicle.type || ''}`.trim() || 'Xe của tôi'}
+												</Typography>
+												{selectedVehicle.plate_number && (
+													<Typography variant="caption" sx={{ color: TOKEN.muted, fontSize: '0.7rem' }}>
+														{selectedVehicle.plate_number}
+													</Typography>
+												)}
+											</Box>
+										</Box>
 									</Box>
 								)}
 

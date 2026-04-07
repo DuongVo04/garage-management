@@ -108,7 +108,7 @@ const EmployeeTable = ({ employees, loading, searchTerm, onEdit, onDelete, emplo
 		<Fade in={fadeIn} timeout={300}>
 			<TableContainer>
 				<Table>
-					<TableHead sx={{ bgcolor: '#e3f2fd' }}>
+					<TableHead>
 						<TableRow>
 							<TableCell sx={{ fontWeight: 'bold' }}>Tên nhân viên</TableCell>
 							<TableCell sx={{ fontWeight: 'bold' }}>Số điện thoại</TableCell>
@@ -240,7 +240,7 @@ const TypeTable = memo(({ types, loading, searchTerm, onEdit, onDelete, typeSubT
 		<Fade in={fadeIn} timeout={300}>
 			<TableContainer>
 				<Table>
-					<TableHead sx={{ bgcolor: '#e3f2fd' }}>
+					<TableHead>
 						<TableRow>
 							<TableCell sx={{ fontWeight: 'bold' }}>ID</TableCell>
 							<TableCell sx={{ fontWeight: 'bold' }}>Tên loại</TableCell>
@@ -741,7 +741,7 @@ const EmployeePage = () => {
 	);
 
 	return (
-		<Box sx={{ minHeight: '100vh', p: 4, bgcolor: '#f5f5f5' }}>
+		<Box sx={{ minHeight: '100vh', p: 4, bgcolor: 'background.default' }}>
 			<Typography variant="h4" fontWeight="bold" mb={3} sx={{ color: '#1a237e' }}>
 				Quản lý nhân viên
 			</Typography>

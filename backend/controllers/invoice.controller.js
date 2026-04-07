@@ -15,14 +15,14 @@ const basicInclude = [
         as: "voucher",
         attributes: ["id", "code", "percent", "event"],
         foreignKey: "discount_id",
-        required: false   // LEFT JOIN — invoice không có voucher vẫn trả về
+        required: false
     },
     {
         model: RepairTicket,
         as: "ticket",
         attributes: ["id", "description", "appointment_id"],
         foreignKey: "ticket_id",
-        required: false,  // LEFT JOIN — invoice không có ticket vẫn trả về
+        required: false,
         include: [
             {
                 model: RepairAppointment,

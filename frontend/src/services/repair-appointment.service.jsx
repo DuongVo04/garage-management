@@ -27,3 +27,8 @@ export const createRepairAppointment = async (data) => {
 	const response = await apiClient.post("/repair-appointments", data);
 	return response.data;
 };
+
+export const cancelOverdueAppointments = async () => {
+	const response = await apiClient.patch("/repair-appointments/cancel-overdue");
+	return response.data;
+};

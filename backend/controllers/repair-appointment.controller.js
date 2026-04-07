@@ -33,7 +33,7 @@ const baseController = baseCRUD(RepairAppointment, {
 });
 
 const create = async (data) => {
-    const { appointment_date, customer_id, customer_info } = data;
+    const { appointment_date, customer_id, customer_info, service_id } = data;
     
     let finalCustomerId = customer_id;
 
@@ -63,6 +63,7 @@ const create = async (data) => {
     const appointment = await RepairAppointment.create({
         appointment_date,
         customer_id: finalCustomerId,
+		service_id: service_id,
         status: REPAIR_APPOINTMENT_STATUS.BOOKED,
         created_date: new Date()
     });

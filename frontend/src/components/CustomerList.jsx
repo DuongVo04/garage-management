@@ -1,217 +1,214 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  TextField,
-  InputAdornment,
-  IconButton,
-  CircularProgress,
-  Alert,
-  Chip,
-  Box,
-  Typography,
-  Button
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+    Paper, TextField, InputAdornment, IconButton, CircularProgress,
+    Alert, Chip, Box, Typography, Button, Pagination,
 } from "@mui/material";
-import {
-  Search,
-  PersonOutline,
-  Edit,
-  Add,
-  Refresh
-} from "@mui/icons-material";
+import { Search, PersonOutline, Edit, Add, Refresh } from "@mui/icons-material";
 import customerService from "../services/customerService";
 
+const PAGE_SIZE = 10;
+
 const CustomerList = ({ onCustomerClick, onEditCustomer, onRefresh }) => {
-  const [customers, setCustomers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
+    const [customers, setCustomers]     = useState([]);
+    const [loading, setLoading]         = useState(true);
+    const [error, setError]             = useState(null);
+    const [searchInput, setSearchInput] = useState("");
+    const [searchTerm, setSearchTerm]   = useState("");
+    const [page, setPage]               = useState(1);
+    const debounceRef                   = useRef(null);
 
-  const fetchCustomers = async () => {
-    try {
-      setLoading(true);
-      const response = await customerService.getCustomers();
-      setCustomers(response.data);
-      setError(null);
-    } catch (err) {
-      setError("Không thể tải danh sách khách hàng");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCustomers();
-  }, []);
-
-  // Refresh danh sách khi có thay đổi
-  useEffect(() => {
-    if (onRefresh) {
-      fetchCustomers();
-    }
-  }, [onRefresh]);
-
-  const filteredCustomers = customers.filter(customer =>
-    customer.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.phone_number?.includes(searchTerm) ||
-    customer.account?.username?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleEdit = (e, customerId) => {
-    e.stopPropagation();
-    onEditCustomer && onEditCustomer(customerId);
-  };
-
-  const handleViewDetail = (customerId) => {
-    onCustomerClick && onCustomerClick(customerId);
-  };
-
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Alert 
-        severity="error" 
-        sx={{ m: 2 }}
-        action={
-          <Button color="inherit" size="small" onClick={fetchCustomers}>
-            Thử lại
-          </Button>
+    const fetchCustomers = useCallback(async () => {
+        try {
+            setLoading(true);
+            const response = await customerService.getCustomers();
+            setCustomers(response.data ?? []);
+            setError(null);
+        } catch {
+            setError("Không thể tải danh sách khách hàng");
+        } finally {
+            setLoading(false);
         }
-      >
-        {error}
-      </Alert>
+    }, []);
+
+    useEffect(() => { fetchCustomers(); }, [fetchCustomers]);
+    useEffect(() => { if (onRefresh) fetchCustomers(); }, [onRefresh, fetchCustomers]);
+
+    /* debounce search — chỉ filter sau 300ms không gõ */
+    const handleSearchChange = useCallback((e) => {
+        const val = e.target.value;
+        setSearchInput(val);
+        clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(() => {
+            setSearchTerm(val);
+            setPage(1);
+        }, 300);
+    }, []);
+
+    /* useMemo — chỉ tính lại khi customers hoặc searchTerm đổi */
+    const filtered = useMemo(() => {
+        const q = searchTerm.toLowerCase();
+        if (!q) return customers;
+        return customers.filter(
+            (c) =>
+                c.full_name?.toLowerCase().includes(q) ||
+                c.email?.toLowerCase().includes(q) ||
+                c.phone_number?.includes(q) ||
+                c.account?.username?.toLowerCase().includes(q)
+        );
+    }, [customers, searchTerm]);
+
+    const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+    const paginated  = useMemo(
+        () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+        [filtered, page]
     );
-  }
 
-  return (
-    <div>
-      <Box sx={{ mb: 3, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Typography variant="h5" component="h2">
-          Quản lý khách hàng
-        </Typography>
-        <Box sx={{ display: "flex", gap: 2 }}>
-          <Button
-            variant="outlined"
-            startIcon={<Refresh />}
-            onClick={fetchCustomers}
-            size="small"
-          >
-            Làm mới
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={() => onEditCustomer(null)}
-            size="small"
-          >
-            Thêm khách hàng
-          </Button>
+    const handleEdit = useCallback(
+        (e, id) => { e.stopPropagation(); onEditCustomer?.(id); },
+        [onEditCustomer]
+    );
+
+    if (loading) {
+        return (
+            <Box display="flex" justifyContent="center" alignItems="center" minHeight={300}>
+                <CircularProgress />
+            </Box>
+        );
+    }
+
+    if (error) {
+        return (
+            <Alert
+                severity="error"
+                sx={{ m: 2 }}
+                action={<Button color="inherit" size="small" onClick={fetchCustomers}>Thử lại</Button>}
+            >
+                {error}
+            </Alert>
+        );
+    }
+
+    return (
+        <Box>
+            {/* Header */}
+            <Box sx={{ mb: 2.5, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 1 }}>
+                <Box>
+                    <Typography variant="h5" fontWeight={700}>Quản lý khách hàng</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        {filtered.length} khách hàng{searchTerm ? ` (lọc từ ${customers.length})` : ""}
+                    </Typography>
+                </Box>
+                <Box sx={{ display: "flex", gap: 1 }}>
+                    <Button variant="outlined" startIcon={<Refresh />} onClick={fetchCustomers} size="small">
+                        Làm mới
+                    </Button>
+                    {/* Nút thêm ẩn — khách hàng tự đăng ký qua app */}
+                </Box>
+            </Box>
+
+            {/* Search */}
+            <TextField
+                placeholder="Tìm theo tên, SĐT, email, tài khoản..."
+                variant="outlined"
+                size="small"
+                fullWidth
+                value={searchInput}
+                onChange={handleSearchChange}
+                slotProps={{
+                    input: {
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <Search fontSize="small" />
+                            </InputAdornment>
+                        ),
+                    },
+                }}
+                sx={{ mb: 2 }}
+            />
+
+            {/* Table */}
+            <TableContainer component={Paper} variant="outlined">
+                <Table size="small">
+                    <TableHead>
+                        <TableRow>
+                            <TableCell><strong>Họ tên</strong></TableCell>
+                            <TableCell><strong>Số điện thoại</strong></TableCell>
+                            <TableCell><strong>Email</strong></TableCell>
+                            <TableCell><strong>Địa chỉ</strong></TableCell>
+                            <TableCell><strong>Tài khoản</strong></TableCell>
+                            <TableCell align="center"><strong>Thao tác</strong></TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {paginated.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={6} align="center" sx={{ py: 6, color: "text.secondary" }}>
+                                    Không tìm thấy khách hàng nào
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            paginated.map((customer) => (
+                                <TableRow
+                                    key={customer.id}
+                                    hover
+                                    sx={{ cursor: "pointer" }}
+                                    onClick={() => onCustomerClick?.(customer.id)}
+                                >
+                                    <TableCell>{customer.full_name}</TableCell>
+                                    <TableCell>{customer.phone_number}</TableCell>
+                                    <TableCell>{customer.email}</TableCell>
+                                    <TableCell sx={{ maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                        {customer.address}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Chip
+                                            label={customer.account?.username || "Chưa liên kết"}
+                                            size="small"
+                                            color={customer.account ? "primary" : "default"}
+                                            variant="outlined"
+                                        />
+                                    </TableCell>
+                                    <TableCell align="center" onClick={(e) => e.stopPropagation()}>
+                                        <IconButton
+                                            color="primary"
+                                            size="small"
+                                            title="Chỉnh sửa"
+                                            onClick={(e) => handleEdit(e, customer.id)}
+                                        >
+                                            <Edit fontSize="small" />
+                                        </IconButton>
+                                        <IconButton
+                                            color="info"
+                                            size="small"
+                                            title="Xem chi tiết"
+                                            onClick={() => onCustomerClick?.(customer.id)}
+                                        >
+                                            <PersonOutline fontSize="small" />
+                                        </IconButton>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+                <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
+                    <Pagination
+                        count={totalPages}
+                        page={page}
+                        onChange={(_, p) => setPage(p)}
+                        color="primary"
+                        shape="rounded"
+                        size="small"
+                    />
+                </Box>
+            )}
         </Box>
-      </Box>
-
-      <TextField
-        placeholder="Tìm kiếm khách hàng..."
-        variant="outlined"
-        size="small"
-        fullWidth
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <Search />
-            </InputAdornment>
-          ),
-        }}
-        sx={{ mb: 2, width: "100%" }}
-      />
-
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
-              <TableCell><strong>Họ tên</strong></TableCell>
-              <TableCell><strong>Số điện thoại</strong></TableCell>
-              <TableCell><strong>Email</strong></TableCell>
-              <TableCell><strong>Địa chỉ</strong></TableCell>
-              <TableCell><strong>Tài khoản</strong></TableCell>
-              <TableCell align="center"><strong>Thao tác</strong></TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredCustomers.map((customer) => (
-              <TableRow 
-                key={customer.id}
-                hover
-                sx={{ cursor: "pointer" }}
-              >
-                <TableCell onClick={() => handleViewDetail(customer.id)}>
-                  {customer.full_name}
-                </TableCell>
-                <TableCell onClick={() => handleViewDetail(customer.id)}>
-                  {customer.phone_number}
-                </TableCell>
-                <TableCell onClick={() => handleViewDetail(customer.id)}>
-                  {customer.email}
-                </TableCell>
-                <TableCell onClick={() => handleViewDetail(customer.id)}>
-                  {customer.address}
-                </TableCell>
-                <TableCell onClick={() => handleViewDetail(customer.id)}>
-                  <Chip 
-                    label={customer.account?.username || "N/A"}
-                    size="small"
-                    color="primary"
-                    variant="outlined"
-                  />
-                </TableCell>
-                <TableCell align="center">
-                  <IconButton
-                    color="primary"
-                    onClick={(e) => handleEdit(e, customer.id)}
-                    size="small"
-                    title="Chỉnh sửa"
-                  >
-                    <Edit />
-                  </IconButton>
-                  <IconButton
-                    color="info"
-                    onClick={() => handleViewDetail(customer.id)}
-                    size="small"
-                    title="Xem chi tiết"
-                  >
-                    <PersonOutline />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-      {filteredCustomers.length === 0 && (
-        <Box sx={{ textAlign: "center", mt: 4 }}>
-          <Typography color="textSecondary">
-            Không tìm thấy khách hàng nào
-          </Typography>
-        </Box>
-      )}
-    </div>
-  );
+    );
 };
 
 export default CustomerList;

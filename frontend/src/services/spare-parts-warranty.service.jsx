@@ -27,7 +27,8 @@ export const getSparePartsWarrantyByUsageId = async (usageId) => {
 // Tạo phiếu bảo hành
 export const createSparePartsWarranty = async (data) => {
 	try {
-		const response = await apiClient.post("/spare-parts-warranties", data);
+		const { usage_id, ...rest } = data;
+		const response = await apiClient.post(`/spare-parts-warranties/${usage_id}`, rest);
 		return response.data;
 	} catch (error) {
 		console.error("Error creating spare parts warranty:", error);

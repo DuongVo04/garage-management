@@ -12,7 +12,6 @@ const sparePartsWarrantyValidator = [
         .bail()
         .isInt({ min: 0 }).withMessage("Duration must be a non-negative integer"),
 
-    bodyIdValidator("usage_id")
 ];
 
 export default sparePartsWarrantyValidator;

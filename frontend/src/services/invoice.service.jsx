@@ -27,7 +27,8 @@ export const createInvoice = async (data) => {
 		const res = await apiClient.post("/invoices", data);
 		return res.data;
 	} catch (error) {
-		console.error("createInvoice error:", error);
+		console.error("createInvoice request data:", data);
+		console.error("createInvoice response errors:", error.response?.data);
 		throw error;
 	}
 };
